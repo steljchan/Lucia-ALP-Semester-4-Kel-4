@@ -11,6 +11,7 @@ import {
   ScrollView 
 } from 'react-native';
 import { COLORS, MARGIN_HORIZONTAL} from '../../utils/theme';
+import Card from '../../src/components/common/card';
 
 export default function LoginScreen() {
   return (
@@ -29,7 +30,7 @@ export default function LoginScreen() {
         </View>
 
         {/* SECTION KARTU: FORM LOGIN */}
-        <View style={[styles.card, { marginHorizontal: MARGIN_HORIZONTAL }]}>
+        <Card style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
           <Text style={styles.titleMasuk}>Masuk</Text>
           <Text style={styles.descMasuk}>Masuk ke Akun Kamu</Text>
 
@@ -59,7 +60,7 @@ export default function LoginScreen() {
           <TouchableOpacity style={styles.btnMasuk}>
             <Text style={styles.btnText}>Masuk</Text>
           </TouchableOpacity>
-        </View>
+        </Card>
       </ScrollView>
     </KeyboardAvoidingView>
   );

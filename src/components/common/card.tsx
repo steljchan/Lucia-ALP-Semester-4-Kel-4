@@ -4,7 +4,7 @@ import { COLORS, BORDER_RADIUS, SPACING } from '../../../utils/theme';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle; // Agar bisa ditambah style tambahan jika perlu
+  style?: ViewStyle; 
 }
 
 const Card = ({ children, style }: CardProps) => {
@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 30, 
+    padding: SPACING.lg,
     // Efek Shadow & Border standar Lucia
     elevation: 4,
     shadowColor: '#000',

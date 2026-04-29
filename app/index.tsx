@@ -8,9 +8,8 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    // Memberi jeda sedikit agar sistem routing siap
     const timer = setTimeout(() => {
-      router.replace('/auth/login');
+      router.replace('/auth/splash');
     }, 100);
 
     return () => clearTimeout(timer);
