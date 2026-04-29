@@ -7,6 +7,7 @@ export const COLORS = {
   textSub: '#7DA1C4',
   success: '#4CAF50',
   error: '#F44336',
+
 };
 
 export const SPACING = {
@@ -29,3 +30,5 @@ export const BORDER_RADIUS = {
   m: 20,
   l: 30,
 };
+
+export const MARGIN_HORIZONTAL = 20;

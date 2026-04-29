@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView 
 } from 'react-native';
-import { COLORS} from '../../utils/theme';
+import { COLORS, MARGIN_HORIZONTAL} from '../../utils/theme';
 
 export default function LoginScreen() {
   return (
@@ -29,7 +29,7 @@ export default function LoginScreen() {
         </View>
 
         {/* SECTION KARTU: FORM LOGIN */}
-        <View style={styles.card}>
+        <View style={[styles.card, { marginHorizontal: MARGIN_HORIZONTAL }]}>
           <Text style={styles.titleMasuk}>Masuk</Text>
           <Text style={styles.descMasuk}>Masuk ke Akun Kamu</Text>
 
@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 35,
+    borderRadius: 30,
     padding: 30,
-    marginHorizontal: 20,
+    marginHorizontal: MARGIN_HORIZONTAL,
     marginBottom: 40,
     // Efek Shadow & Border
     elevation: 4,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 20,
     borderWidth: 1,
-    borderColor: '#EAF6FF',
+    borderColor: COLORS.primary,
   },
   titleMasuk: { 
     fontSize: 24, 
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   btnMasuk: {
     backgroundColor: COLORS.primary,
     height: 55,
-    borderRadius: 15,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     // Shadow tombol
