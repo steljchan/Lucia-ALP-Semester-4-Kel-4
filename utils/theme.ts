@@ -2,6 +2,7 @@ export const COLORS = {
   primary: '#5CBEFA',
   secondary: '#76CFFF', 
   background: '#F0F9FF',
+  smoothBlue: '#D6EFFF',
   white: '#FFFFFF',
   textMain: '#1A3B5D',
   textSub: '#7DA1C4',
@@ -31,3 +32,4 @@ export const BORDER_RADIUS = {
 };
 
 export const MARGIN_HORIZONTAL = 20;
+

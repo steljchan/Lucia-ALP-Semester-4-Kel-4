@@ -17,7 +17,6 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
-      {/* Loading sederhana sambil menunggu pindah halaman */}
       <ActivityIndicator size="large" color={COLORS.primary} />
     </View>
   );

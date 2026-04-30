@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 30, 
     padding: SPACING.lg,
-    // Efek Shadow & Border standar Lucia
+    // Efek Shadow & Border 
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
