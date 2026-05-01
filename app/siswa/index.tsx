@@ -4,9 +4,9 @@ import { COLORS } from '@/utils/theme';
 
 export default function DashboardSiswa() {
   return (
-    <View style={styles.container}>
-      {/* Konten Dashboard disini*/}
-      
+   <View style={styles.container}>
+      {/* isi kode dsini */}
+      <Text style={styles.title}>INI HALAMAN LEADERBOARD</Text>
     </View>
   );
 }

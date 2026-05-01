@@ -2,10 +2,10 @@ import React from 'react';
 import NavbarBase from './navbarBase';
 
 const menuSiswa = [
-  { name: 'index', icon: 'home', label: 'Beranda' }, // Ini app/siswa/index.tsx
-  { name: 'game', icon: 'game-controller', label: 'Main' }, // Ini app/siswa/game/index.tsx
-  { name: 'leaderboard', icon: 'trophy', label: 'Peringkat' }, // Ini app/siswa/leaderboard/index.tsx
-  { name: 'profile', icon: 'person', label: 'Profil' }, // Ini app/siswa/profile/index.tsx
+  { name: 'index', icon: 'home', label: 'Beranda' },
+  { name: 'game/index', icon: 'game-controller', label: 'Main' },
+  { name: 'leaderboard/index', icon: 'trophy', label: 'Peringkat' },
+  { name: 'profile/index', icon: 'person', label: 'Profil' },
 ];
 
 export default function NavbarSiswa(props: any) {

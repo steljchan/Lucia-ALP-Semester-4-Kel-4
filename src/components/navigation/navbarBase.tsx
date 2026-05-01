@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text, Dimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { COLORS } from '../../../utils/theme';
+import { COLORS } from '@/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TAB_WIDTH = SCREEN_WIDTH / 4;
@@ -19,34 +19,36 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
     }).start();
   }, [state.index]);
 
-  // Path SVG untuk lengkungan "lubang" di posisi menu aktif
+  // buat navbar dengan gelombang yang bergerak mengikuti tab yang aktif
   const d = `
-    M 0 20 
-    L ${TAB_WIDTH * 0.1} 20 
-    C ${TAB_WIDTH * 0.25} 20 ${TAB_WIDTH * 0.2} 0 ${TAB_WIDTH * 0.5} 0 
-    C ${TAB_WIDTH * 0.8} 0 ${TAB_WIDTH * 0.75} 20 ${TAB_WIDTH * 0.9} 20 
-    L ${SCREEN_WIDTH} 20 
-    L ${SCREEN_WIDTH} 100 
-    L 0 100 
+    M 0 30 
+    L ${TAB_WIDTH * 0.15} 30 
+    C ${TAB_WIDTH * 0.3} 30 ${TAB_WIDTH * 0.25} 0 ${TAB_WIDTH * 0.5} 0 
+    C ${TAB_WIDTH * 0.75} 0 ${TAB_WIDTH * 0.7} 30 ${TAB_WIDTH * 0.85} 30 
+    L ${SCREEN_WIDTH} 30 
+    L ${SCREEN_WIDTH} 120 
+    L 0 120 
     Z
   `;
 
   return (
     <View style={styles.container}>
+      {/* Background Biru Full dengan Gelombang Bergerak */}
       <View style={StyleSheet.absoluteFill}>
         <Animated.View style={{ transform: [{ translateX }] }}>
-          <Svg width={SCREEN_WIDTH} height={100}>
-            <Path d={d} fill="#76CFFF" />
+          <Svg width={SCREEN_WIDTH * 2} height={120} style={{ marginLeft: -(TAB_WIDTH * 0) }}>
+            <Path d={d} fill={COLORS.secondary} />
           </Svg>
         </Animated.View>
-        <View style={[styles.bgSide, { left: -SCREEN_WIDTH }]} />
-        <View style={[styles.bgSide, { right: -SCREEN_WIDTH }]} />
+       
+        <View style={styles.blueFiller} />
       </View>
 
+      {/* Konten Menu */}
       <View style={styles.content}>
         {menuItems.map((route: any, index: number) => {
           const isFocused = state.index === index;
-
+    
           return (
             <TouchableOpacity
               key={index}
@@ -54,23 +56,24 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
               style={styles.tabItem}
               activeOpacity={1}
             >
-              {/* Container Ikon */}
-              <View style={[styles.iconContainer, isFocused && styles.iconActive]}>
+              {/* Ikon Container */}
+              <View style={[
+                styles.iconContainer, 
+                isFocused && styles.iconActive
+              ]}>
                 <Ionicons
-                  name={isFocused ? route.icon : `${route.icon}-outline`}
-                  size={24}
-                  color="white"
+                    name={isFocused ? route.icon : `${route.icon}-outline`}
+                    size={26}
+                    color={COLORS.white}
                 />
               </View>
 
-                <View style={[
-                    styles.infoContainer, 
-                    { marginTop: isFocused ? 12 : -5 }
-                    ]}>
-                    <Text style={[styles.label, { opacity: isFocused ? 1 : 0.7 }]}>
-                        {route.label}
-                    </Text>
-                </View>
+              {/* Teks Label */}
+              <View style={[styles.infoContainer, { marginTop: isFocused ? 10 : -5}]}>
+                <Text style={[styles.label, { color: COLORS.white, opacity: isFocused ? 1 : 0.7 }]}>
+                  {route.label}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -84,18 +87,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: SCREEN_WIDTH,
-    height: 100,
+    height: 120,
+    backgroundColor: 'transparent',
   },
-  bgSide: {
+  blueFiller: {
     position: 'absolute',
-    top: 20,
-    width: SCREEN_WIDTH,
-    height: 80,
-    backgroundColor: COLORS.primary,
+    top: 30, 
+    width: '100%',
+    height: 120,
+    backgroundColor: COLORS.secondary,
+    zIndex: -1,
   },
   content: {
     flexDirection: 'row',
     height: '100%',
+    zIndex: 10,
   },
   tabItem: {
     flex: 1,
@@ -107,20 +113,19 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 35,
   },
   iconActive: {
-    backgroundColor: COLORS.primary,
-    marginTop: -15, 
+    backgroundColor: COLORS.secondary, 
+    marginTop: -10,
     borderWidth: 4,
-    borderColor: 'white', 
+    borderColor: COLORS.background,
+    elevation: 4,
   },
   infoContainer: {
     alignItems: 'center',
-    marginTop: 5, 
   },
   label: {
-    color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
   },
