@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const router = useRouter();
   
   const handleLogin = () => {
-    router.replace('/admin'); 
+    router.replace('/siswa'); 
   };
 
   return (
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
   },
-  
+
   btnText: { 
     color: COLORS.white, 
     fontSize: 18, 
