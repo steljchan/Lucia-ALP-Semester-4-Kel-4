@@ -5,10 +5,11 @@ import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '@/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TAB_WIDTH = SCREEN_WIDTH / 4;
+// const TAB_WIDTH = SCREEN_WIDTH /4;
 
 export default function NavbarBase({ state, navigation, menuItems }: any) {
   const translateX = useRef(new Animated.Value(0)).current;
+  const TAB_WIDTH = SCREEN_WIDTH / Math.max(menuItems.length, 1);
 
   useEffect(() => {
     Animated.spring(translateX, {
@@ -17,7 +18,7 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
       friction: 10,
       tension: 50,
     }).start();
-  }, [state.index]);
+  }, [state.index, TAB_WIDTH]);
 
   // buat navbar dengan gelombang yang bergerak mengikuti tab yang aktif
   const d = `
