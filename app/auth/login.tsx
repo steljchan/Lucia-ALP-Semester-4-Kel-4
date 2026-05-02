@@ -22,7 +22,7 @@ export default function LoginScreen() {
     // 3. Pindah ke grup siswa
     // Expo Router akan otomatis mencari app/(siswa)/_layout.tsx 
     // lalu menampilkan tab pertama (index.tsx)
-    router.replace('/siswa'); 
+    router.replace('/siswa/tabs'); 
   };
 
   return (
