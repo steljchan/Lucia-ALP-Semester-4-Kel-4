@@ -9,6 +9,8 @@ export const COLORS = {
   textSub: '#7DA1C4',
   success: '#4CAF50',
   error: '#F44336',
+  yellow: '#F8B64C',
+  red: '#FF383C'
 };
 
 export const SPACING = {
