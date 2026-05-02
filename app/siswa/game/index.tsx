@@ -1,25 +1,14 @@
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import {COLORS} from '@/utils/theme';
+import { COLORS, title, subtitle, container } from '@/utils/theme';
 
-export default function GamePage() {
+export default function DashboardSiswa() {
   return (
-    <View style={styles.container}>
-      {/* isi kode dbwah ini */}
-      <Text style={styles.text}>HALAMAN GAME</Text>
+   <View style={container}>
+      {/* isi kode dsini */}
+      <Text style={title}>INI GAME</Text>
+      <Text style={subtitle}>jangan lupa import subtitle</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-});
