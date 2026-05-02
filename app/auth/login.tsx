@@ -16,13 +16,10 @@ import { useRouter } from 'expo-router';
 
 
 export default function LoginScreen() {
-  const router = useRouter(); // 2. Inisialisasi router
+  const router = useRouter();
   
   const handleLogin = () => {
-    // 3. Pindah ke grup siswa
-    // Expo Router akan otomatis mencari app/(siswa)/_layout.tsx 
-    // lalu menampilkan tab pertama (index.tsx)
-    router.replace('/siswa'); 
+    router.replace('/admin'); 
   };
 
   return (
@@ -70,7 +67,7 @@ export default function LoginScreen() {
 
           <TouchableOpacity 
             style={styles.btnMasuk} 
-            onPress={handleLogin} // 4. Pasang fungsi di sini
+            onPress={handleLogin} 
           >
             <Text style={styles.btnText}>Masuk</Text>
           </TouchableOpacity>
@@ -107,42 +104,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: -5
   },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 30,
-    padding: 30,
-    marginHorizontal: MARGIN_HORIZONTAL,
-    marginBottom: 40,
-    // Efek Shadow & Border
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
+  
   titleMasuk: { 
     fontSize: 24, 
     fontWeight: 'bold', 
     color: '#1A3B5D', 
     textAlign: 'center' 
   },
+
   descMasuk: { 
     fontSize: 16, 
     color: '#1A3B5D', 
     textAlign: 'center', 
     marginBottom: 30 
   },
+
   inputGroup: {
     marginBottom: 20
   },
+
   label: { 
     fontSize: 14, 
     fontWeight: 'bold', 
     color: '#1A3B5D', 
     marginBottom: 8 
   },
+
   input: {
     height: 55,
     borderWidth: 1,
@@ -153,6 +140,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1A3B5D',
   },
+
   forgotPass: { 
     color: COLORS.primary, 
     textAlign: 'right', 
@@ -160,6 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 30
   },
+
   btnMasuk: {
     backgroundColor: COLORS.primary,
     height: 55,
@@ -173,6 +162,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
   },
+  
   btnText: { 
     color: COLORS.white, 
     fontSize: 18, 
