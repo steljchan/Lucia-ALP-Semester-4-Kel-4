@@ -12,8 +12,19 @@ import {
 } from 'react-native';
 import { COLORS, MARGIN_HORIZONTAL} from '../../utils/theme';
 import Card from '../../src/components/common/card';
+import { useRouter } from 'expo-router';
+
 
 export default function LoginScreen() {
+  const router = useRouter(); // 2. Inisialisasi router
+  
+  const handleLogin = () => {
+    // 3. Pindah ke grup siswa
+    // Expo Router akan otomatis mencari app/(siswa)/_layout.tsx 
+    // lalu menampilkan tab pertama (index.tsx)
+    router.replace('/siswa'); 
+  };
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
@@ -57,7 +68,10 @@ export default function LoginScreen() {
             <Text style={styles.forgotPass}>Lupa Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btnMasuk}>
+          <TouchableOpacity 
+            style={styles.btnMasuk} 
+            onPress={handleLogin} // 4. Pasang fungsi di sini
+          >
             <Text style={styles.btnText}>Masuk</Text>
           </TouchableOpacity>
         </Card>
