@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import AppHeader from '../../../src/components/common/appheader';
 import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
 import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
+import { UI } from '../../../constants/theme';
 
 export default function DashboardSiswa() {
 
@@ -51,17 +52,18 @@ export default function DashboardSiswa() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: UI.background,
   },
   content: {
-    padding: 16,
-    paddingBottom: 100,
+    paddingHorizontal: 16,
+    paddingBottom: 120,
   },
   sectionTitle: {
-    marginTop: 15,
-    marginBottom: 8,
-    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
+    fontWeight: '700',
     fontSize: 16,
+    color: UI.textPrimary,
   },
   grid: {
     justifyContent: 'space-between',
