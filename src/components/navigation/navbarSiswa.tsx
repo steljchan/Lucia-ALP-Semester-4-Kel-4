@@ -1,11 +1,11 @@
 import React from 'react';
 import NavbarBase from './navbarBase';
 
-const menuSiswa = [
-  { name: 'index', icon: 'home', label: 'Beranda' },
-  { name: 'game/index', icon: 'game-controller', label: 'Game' },
-  { name: 'leaderboard/index', icon: 'trophy', label: 'Peringkat' },
-  { name: 'profile/index', icon: 'person', label: 'Profil' },
+export const menuSiswa = [
+  { name: "beranda", label: "Beranda", icon: "home" },
+  { name: "game", label: "Game", icon: "game-controller" },
+  { name: "leaderboard", label: "Leaderboard", icon: "trophy" },
+  { name: "profil", label: "Profile", icon: "person" },
 ];
 
 export default function NavbarSiswa(props: any) {
