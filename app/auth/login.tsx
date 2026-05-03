@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView 
 } from 'react-native';
-import { COLORS, MARGIN_HORIZONTAL} from '../../utils/theme';
+import { COLORS, MARGIN_HORIZONTAL, BTN, TEXT} from '../../utils/theme';
 import Card from '../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
@@ -39,7 +39,7 @@ export default function LoginScreen() {
 
         {/* SECTION KARTU: FORM LOGIN */}
         <Card style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
-          <Text style={styles.titleMasuk}>Masuk</Text>
+          <Text style={TEXT.bigTitle}>Masuk</Text>
           <Text style={styles.descMasuk}>Masuk ke Akun Kamu</Text>
 
           <View style={styles.inputGroup}>
@@ -66,10 +66,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.btnMasuk} 
+            style={BTN.primary.box}
             onPress={handleLogin} 
           >
-            <Text style={styles.btnText}>Masuk</Text>
+            <Text style={BTN.primary.text}>Masuk</Text>
           </TouchableOpacity>
         </Card>
       </ScrollView>
@@ -87,34 +87,23 @@ const styles = StyleSheet.create({
     marginTop: 60, 
     marginBottom: 40 
   },
+
   logo: { 
     width: 300, 
     height: 150,
     marginTop: 20
   },
+
   appName: { 
     fontSize: 48, 
     fontWeight: 'bold', 
     color: COLORS.primary,
     letterSpacing: 1
   },
-  subTitle: { 
-    fontSize: 14, 
-    color: COLORS.primary, 
-    fontWeight: '700',
-    marginTop: -5
-  },
-  
-  titleMasuk: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
-    color: '#1A3B5D', 
-    textAlign: 'center' 
-  },
 
   descMasuk: { 
     fontSize: 16, 
-    color: '#1A3B5D', 
+    color: COLORS.textMain, 
     textAlign: 'center', 
     marginBottom: 30 
   },
@@ -126,46 +115,26 @@ const styles = StyleSheet.create({
   label: { 
     fontSize: 14, 
     fontWeight: 'bold', 
-    color: '#1A3B5D', 
+    color: COLORS.textMain, 
     marginBottom: 8 
   },
 
   input: {
     height: 55,
     borderWidth: 1,
-    borderColor: '#D1E9FF',
+    borderColor: COLORS.smoothBlue,
     borderRadius: 15,
     paddingHorizontal: 20,
     backgroundColor: '#F9FCFF',
     fontSize: 14,
-    color: '#1A3B5D',
+    color: COLORS.textMain,
   },
 
   forgotPass: { 
-    color: COLORS.primary, 
+    color: COLORS.textSub, 
     textAlign: 'right', 
     fontSize: 13, 
     fontWeight: '600',
     marginBottom: 30
   },
-
-  btnMasuk: {
-    backgroundColor: COLORS.primary,
-    height: 55,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    // Shadow tombol
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-
-  btnText: { 
-    color: COLORS.white, 
-    fontSize: 18, 
-    fontWeight: 'bold' 
-  }
 });
