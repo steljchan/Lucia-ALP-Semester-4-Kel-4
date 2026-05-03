@@ -8,16 +8,16 @@ export default function SiswaLayout() {
       screenOptions={{ headerShown: false }}
     >
       {/* app/siswa/index.tsx untuk dashboard siswa */}
-      <Tabs.Screen name="index" /> 
+      <Tabs.Screen name="dashboard" /> 
       
       {/*app/siswa/game/index.tsx untuk game*/}
-      <Tabs.Screen name="game/index" /> 
+      <Tabs.Screen name="game" /> 
       
       {/* app/siswa/leaderboard/index.tsx untuk leaderboard*/}
-      <Tabs.Screen name="leaderboard/index" />
+      <Tabs.Screen name="leaderboard" />
       
       {/* app/siswa/profile/index.tsx untuk profile*/}
-      <Tabs.Screen name="profile/index" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }
