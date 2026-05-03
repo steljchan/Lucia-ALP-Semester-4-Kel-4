@@ -1,34 +1,52 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
-import { COLORS, BORDER_RADIUS, SPACING } from '../../../utils/theme';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
-interface CardProps {
-  children: React.ReactNode;
-  style?: ViewStyle; 
-}
-
-const Card = ({ children, style }: CardProps) => {
+export default function GameCard({ title, image, onPress }: any) {
   return (
-    <View style={[styles.card, style]}>
-      {children}
-    </View>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
+      
+      {/* 🔥 IMAGE LANGSUNG TANPA WRAPPER */}
+      <Image source={image} style={styles.image} />
+
+      <Text style={styles.title}>{title}</Text>
+
+    </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 30, 
-    padding: SPACING.lg,
-    // Efek Shadow & Border 
-    elevation: 4,
+    width: '48%',
+
+    // 🔥 PROPORSI Figma (portrait)
+    height: 240,
+
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    overflow: 'hidden', // 🔥 penting biar gambar ikut radius
+
+    marginBottom: 16,
+
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    borderWidth: 1,
-    borderColor: '#EAF6FF',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+
+  image: {
+    width: '100%',
+    height: 170, 
+    resizeMode: 'cover',
+  },
+
+  title: {
+    flex: 1,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+
+    fontSize: 14,
+    fontWeight: '600',
+
+    color: '#1A3B5D',
   },
 });
-
-export default Card;
