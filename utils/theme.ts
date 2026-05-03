@@ -52,6 +52,7 @@ export const container ={
   backgroundColor: COLORS.background,
   justifyContent: 'center' as const,
   alignItems: 'center' as const,
+  
 }
 
 export const TEXT ={

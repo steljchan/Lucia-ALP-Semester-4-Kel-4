@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
-import { COLORS, title, subtitle, container } from '@/utils/theme';
+import { COLORS, title, subtitle, container, MARGIN_HORIZONTAL } from '@/utils/theme';
 
 export default function DashboardSiswa() {
   return (
-   <View style={container}>
+   <View style={[container, { paddingHorizontal: MARGIN_HORIZONTAL }]}>
       <Text style={title}>Dashboard Siswa</Text>
       <Text style={subtitle}>Temukan materi dan latihan untuk belajar lebih mudah.</Text>
 
