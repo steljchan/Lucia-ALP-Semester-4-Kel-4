@@ -4,7 +4,7 @@
     "slug": "lucia",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png", 
+    "icon": "./assets/images/icon.png",
     "scheme": "lucia",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,14 +14,14 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
-        
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
-      "expo-router"
-     
+      "expo-router",
+      "expo-web-browser",
+      "expo-secure-store"
     ]
   }
 }

@@ -3,8 +3,7 @@ import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityInd
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons'; 
-import { COLORS, SPACING, BORDER_RADIUS, title } from '@/utils/theme';
-import * as WebBrowser from 'expo-web-browser';
+import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 
 interface MateriFile {
   id: string;
@@ -29,10 +28,6 @@ export default function DetailMateri() {
   const [files, setFiles] = useState<MateriFile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const openPdf = async (url: string) => {
-    await WebBrowser.openBrowserAsync(url);
-  };
-
   useEffect(() => {
    const loadFiles = async () => {
       try {
@@ -55,33 +50,29 @@ export default function DetailMateri() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white}/>
   
       <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
         <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
+                <Ionicons name="chevron-back" size={28} color={COLORS.textMain}/>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Materi</Text>
-            <View style={{ width: 40 }} />
+            <View style={{ width: 40 }}/>
         </View>
         <Text style={styles.subtitle}>Cara Menulis Bilangan</Text>
       </LinearGradient>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageGrid}>
           {loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+            <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader}/>
           ) : (
             files.map((item) => (
               <View key={item.id}>
                 {item.pages?.map((page, index) => (
                   <View key={index} style={styles.imageCard}>
-                    <Image source={{ uri: page }} style={styles.image} />
+                    <Image source={{ uri: page }} style={styles.image}/>
                   </View>
                 ))}
               </View>

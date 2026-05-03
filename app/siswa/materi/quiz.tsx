@@ -5,32 +5,40 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import { useRef } from 'react';
 
 export default function QuizScreen() {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(60); // 60 detik per soal
+  const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(true);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [wrongCount, setWrongCount] = useState(0);
+  const correctRef = useRef(0);
+  const wrongRef = useRef(0);
+  const answersRef = useRef<any[]>([]);
 
-  // Data dummy soal (bisa diambil dari API)
-  const questionData = {
-    questionText: 'Tentukan bentuk kalimatnya!',
-    number: 100000,
-    options: ['Seratus Ribu', 'Satu Nol Nol Nol Nol Nol', 'Sepuluh Ribu', 'Seribu'],
-    correctAnswer: 'Seratus Ribu',
-    totalQuestions: 10,
-  };
+  const questions = [
+    {
+      questionText: 'Tentukan bentuk kalimatnya!',
+      number: 100000,
+      options: ['Seratus Ribu', 'Satu Nol Nol Nol Nol Nol', 'Sepuluh Ribu', 'Seribu'],
+      correctAnswer: 'Seratus Ribu',
+    },
+    {
+      questionText: 'Tentukan bentuk kalimatnya!',
+      number: 5000,
+      options: ['Lima Ribu', 'Lima Puluh Ribu', 'Lima Ratus', 'Lima Juta'],
+      correctAnswer: 'Lima Ribu',
+    }
+  ];
 
-  const totalQuestions = questionData.totalQuestions;
+  const currentQuestion = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
   const currentQuestionNumber = currentQuestionIndex + 1;
   const progress = currentQuestionNumber / totalQuestions;
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  // Timer countdown
   useEffect(() => {
     let interval: number;
     if (timerActive && timeLeft > 0) {
@@ -39,6 +47,15 @@ export default function QuizScreen() {
       }, 1000);
     } else if (timeLeft === 0) {
       alert('Waktu habis!');
+      finalizeAnswer({
+        question: current.questionText,
+        number: current.number,
+        options: current.options,
+        userAnswer: null,
+        correctAnswer: current.correctAnswer,
+        isCorrect: false
+      });
+
       handleNextQuestion();
     }
     return () => clearInterval(interval);
@@ -49,27 +66,70 @@ export default function QuizScreen() {
     setTimerActive(true);
   };
 
- const handleNextQuestion = () => {
+  const handleAnswer = (option: string) => {
+    const current = questions[currentQuestionIndex];
+    const isCorrect = option === current.correctAnswer;
+    const answerData = {
+      question: current.questionText,
+      number: current.number,
+      options: current.options,
+      userAnswer: option,
+      correctAnswer: current.correctAnswer,
+      isCorrect
+    };
+
+    finalizeAnswer(answerData);
+  };
+
+  const finalizeAnswer = (answer: any) => {
+    answersRef.current.push(answer);
+
+    if (answer.isCorrect) {
+      correctRef.current += 1;
+    } else {
+      wrongRef.current += 1;
+    }
+  };
+
+  const current = questions[currentQuestionIndex];
+    const alreadyAnswered = answersRef.current.some(
+      a => a.number === current.number
+    );
+
+    if (!alreadyAnswered) {
+      finalizeAnswer({
+        question: current.questionText,
+        number: current.number,
+        options: current.options,
+        userAnswer: null,
+        correctAnswer: current.correctAnswer,
+        isCorrect: false
+      });
+    }
+
+  const handleNextQuestion = () => {
     if (currentQuestionIndex + 1 < totalQuestions) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
       setSelectedOption(null);
       setShowResult(false);
       setIsChecking(false);
       resetTimer();
+      setTimerActive(true);
     } else {
-      const finalCorrect = correctCount;
-      const finalWrong = wrongCount;
-      const finalScore = finalCorrect * 10;
-
-      router.push({
+      const finalCorrect = correctRef.current;
+      const finalWrong = wrongRef.current;
+      const finalScore = Math.round((finalCorrect/totalQuestions) * 100);
+      router.replace({
         pathname: '/siswa/materi/score',
         params: {
-          score: String(finalScore),
-          correct: String(finalCorrect),
-          wrong: String(finalWrong),
-          total: String(totalQuestions)
+          score: finalScore.toString(),
+          correct: finalCorrect.toString(),
+          wrong: finalWrong.toString(),
+          total: totalQuestions.toString(),
+          answers: JSON.stringify(answersRef.current)
         }
       });
+      wrongRef.current += 1; 
     }
   };
 
@@ -82,8 +142,7 @@ export default function QuizScreen() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
+      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.header}>
         <View style={styles.headerRow}>
           <Text style={styles.headerTitle}>Quiz</Text>
         </View>
@@ -95,29 +154,15 @@ export default function QuizScreen() {
           <View style={styles.leftSection}>
             <Text style={styles.remainingLabel}>Tersisa</Text>
             <Text style={styles.remainingValue}>
-              <Text style={{ color: COLORS.textMain}}>
-                {String(currentQuestionNumber).padStart(2, '0')}
-              </Text>
-              <Text style={{ color: COLORS.textSub }}>
-                /{String(totalQuestions).padStart(2, '0')} soal
-              </Text>
+              <Text style={{color: COLORS.textMain}}>{String(currentQuestionNumber).padStart(2, '0')}</Text>
+              <Text style={{color: COLORS.textSub}}>/{String(totalQuestions).padStart(2, '0')}soal</Text>
             </Text>
           </View>
 
           <View style={styles.rightSection}>
-            <AnimatedCircularProgress
-              size={70}
-              width={6}
-              fill={(timeLeft / 60) * 100}
-              tintColor={COLORS.primary}
-              backgroundColor={COLORS.white}
-              rotation={0}
-              lineCap="round"
-            >
+            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 60) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
               {() => (
-                <Text style={{ fontSize: 12, fontWeight: '600' }}>
-                  {formatTime(timeLeft)}
-                </Text>
+                <Text style={{fontSize: 12, fontWeight: '600'}}>{formatTime(timeLeft)}</Text>
               )}
             </AnimatedCircularProgress>
           </View>
@@ -125,20 +170,20 @@ export default function QuizScreen() {
 
         <View style={styles.progressContainer}>
           <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+            <View style={[styles.progressBarFill, {width: `${progress * 100}%`}]} />
           </View>
         </View>
 
         <View style={styles.numberContainer}>
-          <Text style={styles.bigNumber}>{questionData.number.toLocaleString()}</Text>
+          <Text style={styles.bigNumber}>{currentQuestion.number.toLocaleString()}</Text>
         </View>
 
-        <Text style={styles.questionText}>{questionData.questionText}</Text>
+        <Text style={styles.questionText}>{currentQuestion.questionText}</Text>
 
         <View style={styles.optionsContainer}>
-          {questionData.options.map((option, idx) => {
+          {currentQuestion.options.map((option, idx) => {
             const letter = String.fromCharCode(65 + idx);
-            const isCorrect = option === questionData.correctAnswer;
+            const isCorrect = option === currentQuestion.correctAnswer;
             const isSelected = selectedOption === option;
             let backgroundColor = COLORS.white;
             let borderColor = COLORS.smoothBlue;
@@ -157,9 +202,7 @@ export default function QuizScreen() {
             }
 
             return (
-              <TouchableOpacity
-                key={idx}
-                disabled={showResult || isChecking}
+              <TouchableOpacity key={idx} disabled={showResult || isChecking}
                 style={[
                   styles.optionItem,
                   { backgroundColor, borderColor, borderWidth: 2 }
@@ -175,30 +218,19 @@ export default function QuizScreen() {
                     setShowResult(true);
                     setTimerActive(false);
 
-                    if (option === questionData.correctAnswer) {
-                      setCorrectCount(prev => prev + 1);
-                    } else if (timeLeft === 0) {
-                      setWrongCount(prev => prev + 1); // penting
-                      handleNextQuestion();
-                    } else {
-                      setWrongCount(prev => prev + 1);
-                    }
-                  }, 1000);
+                    handleAnswer(option);
+                  }, 3000);
                 }}
               >
                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View
-                  style={[
+                <View style={[
                     styles.optionCircle,
                     showResult && isCorrect && styles.circleCorrect,
                     showResult && isSelected && !isCorrect && styles.circleWrong,
                   ]}
                 >
-                  <Text style={[styles.optionLetterText]}>
-                    {letter}
-                  </Text>
+                  <Text style={[styles.optionLetterText]}>{letter}</Text>
                 </View>
-
                 <Text style={styles.optionText}>{option}</Text>
               </View>
 

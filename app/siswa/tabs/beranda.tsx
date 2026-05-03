@@ -9,7 +9,7 @@ export default function DashboardSiswa() {
       <Text style={title}>Dashboard Siswa</Text>
       <Text style={subtitle}>Temukan materi dan latihan untuk belajar lebih mudah.</Text>
 
-      <Link href="/siswa/materi/detailMateri" style={styles.button}>
+      <Link href="/siswa/materi/submateri" style={styles.button}>
         <Text style={styles.buttonText}>Lihat Detail Materi</Text>
       </Link>
 

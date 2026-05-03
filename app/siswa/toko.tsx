@@ -11,14 +11,36 @@ export default function TokoScreen() {
   const [isLimitedPurchased, setIsLimitedPurchased] = useState(false);
 
   const coinPackages = [
-    { id: 'coin_small', name: 'PAKET KOIN KECIL', coin: 100, price: 5000, heart: 0 },
-    { id: 'coin_big', name: 'PAKET KOIN BESAR', coin: 300, price: 10000, heart: 0 },
-  ];
+  {
+    id: 1,
+    name: 'Paket Koin Kecil',
+    coin: 100,
+    price: 10000,
+  },
+  {
+    id: 2,
+    name: 'Paket Koin Besar',
+    coin: 500,
+    price: 45000,
+  },
+];
   
   const heartPackages = [
-    { id: 'heart_small', name: 'PAKET HATI KECIL', heart: 10, price: 10000, coin: 0 },
-    { id: 'heart_unlimited', name: 'HATI TIDAK TERBATAS', heart: 1000, price: 20000, coin: 0, isUnlimited: true },
-  ];
+  {
+    id: 1,
+    name: 'Paket Hati Kecil',
+    heart: 10,
+    price: 5000,
+    isUnlimited: false,
+  },
+  {
+    id: 2,
+    name: 'Hati Tak Terbatas',
+    heart: 50,
+    price: 20000,
+    isUnlimited: false,
+  },
+];
 
   const handlePurchase = (item: any, type: 'coin' | 'heart') => {
     const { coin = 0, heart = 0, price, name } = item;
@@ -62,8 +84,6 @@ export default function TokoScreen() {
     );
   };
 
-  const formatPrice = (price: number) => `Rp${price.toLocaleString()}`;
-
   return (
      <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.primary} />
@@ -97,13 +117,13 @@ export default function TokoScreen() {
           <View style={styles.limitedRewardsRow}>
             <View style={styles.rewardCard}>
                 <Text style={{ fontSize: 24 }}>🪙</Text>
-                <Text style={styles.rewardLabel}>Koin</Text>
+                <Text style={styles.rewardLabel}>KOIN</Text>
                 <Text style={styles.rewardText}>x500</Text>
             </View>
 
             <View style={styles.rewardCard}>
                 <Text style={{ fontSize: 24 }}>❤️</Text>
-                <Text style={styles.rewardLabel}>Hati</Text>
+                <Text style={styles.rewardLabel}>HATI</Text>
                 <Text style={styles.rewardText}>x30</Text>
             </View>
           </View>
@@ -113,14 +133,15 @@ export default function TokoScreen() {
             onPress={handleLimitedPurchase}
             disabled={isLimitedPurchased}
           >
-            <Text style={styles.buyButtonText}>
-              {isLimitedPurchased ? 'TERBELI' : '15.000'}
-            </Text>
+           <Text style={styles.buyButtonText}>
+            {isLimitedPurchased
+              ? 'TERBELI'
+              : `Rp ${Number(15000).toLocaleString('id-ID')}`}
+          </Text>
           </TouchableOpacity>
           <Text style={styles.limitedNote}>Hanya boleh 1 kali pembelian</Text>
         </View>
 
-        {/* Bagian KOIN */}
         <View style={styles.sectionDivider}>
             <View style={styles.line} />
             <Text style={styles.sectionText}>KOIN</Text>
@@ -129,13 +150,13 @@ export default function TokoScreen() {
         
         {coinPackages.map(pkg => (
           <View key={pkg.id} style={styles.packageCard}>
-            <Text style={styles.packageIcon}>🪙</Text>
-            <Text style={styles.packageName}>{pkg.name}</Text>
+            <Text style={styles.packageIcon}>🪙</Text>        
+            <Text style={styles.packageName}>{pkg.name.toUpperCase()}</Text>
             <View style={styles.packageRight}>
-                <Text style={styles.packageAmountCoin}>x{pkg.coin}</Text>
-                <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'coin')}>
-                <Text style={styles.smallBuyText}>Beli</Text>
-                </TouchableOpacity>
+              <Text style={styles.packageAmountCoin}>x{pkg.coin}</Text>
+              <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'coin')}>
+                <Text style={styles.smallBuyText}> Rp {Number(pkg.price ?? 0).toLocaleString('id-ID')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))}
@@ -149,11 +170,11 @@ export default function TokoScreen() {
         {heartPackages.map(pkg => (
           <View key={pkg.id} style={styles.packageCard}>
             <Text style={styles.packageIcon}>❤️</Text>
-            <Text style={styles.packageName}>{pkg.name}</Text>
+            <Text style={styles.packageName}>{pkg.name.toUpperCase()}</Text>
             <View style={styles.packageRight}>
                 <Text style={styles.packageAmountHeart}>{pkg.isUnlimited ? '∞' : `x${pkg.heart}`}</Text>
-                <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'coin')}>
-                <Text style={styles.smallBuyText}>Beli</Text>
+                <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'heart')}>
+                <Text style={styles.smallBuyText}>Rp {Number(pkg.price ?? 0).toLocaleString('id-ID')}</Text>
                 </TouchableOpacity>
             </View>
           </View>
@@ -312,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.m,
+    borderRadius: BORDER_RADIUS.s,
     width: '70%',
     alignItems: 'center',
   },
@@ -379,6 +400,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.primary,
+  
   },
 
   packageRight: {
