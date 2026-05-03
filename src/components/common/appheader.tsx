@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 
   // SHOP BUTTON
   shopBtn: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.secondary,
 
     width: 44,
     height: 44,
