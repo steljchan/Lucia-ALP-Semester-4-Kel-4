@@ -1,3 +1,5 @@
+import { TextStyle, ViewStyle } from "react-native";
+
 export const COLORS = {
   primary: '#5CBEFA',
   secondary: '#76CFFF', 
@@ -51,3 +53,45 @@ export const container ={
   justifyContent: 'center' as const,
   alignItems: 'center' as const,
 }
+
+export const TEXT ={
+  bigTitle:{
+    fontSize : 24,
+    fontWeight : 'bold' as const, //hrus pke const krna nnti error, biar tidak dikira string biasa
+    color : COLORS.textMain,
+    textAlign : 'center' as const,
+  },
+
+  subBigTitle:{
+    fontSize: 14, 
+    color: COLORS.primary, 
+    fontWeight: '700',
+    marginTop: -5,
+    textAlign : 'center' as const,
+  },
+}
+
+export const BTN = {
+  primary: {
+    // Style untuk tombolnya
+    box: {
+      backgroundColor: COLORS.primary,
+      height: 55,
+      borderRadius: 15,
+      justifyContent: 'center', 
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    } as ViewStyle,
+    
+    // Style untuk teks di dalamnya
+    text: {
+      color: COLORS.white, 
+      fontSize: 18, 
+      fontWeight: 'bold' 
+    } as TextStyle,
+  },
+};

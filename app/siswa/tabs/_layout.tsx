@@ -1,23 +1,15 @@
 import { Tabs } from 'expo-router';
-import NavbarSiswa from '@/src/components/navigation/navbarSiswa';
+import NavbarBase from '../../../src/components/navigation/navbarBase'; 
+import {menuSiswa} from '../../../src/components/navigation/navbarSiswa';
 
-export default function SiswaLayout() {
+export default function TabLayout() {
+  console.log(menuSiswa)
   return (
-    <Tabs
-      tabBar={(props) => <NavbarSiswa {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      {/* app/siswa/index.tsx untuk dashboard siswa */}
-      <Tabs.Screen name="beranda" /> 
-      
-      {/*app/siswa/game/index.tsx untuk game*/}
-      <Tabs.Screen name="game" /> 
-      
-      {/* app/siswa/leaderboard/index.tsx untuk leaderboard*/}
-      <Tabs.Screen name="leaderboard" />
-      
-      {/* app/siswa/profile/index.tsx untuk profile*/}
-      <Tabs.Screen name="profil" />
+    <Tabs tabBar={(props) => <NavbarBase {...props} menuItems={menuSiswa} />}>
+      <Tabs.Screen name="beranda" options={{ headerShown: false }} />
+      <Tabs.Screen name="game" options={{ headerShown: false }} />
+      <Tabs.Screen name="leaderboard" options={{ headerShown: false }} />
+      <Tabs.Screen name="profil" options={{ headerShown: false }} />
     </Tabs>
   );
 }
