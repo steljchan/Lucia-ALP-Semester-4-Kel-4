@@ -1,14 +1,31 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, title, subtitle, container } from '@/utils/theme';
+import { FlatList } from 'react-native';
+import { useRouter } from 'expo-router';
+import GameCard from '../../../src/components/game/gamecard';
 
-export default function DashboardSiswa() {
+export default function GameMenu() {
+  const router = useRouter();
+
+  const games = [
+    {
+      title: 'Mencocokkan Kata',
+      image: require('../../../assets/images/ViboBuku.png'),
+      route: '/siswa/game/mencocokkan',
+    },
+    {
+      title: 'Siapakah Aku?',
+      image: require('../../../assets/images/ViboBuku.png'),
+      route: '/siswa/game/siapakah-aku',
+    },
+  ];
+
   return (
-   <View style={container}>
-      {/* isi kode dsini */}
-      <Text style={title}>INI GAME</Text>
-      <Text style={subtitle}>jangan lupa import subtitle</Text>
-    </View>
+    <FlatList
+      data={games}
+      numColumns={2}
+      contentContainerStyle={{ padding: 16 }}
+      renderItem={({ item }) => (
+        <GameCard {...item} onPress={() => router.push(item.route)} />
+      )}
+    />
   );
 }
-
