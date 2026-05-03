@@ -1,13 +1,16 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, title, subtitle, container } from '@/utils/theme';
+import { useEffect } from 'react';
+import { useRouter, useRootNavigationState } from 'expo-router';
+import { View } from 'react-native';
 
-export default function DashboardGuru() {
-  return (
-   <View style={container}>
-      {/* isi kode dsini */}
-      <Text style={title}>INI DASHBOARD Guru</Text>
-      <Text style={subtitle}>jangan lupa import subtitle</Text>
-    </View>
-  );
+export default function Index() {
+  const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
+
+  useEffect(() => {
+    if (!rootNavigationState?.key) return; // tunggu router siap
+
+    router.replace('/guru/beranda');
+  }, [rootNavigationState]);
+
+  return <View />;
 }
