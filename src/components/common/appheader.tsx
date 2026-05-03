@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     height: 65,
   },
 
+  // SHOP BUTTON
   shopBtn: {
     backgroundColor: '#5CBEFA',
 
