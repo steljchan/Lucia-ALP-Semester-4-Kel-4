@@ -65,7 +65,7 @@ export const TEXT ={
     fontWeight: '700',
     marginTop: -5,
     textAlign : 'center' as const,
-  }
+  },
 }
 
 export const BTN = {
