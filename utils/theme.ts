@@ -1,4 +1,4 @@
-import { TextStyle, ViewStyle } from "react-native";
+import { ImageStyle, TextStyle, ViewStyle } from "react-native";
 
 export const COLORS = {
   primary: '#5CBEFA',
@@ -31,6 +31,11 @@ export const BORDER_RADIUS = {
 
 export const MARGIN_HORIZONTAL = 20;
 
+export const scrollContent={
+  paddingBottom: 130,
+  paddingHorizontal: 20,
+} 
+
 export const title ={ //tulisan besar
   fontSize : 20,
   fontWeight : 'bold' as const, //hrus pke const krna nnti error, biar tidak dikira string biasa
@@ -39,7 +44,8 @@ export const title ={ //tulisan besar
 
 export const subtitle ={ //subtitle seperti utk mapel
   fontSize : 14,
-  color : COLORS.textMain
+  color : COLORS.textMain,
+  fontWeight : 'bold' as const,
 }
 
 export const caption ={ //tulisan caption seperti utk detail materi atau subtitle
@@ -50,8 +56,13 @@ export const caption ={ //tulisan caption seperti utk detail materi atau subtitl
 export const container ={
   flex: 1,
   backgroundColor: COLORS.background,
-  // justifyContent: 'center' as const,
-  // alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+  alignItems: 'center' as const,
+}
+
+export const containerHeader ={
+  flex: 1,
+  backgroundColor: COLORS.background,
 }
 
 export const TEXT ={
@@ -65,7 +76,7 @@ export const TEXT ={
   subBigTitle:{
     fontSize: 14, 
     color: COLORS.primary, 
-    fontWeight: '700',
+    fontWeight: '700' as const, 
     marginTop: -5,
     textAlign : 'center' as const,
   },
@@ -86,12 +97,70 @@ export const BTN = {
       shadowRadius: 3.84,
       elevation: 5,
     } as ViewStyle,
-    
+
     // Style untuk teks di dalamnya
     text: {
       color: COLORS.white, 
       fontSize: 18, 
       fontWeight: 'bold' 
     } as TextStyle,
+
+    
   },
+  
+  logout: {
+    box: {
+      flexDirection: 'row' as const,
+      backgroundColor: COLORS.red,
+      marginTop: 20,
+      padding: 15,
+      borderRadius: 20,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+    } as ViewStyle,
+
+    text: {
+      color: COLORS.white, 
+      fontSize: 18, 
+      fontWeight: 'bold' 
+    } as TextStyle,
+  }
+};
+
+export const PROFILE = {
+  avatar: {
+    width: 130 as const,
+    height: 130 as const,
+    borderRadius: 65 as const,
+    borderWidth: 3 as const,
+    borderColor: COLORS.primary, 
+    // backgroundColor: COLORS.smoothBlue,
+  } as ImageStyle,
+  
+  cameraBtn: {
+    position: 'absolute' as const,
+    right: 5,
+    top: 5,
+    backgroundColor: COLORS.white,
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.secondary,
+  } as ViewStyle,
+
+  studentId: {
+    fontSize: 16,
+    color: COLORS.textSub, 
+    marginTop: 4,
+    textAlign: 'center' as const,
+  } as TextStyle,
+
+  emailBadge: {
+    backgroundColor: COLORS.smoothBlue,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center' as const,
+  } as ViewStyle,
 };
