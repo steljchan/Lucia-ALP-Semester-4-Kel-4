@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import AppHeader from '../../../src/components/common/appheader';
 import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
 import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
+import {scrollContent} from '@/utils/theme';
 import { UI } from '../../../constants/theme';
 
 export default function DashboardSiswa() {
@@ -26,7 +27,7 @@ export default function DashboardSiswa() {
         numColumns={2}
         columnWrapperStyle={styles.grid}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={scrollContent}
 
         ListHeaderComponent={
           <>
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    paddingBottom: 120,
+    paddingBottom: 130,
   },
   sectionTitle: {
     marginTop: 20,
