@@ -57,9 +57,9 @@ export const UI = {
   primary: '#8EC5E8',
   primaryDark: '#6FB6DC',
 
-  background: '#EAF4FB', 
+  background: '#F0F9FF', 
   white: '#FFFFFF',
 
-  textPrimary: '#1A3B5D',
+  textPrimary: '#091F5B',
   textSecondary: '#6B7280',
 };
