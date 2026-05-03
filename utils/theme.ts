@@ -50,8 +50,8 @@ export const caption ={ //tulisan caption seperti utk detail materi atau subtitl
 export const container ={
   flex: 1,
   backgroundColor: COLORS.background,
-  justifyContent: 'center' as const,
-  alignItems: 'center' as const,
+  // justifyContent: 'center' as const,
+  // alignItems: 'center' as const,
 }
 
 export const TEXT ={
