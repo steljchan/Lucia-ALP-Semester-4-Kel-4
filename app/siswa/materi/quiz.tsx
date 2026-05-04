@@ -47,14 +47,7 @@ export default function QuizScreen() {
       }, 1000);
     } else if (timeLeft === 0) {
       alert('Waktu habis!');
-      finalizeAnswer({
-        question: current.questionText,
-        number: current.number,
-        options: current.options,
-        userAnswer: null,
-        correctAnswer: current.correctAnswer,
-        isCorrect: false
-      });
+      finalizeAnswer(null);
 
       handleNextQuestion();
     }
@@ -78,36 +71,50 @@ export default function QuizScreen() {
       isCorrect
     };
 
-    finalizeAnswer(answerData);
+    finalizeAnswer(option);
   };
 
-  const finalizeAnswer = (answer: any) => {
-    answersRef.current.push(answer);
+  const finalizeAnswer = (selectedOption: string | null) => {
+    const current = questions[currentQuestionIndex];
 
-    if (answer.isCorrect) {
+    const alreadyAnswered = answersRef.current.some(
+      a => a.number === current.number
+    );
+
+    if (alreadyAnswered) return; 
+
+    const isCorrect = selectedOption === current.correctAnswer;
+
+    const answerData = {
+      number: current.number,
+      question: current.questionText,
+      options: current.options,
+      userAnswer: selectedOption, 
+      correctAnswer: current.correctAnswer,
+      isCorrect: isCorrect
+    };
+
+    answersRef.current.push(answerData);
+
+    if (isCorrect) {
       correctRef.current += 1;
     } else {
       wrongRef.current += 1;
     }
   };
 
-  const current = questions[currentQuestionIndex];
+  const handleNextQuestion = () => {
+    const current = questions[currentQuestionIndex];
+
     const alreadyAnswered = answersRef.current.some(
       a => a.number === current.number
     );
-
-    if (!alreadyAnswered) {
-      finalizeAnswer({
-        question: current.questionText,
-        number: current.number,
-        options: current.options,
-        userAnswer: null,
-        correctAnswer: current.correctAnswer,
-        isCorrect: false
-      });
+    
+    if (!alreadyAnswered && selectedOption === null) {
+      alert('Pilih jawaban dulu atau biarkan waktu habis');
+      return;
     }
 
-  const handleNextQuestion = () => {
     if (currentQuestionIndex + 1 < totalQuestions) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedOption(null);
@@ -118,7 +125,8 @@ export default function QuizScreen() {
     } else {
       const finalCorrect = correctRef.current;
       const finalWrong = wrongRef.current;
-      const finalScore = Math.round((finalCorrect/totalQuestions) * 100);
+      const finalScore = Math.round((finalCorrect / totalQuestions) * 100);
+
       router.replace({
         pathname: '/siswa/materi/score',
         params: {
@@ -129,7 +137,6 @@ export default function QuizScreen() {
           answers: JSON.stringify(answersRef.current)
         }
       });
-      wrongRef.current += 1; 
     }
   };
 
