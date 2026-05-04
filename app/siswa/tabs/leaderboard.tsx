@@ -1,33 +1,31 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
-import { COLORS, containerHeader, scrollContent } from '@/utils/theme';
+import { COLORS, containerHeader, scrollContent, SPACING } from '@/utils/theme';
 import AppHeaderWOsearch from '@/src/components/common/appheaderWOsearch';
 import Card from '@/src/components/common/card';
 
 const { width } = Dimensions.get('window');
 
-// Data dummy 
+// Data dummy (Maksimal sampai rank 10)
 const RANKING_DATA = [
-  { id: '1', name: 'Arstellian', xp: 500, avatar: require('@/assets/images/miniong.jpeg') },
-  { id: '2', name: 'Laury', xp: 300, avatar: require('@/assets/images/avatar1.jpeg') },
-  { id: '3', name: 'Gledis', xp: 299, avatar: require('@/assets/images/avatar2.jpeg') },
-  { id: '4', name: 'Misel', xp: 200, avatar: require('@/assets/images/avatar3.jpeg') },
-  { id: '5', name: 'Vivi', xp: 200, avatar: require('@/assets/images/avatar4.jpeg') },
-  { id: '6', name: 'Exsel', xp: 200, avatar: require('@/assets/images/avatar5.jpeg') },
-  { id: '7', name: 'Aristo', xp: 200, avatar: require('@/assets/images/avatar6.jpeg') },
-  { id: '8', name: 'Dewa', xp: 150, avatar: require('@/assets/images/avatar7.jpeg') },
-  { id: '9', name: 'Cherryl', xp: 100, avatar: require('@/assets/images/avatar8.jpeg') },
-  { id: '10', name: 'Valderio', xp: 50, avatar: require('@/assets/images/avatar9.jpeg') },
+  { id: '1', name: 'Dhiva', xp: 50000000, avatar: require('@/assets/images/avatar3.jpeg') },
+  { id: '2', name: 'Patrick', xp: 300, avatar: require('@/assets/images/avatar1.jpeg') },
+  { id: '3', name: 'Cherryl', xp: 299, avatar: require('@/assets/images/avatar2.jpeg') },
+  { id: '4', name: 'Arstellian', xp: 200, avatar: require('@/assets/images/miniong.jpeg') },
+  { id: '5', name: 'Rakha', xp: 200, avatar: require('@/assets/images/avatar4.jpeg') },
+  { id: '6', name: 'Gledis', xp: 200, avatar: require('@/assets/images/avatar5.jpeg') },
+  { id: '7', name: 'Valderio', xp: 200, avatar: require('@/assets/images/avatar6.jpeg') },
+  { id: '8', name: 'Laury', xp: 150, avatar: require('@/assets/images/avatar7.jpeg') },
+  { id: '9', name: 'Abyan', xp: 100, avatar: require('@/assets/images/avatar8.jpeg') },
+  { id: '10', name: 'Aristo', xp: 10, avatar: require('@/assets/images/avatar9.jpeg') },
 ];
 
 export default function LeaderboardSiswa() {
-  // Ganti string ini dengan data user yang sedang login dari Auth/Firebase kamu
-  const CURRENT_USER_NAME = "Arsya"; 
+  const CURRENT_USER_NAME = "Arstellian"; 
 
   const topThree = RANKING_DATA.slice(0, 3);
   const others = RANKING_DATA.slice(3, 10);
 
-  // Helper untuk merender item podium agar DRY (Reuse logika)
   const renderPodiumItem = (user: any, rank: number, height: number, color: string) => {
     const isMe = user.name === CURRENT_USER_NAME;
     const medals = ['', '🥇', '🥈', '🥉'];
@@ -61,19 +59,21 @@ export default function LeaderboardSiswa() {
   return (
     <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
       <AppHeaderWOsearch />
-      
-      <View/>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
         
-        {/* SECTION PODIUM */}
+        {/* 3 terartas */}
         <View style={styles.podiumContainer}>
-          {renderPodiumItem(topThree[1], 2, 110, '#8ED7FF')}
-          {renderPodiumItem(topThree[0], 1, 150, '#39B3FF')}
-          {renderPodiumItem(topThree[2], 3, 90, '#A8E1FF')}
+          {renderPodiumItem(topThree[1], 2, 110, COLORS.secondary)}
+          {renderPodiumItem(topThree[0], 1, 150, COLORS.primary)}
+          {renderPodiumItem(topThree[2], 3, 90, COLORS.secondary)}
         </View>
 
-        {/* SECTION LIST RANKING */}
+        <View>
+
+        </View>
+
+        {/* list rank */}
         <Card style={styles.listCard}>
           {others.map((item) => {
             const isMe = item.name === CURRENT_USER_NAME;
@@ -99,25 +99,13 @@ export default function LeaderboardSiswa() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: 40 },
-  blueCurveBackground: {
-    position: 'absolute',
-    top: 0,
-    width: width * 2.2,
-    height: 500,
-    borderRadius: width * 1.1,
-    backgroundColor: '#EBF7FF',
-    alignSelf: 'center',
-    transform: [{ translateY: -60 }],
-    zIndex: -1,
-  },
   podiumContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
     marginTop: 10,
   },
-  
+
   podiumItem: { 
     alignItems: 'center', 
     marginHorizontal: -2 
@@ -132,14 +120,14 @@ const styles = StyleSheet.create({
     width: 80, 
     height: 80, 
     borderRadius: 40, 
-    borderColor: 'white', 
+    borderColor: COLORS.smoothBlue, 
     borderWidth: 3 
   },
 
   avatarSecondary: { 
     width: 65, 
     height: 65, 
-    borderRadius: 40, 
+    borderRadius: 32.5, 
     borderColor: 'white', 
     borderWidth: 2 
   },
@@ -176,23 +164,25 @@ const styles = StyleSheet.create({
     color: COLORS.primary, 
     fontWeight: 'bold' 
   },
+
   step: { 
     width: (width - 70) / 3, 
     justifyContent: 'flex-start', 
     alignItems: 'center', 
     paddingTop: 10, 
     borderTopLeftRadius: 12, 
-    borderTopRightRadius: 12 },
-
+    borderTopRightRadius: 12 
+  },
+  
   stepNumber: { 
     fontSize: 42, 
     fontWeight: 'bold', 
     color: 'white', 
-    opacity: 0.9 },
+    opacity: 0.9 
+  },
   
   listCard: {
-    marginHorizontal: 20,
-    marginTop: -20,
+    marginTop: 20,
     borderRadius: 30,
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -200,7 +190,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#BDE4FF',
   },
-  rankRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+
+  rankRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 14, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#F5F5F5' 
+  },
+  
   highlightRow: {
     backgroundColor: '#F0F9FF',
     borderRadius: 15,
@@ -225,18 +223,19 @@ const styles = StyleSheet.create({
     color: COLORS.primary, 
     fontWeight: 'bold' 
   },
+  
   rankAvatar: { 
     width: 35, 
     height: 35, 
-    marginHorizontal: 12 
+    marginHorizontal: 12, 
+    borderRadius: 17.5,
   },
 
   rankName: { 
-    flex: 1, 
-    fontWeight: '700', 
+    flex: 1, fontWeight: '700', 
     color: COLORS.textMain, 
-    fontSize: 14 
-  },
+    fontSize: 14 },
+
   rankXP: { 
     fontWeight: 'bold', 
     color: COLORS.primary, 
