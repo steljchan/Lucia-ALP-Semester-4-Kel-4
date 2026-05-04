@@ -1,4 +1,16 @@
-export const mencocokkanLevels = [
+export type MatchPair = {
+  word: string;
+  image: string;
+};
+
+export type MencocokkanLevel = {
+  id: number;
+  unlocked: boolean;
+  pairs: MatchPair[];
+};
+
+/* 🔥 DATA ASLI (SOAL) */
+const originalData: Omit<MencocokkanLevel, 'unlocked'>[] = [
   {
     id: 1,
     pairs: [
@@ -150,3 +162,10 @@ export const mencocokkanLevels = [
     ],
   },
 ];
+
+/* 🔥 FINAL DATA (SUDAH ADA UNLOCK SYSTEM) */
+export const mencocokkanLevels: MencocokkanLevel[] =
+  originalData.map((level, index) => ({
+    ...level,
+    unlocked: index < 2, // 🔓 hanya 2 level pertama terbuka
+  }));
