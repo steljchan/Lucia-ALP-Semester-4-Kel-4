@@ -1,8 +1,10 @@
-import { View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, FlatList, Image, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
 import GameCard from '../../../src/components/game/gamecard';
 import SearchBar from '../../../src/components/common/searchbar';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function GameMenu() {
   const router = useRouter();
@@ -16,7 +18,7 @@ export default function GameMenu() {
     {
       title: 'Siapakah Aku?',
       image: require('../../../assets/images/siapakahAku.png'),
-      route: '/siswa/game/siapakah-aku',
+      route: '/siswa/game/siapakahaku',
     },
 
     // dummy games
@@ -43,55 +45,64 @@ export default function GameMenu() {
   ];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
 
-      <View style={styles.topRow}>
-        <Image
-          source={require('../../../assets/images/lucia.png')}
-          style={styles.logo}
+        {/* 🔝 TOP BAR */}
+        <View style={styles.topRow}>
+          <Image
+            source={require('../../../assets/images/lucia.png')}
+            style={styles.logo}
+          />
+
+          <TouchableOpacity style={styles.shopBtn}>
+            <Ionicons name="storefront-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 🔍 SEARCH */}
+        <SearchBar />
+
+        {/* 🎮 GAME GRID */}
+        <FlatList
+          data={games}
+          numColumns={2}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.list}
+          columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <GameCard
+              title={item.title}
+              image={item.image}
+              onPress={() => item.route && router.push(item.route)}
+            />
+          )}
         />
 
-        <TouchableOpacity style={styles.shopBtn}>
-          <Ionicons name="storefront-outline" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-
-      {/* 🔍 SEARCH */}
-      <SearchBar />
-
-      {/* 🎮 GRID */}
-      <FlatList
-        data={games}
-        numColumns={2}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.list}
-        columnWrapperStyle={styles.row}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <GameCard
-            title={item.title}
-            image={item.image}
-            onPress={() => item.route && router.push(item.route)}
-          />
-        )}
-      />
-
-    </View>
+    </SafeAreaView>
   );
 }
 
+import { StyleSheet } from 'react-native';
+
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#EAF6FF',
+  },
+
+  container: {
+    flex: 1,
     paddingHorizontal: 16,
-    paddingTop: 20,
   },
 
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 6,
   },
 
   logo: {
@@ -110,7 +121,7 @@ const styles = StyleSheet.create({
   },
 
   list: {
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 120,
   },
 

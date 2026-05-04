@@ -4,11 +4,13 @@ export default function GameCard({ title, image, onPress }: any) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       
-      <View style={styles.imageWrapper}>
-        <Image source={image} style={styles.image} />
-      </View>
+      {/* IMAGE */}
+      <Image source={image} style={styles.image} />
 
-      <Text style={styles.title}>{title}</Text>
+      {/* TITLE AREA */}
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>{title}</Text>
+      </View>
 
     </TouchableOpacity>
   );
@@ -17,39 +19,40 @@ export default function GameCard({ title, image, onPress }: any) {
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    height: 200, // 🔥 lebih panjang ke bawah
+    height: 230, 
 
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 10,
+    borderRadius: 22,
+    overflow: 'hidden',
+
     marginBottom: 16,
 
-    elevation: 4,
+    elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
   },
 
-  imageWrapper: {
-    flex: 1,
-    backgroundColor: '#F5F7FB',
-    borderRadius: 16,
-    padding: 10,
-    justifyContent: 'center',
-  },
-
   image: {
     width: '100%',
-    height: 110,
-    resizeMode: 'contain',
+    height: 190, 
+    resizeMode: 'cover',
+  },
+
+  titleContainer: {
+    height: 40, 
+    
+    justifyContent: 'center', // vertical center
+    alignItems: 'center',     // horizontal center
+
+    paddingHorizontal: 10,
   },
 
   title: {
-    marginTop: 10,
-    textAlign: 'center',
+    fontSize: 15,
     fontWeight: '600',
-    fontSize: 13,
     color: '#1A3B5D',
+    textAlign: 'center',
   },
 });
