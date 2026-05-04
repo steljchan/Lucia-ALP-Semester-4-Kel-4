@@ -1,4 +1,13 @@
-export const siapakahAkuLevels = [
+export type SiapakahAkuLevel = {
+  id: number;
+  answer: string;
+  image: string;
+  unlocked: boolean;
+  stars: number; // ⭐ tambahan
+};
+
+/* 🔥 DATA ASLI */
+const originalData: Omit<SiapakahAkuLevel, 'unlocked' | 'stars'>[] = [
   { id: 1, answer: "KOALA", image: "koala" },
   { id: 2, answer: "SAPI", image: "sapi" },
   { id: 3, answer: "KUCING", image: "kucing" },
@@ -15,3 +24,12 @@ export const siapakahAkuLevels = [
   { id: 14, answer: "KELINCI", image: "kelinci" },
   { id: 15, answer: "SINGA", image: "singa" },
 ];
+
+/* 🔥 GENERATE LEVEL */
+export const siapakahAkuLevels: SiapakahAkuLevel[] = originalData.map(
+  (level, index) => ({
+    ...level,
+    unlocked: index < 3, 
+    stars: 0,
+  })
+);

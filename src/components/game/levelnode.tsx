@@ -1,31 +1,84 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function LetterBox({ letter }: any) {
+export default function LevelNode({
+  level,
+  unlocked,
+  onPress,
+  stars = 3, 
+}: any) {
+
+  const renderStars = () => {
+    return (
+      <View style={styles.starRow}>
+        {[1, 2, 3].map((i) => (
+          <Ionicons
+            key={i}
+            name="star"
+            size={10}
+            color={
+              i <= stars
+                ? (unlocked ? '#FFC107' : '#AAA')
+                : '#E0E0E0'
+            }
+            style={styles.starIcon}
+          />
+        ))}
+      </View>
+    );
+  };
+
   return (
-    <View style={styles.box}>
-      <Text style={styles.text}>{letter || ''}</Text>
-    </View>
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={!unlocked}
+      style={[
+        styles.circle,
+        unlocked ? styles.unlocked : styles.locked,
+      ]}
+    >
+      <Text style={styles.level}>{level}</Text>
+
+      {/* ⭐ STARS INSIDE */}
+      {renderStars()}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  box: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: '#5CBEFA',
+  circle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
 
     justifyContent: 'center',
     alignItems: 'center',
 
-    marginHorizontal: 4,
-    backgroundColor: '#FFFFFF',
+    elevation: 4,
   },
 
-  text: {
-    fontSize: 18,
+  unlocked: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#4DA6FF',
+  },
+
+  locked: {
+    backgroundColor: '#DDD',
+  },
+
+  level: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#1A3B5D',
+  },
+
+  starRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+
+  starIcon: {
+    marginHorizontal: 1, // 🔥 spacing antar star
   },
 });
