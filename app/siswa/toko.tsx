@@ -88,7 +88,7 @@ export default function TokoScreen() {
      <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.primary} />
       
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
+      <LinearGradient colors={['#EBF7FF', '#C9EAFF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
         <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
