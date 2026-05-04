@@ -1,10 +1,14 @@
-import { View, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import GameCard from '../../../src/components/game/gameCard';
 import SearchBar from '../../../src/components/common/searchbar';
+
+import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
+import AppHeaderWOsearch from '../../../src/components/common/appheaderWOsearch';
+
 
 export default function GameMenu() {
   const router = useRouter();
@@ -46,40 +50,29 @@ export default function GameMenu() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
 
-        {/* 🔝 TOP BAR */}
-        <View style={styles.topRow}>
-          <Image
-            source={require('../../../assets/images/lucia.png')}
-            style={styles.logo}
+        <AppHeaderWOsearch />
+
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
+          <SearchBar/>
+          {/* 🎮 GAME GRID */}
+          <FlatList
+            data={games}
+            numColumns={2}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.list}
+            columnWrapperStyle={styles.row}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <GameCard
+                title={item.title}
+                image={item.image}
+                onPress={() => item.route && router.push(item.route)}
+              />
+            )}
           />
-
-          <TouchableOpacity style={styles.shopBtn}>
-            <Ionicons name="storefront-outline" size={20} color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {/* 🔍 SEARCH */}
-        <SearchBar />
-
-        {/* 🎮 GAME GRID */}
-        <FlatList
-          data={games}
-          numColumns={2}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={styles.list}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <GameCard
-              title={item.title}
-              image={item.image}
-              onPress={() => item.route && router.push(item.route)}
-            />
-          )}
-        />
-
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -122,7 +115,6 @@ const styles = StyleSheet.create({
 
   list: {
     paddingTop: 12,
-    paddingBottom: 120,
   },
 
   row: {
