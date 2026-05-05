@@ -167,6 +167,7 @@ export default function TokoScreen() {
         
         <View/>
       </ScrollView>
+
       <PaymentModal 
         isVisible={modalVisible}
         selectedItem={selectedItem}
