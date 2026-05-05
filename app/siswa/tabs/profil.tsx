@@ -4,7 +4,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
 import AppHeaderWOsearch from '../../../src/components/common/appheaderWOsearch';
+import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
+import { useRouter } from 'expo-router';
 
 // data report dummy
 const REPORT_DATA = [
@@ -13,6 +15,9 @@ const REPORT_DATA = [
   { id: '3', title: "IPA", score: 96, grade: "A+", image: require('../../../assets/images/maskot1.png') },
   { id: '4', title: "Indonesia", score: 96, grade: "A+", image: require('../../../assets/images/maskotMTK.png') },
 ];
+
+const [showLogout, setShowLogout] = useState(false);
+const router = useRouter();
 
 // komponen report card
 interface ReportCardProps {
@@ -114,12 +119,21 @@ export default function ProfilSiswa() {
 
         {/* LOGOUT */}
         <TouchableOpacity 
-          style={BTN.logout.box} // <-- Pakai ini
-          onPress={() => Alert.alert("Logout", "Apa kamu yakin?")}
+          style={BTN.logout.box}
+          onPress={() => setShowLogout(true)}
         >
           <Ionicons name="log-out-outline" size={20} color="white" />
           <Text style={BTN.logout.text}>Log Out</Text>
         </TouchableOpacity>
+
+        <LogoutModal
+          visible={showLogout}
+          onClose={() => setShowLogout(false)}
+          onConfirm={() => {
+            setShowLogout(false);
+            router.replace('/auth/login'); 
+          }}
+        />
 
         {/* REPORT GRID  */}
         <View style={styles.reportDivider}>
