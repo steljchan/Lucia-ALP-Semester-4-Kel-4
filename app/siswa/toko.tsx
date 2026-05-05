@@ -3,12 +3,16 @@ import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, StatusBar} 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL, title, caption } from '@/utils/theme';
+import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL, title, caption, scrollContent, container, containerHeader } from '@/utils/theme';
+import PaymentModal from '@/src/components/toko/paymentModal';
 
 export default function TokoScreen() {
   const [coinBalance, setCoinBalance] = useState(1200);
   const [heartBalance, setHeartBalance] = useState(5);
   const [isLimitedPurchased, setIsLimitedPurchased] = useState(false);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   const coinPackages = [
   {
@@ -43,22 +47,8 @@ export default function TokoScreen() {
 ];
 
   const handlePurchase = (item: any, type: 'coin' | 'heart') => {
-    const { coin = 0, heart = 0, price, name } = item;
-    Alert.alert(
-      'Konfirmasi Pembelian',
-      `Beli ${name} seharga Rp${price.toLocaleString()}?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Beli',
-          onPress: () => {
-            setCoinBalance(prev => prev + coin);
-            setHeartBalance(prev => prev + heart);
-            Alert.alert('Berhasil!', `${name} telah ditambahkan ke akun Anda.`);
-          },
-        },
-      ]
-    );
+    setSelectedItem({ ...item, type });
+    setModalVisible(true);
   };
 
   const handleLimitedPurchase = () => {
@@ -66,26 +56,19 @@ export default function TokoScreen() {
       Alert.alert('Maaf', 'Paket terbatas hanya bisa dibeli 1 kali.');
       return;
     }
-    Alert.alert(
-      'Konfirmasi Paket Terbatas',
-      'Beli PAKET COIN DAN HATI (500 Koin + 30 Hati) seharga Rp15.000? Hanya boleh 1 kali.',
-      [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Beli',
-          onPress: () => {
-            setCoinBalance(prev => prev + 500);
-            setHeartBalance(prev => prev + 30);
-            setIsLimitedPurchased(true);
-            Alert.alert('Berhasil!', 'Paket terbatas telah dibeli.');
-          },
-        },
-      ]
-    );
+    // Set data paket terbatas secara manual untuk modal
+    setSelectedItem({
+      name: 'PAKET COIN DAN HATI',
+      coin: 500,
+      heart: 30,
+      price: 15000,
+      type: 'limited'
+    });
+    setModalVisible(true);
   };
 
   return (
-     <View style={styles.root}>
+     <View style={[containerHeader, {  alignItems: 'stretch' }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.primary} />
       
       <LinearGradient colors={['#EBF7FF', '#C9EAFF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
@@ -96,6 +79,7 @@ export default function TokoScreen() {
             <Text style={styles.headerTitle}>Toko</Text>
             <View style={{ width: 40 }} />
         </View>
+
         <View style={styles.balanceWrapper}>
             <View style={styles.balanceCardSmall}>
                 <Text style={{ fontSize: 14 }}>🪙</Text>
@@ -109,7 +93,8 @@ export default function TokoScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 20, paddingBottom: 20 }]}>
+        
         <View style={styles.limitedCard}>
           <Text style={styles.limitedTitle}>PAKET TERBATAS</Text>
           <Text style={styles.limitedSubtitle}>PAKET COIN DAN HATI</Text>
@@ -180,17 +165,18 @@ export default function TokoScreen() {
           </View>
         ))}
         
-        <View style={{ height: SPACING.xl }} />
+        <View/>
       </ScrollView>
-    </View>
+      <PaymentModal 
+        isVisible={modalVisible}
+        selectedItem={selectedItem}
+        onClose={() => setModalVisible(false)}
+      />
+    </View >
   );
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
@@ -247,12 +233,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textMain,
     textAlign: 'center',
-  },
-
-  scrollContainer: {
-    paddingTop: SPACING.md,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
   },
 
   limitedCard: {
