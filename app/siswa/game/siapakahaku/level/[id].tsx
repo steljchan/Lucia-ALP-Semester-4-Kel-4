@@ -1,18 +1,12 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Animated,
-} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Image, Animated, Modal} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { siapakahAkuLevels } from '../../../../../src/data/siapakahaku';
 import useSiapakahAku from '../../../../../src/hooks/usesiapakahaku';
 import LetterBox from '../../../../../src/components/game/letterbox';
 import GameHeader from '../../../../../src/components/game/gameHeader';
+import HintModal from '../../../../../src/components/game/hintModal';
 
 export default function GamePlay() {
   const { id } = useLocalSearchParams();
@@ -109,6 +103,26 @@ export default function GamePlay() {
     playAnimation(Boolean(result));
   };
 
+  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0);
+  const hintText = useMemo(() => {
+  const answer = level.answer;
+    switch (hintStep) {
+      case 0:
+        return `Huruf pertama: ${answer[0]}`;
+      case 1:
+        return `Huruf terakhir: ${answer[answer.length - 1]}`;
+      case 2:
+        return `Jumlah huruf: ${answer.length}`;
+      default:
+        return `Semangat! Kamu pasti bisa 😄`;
+    }
+  }, [hintStep, level.answer]);
+  const onPressHint = () => {
+    setShowHint(true);
+  };
+
+
   return (
     <View style={styles.container}>
 
@@ -193,7 +207,10 @@ export default function GamePlay() {
       <View style={styles.actionRow}>
 
         {/* 💡 HINT */}
-        <TouchableOpacity style={styles.hintBtn}>
+        <TouchableOpacity 
+          style={styles.hintBtn}
+          onPress={() => setShowHint(true)}
+        >
           <Text style={styles.hintIcon}>💡</Text>
         </TouchableOpacity>
 
@@ -218,7 +235,18 @@ export default function GamePlay() {
         </TouchableOpacity>
 
       </View>
+      <HintModal
+        visible={showHint}
+        hintText={hintText}
+        onClose={() => {
+          setShowHint(false);
 
+          setHintStep((prev) => {
+            if (prev < 2) return prev + 1;
+            return prev;
+          });
+        }}
+      />
     </View>
   );
 }

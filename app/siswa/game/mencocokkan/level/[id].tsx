@@ -1,12 +1,6 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Animated,} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import Svg, { Line } from 'react-native-svg';
 
 import { mencocokkanLevels } from '../../../../../src/data/mencocokkan';
@@ -15,6 +9,7 @@ import useMencocokkan from '../../../../../src/hooks/useMencocokkan';
 import MatchWord from '../../../../../src/components/game/matchword';
 import MatchImage from '../../../../../src/components/game/matchimage';
 import GameHeader from '../../../../../src/components/game/gameHeader';
+import HintModal from '../../../../../src/components/game/hintModal';
 
 export default function MatchingGame() {
   const { id } = useLocalSearchParams();
@@ -102,6 +97,25 @@ export default function MatchingGame() {
     playAnimation(result);
   };
 
+  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0);
+  const hintText = useMemo(() => {
+    const pair = level.pairs[hintStep];
+
+    if (!pair) return 'Coba lagi ya 😄';
+
+    switch (hintStep) {
+      case 0:
+        return `Cocokkan "${pair.word}" dengan gambar yang benar`;
+      case 1:
+        return `Perhatikan kata yang ada di sebelah kiri 👀`;
+      case 2:
+        return `Hint: Perhatikan ciri khas gambar`;
+      default:
+        return 'Semangat! Kamu pasti bisa 💪';
+    }
+  }, [hintStep, level.pairs]);
+
   return (
     <View style={styles.container}>
       <GameHeader title="Mencocokkan" level={level.id} hearts={3} />
@@ -177,7 +191,10 @@ export default function MatchingGame() {
 
       {/* BUTTON */}
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.hintBtn}>
+        <TouchableOpacity 
+          style={styles.hintBtn}
+          onPress={() => setShowHint(true)}
+        >
           <Text style={styles.hintIcon}>💡</Text>
         </TouchableOpacity>
 
@@ -196,6 +213,18 @@ export default function MatchingGame() {
           <Text style={styles.submitText}>Jawab</Text>
         </TouchableOpacity>
       </View>
+      <HintModal
+        visible={showHint}
+        hintText={hintText}
+        onClose={() => {
+          setShowHint(false);
+
+          setHintStep((prev) => {
+            if (prev < 2) return prev + 1;
+            return prev;
+          });
+        }}
+      />
     </View>
   );
 }
