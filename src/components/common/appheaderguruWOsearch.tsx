@@ -32,7 +32,7 @@ export default function AppHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#EBF7FF',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 16,
     paddingTop: 40,
     paddingBottom: 45,
