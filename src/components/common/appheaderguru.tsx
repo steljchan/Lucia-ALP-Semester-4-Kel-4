@@ -1,3 +1,4 @@
+import { COLORS } from '@/utils/theme';
 import { View, StyleSheet, Image } from 'react-native';
 
 export default function AppHeader() {
@@ -12,7 +13,7 @@ export default function AppHeader() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#EBF7FF',
+    backgroundColor: COLORS.background,
     paddingHorizontal: 16,
     paddingTop: 40,
     
