@@ -1,35 +1,38 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { COLORS, title, BTN, containerHeader, scrollContent } from '@/utils/theme';
+// Pastikan COLORS sudah memiliki primary yang sesuai (biru muda)
+import { COLORS, BTN, containerHeader, scrollContent } from '@/utils/theme';
 
 export default function ReceiptScreen() {
-  // Mengambil data yang dikirim dari halaman toko
   const params = useLocalSearchParams();
   
   const harga = Number(params.price) || 10000;
-  const pajak = harga * 0.1; // Asumsi pajak 10%
+  const pajak = harga * 0.1;
   const total = harga + pajak;
 
   return (
-    <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
-      <ScrollView contentContainerStyle={[scrollContent, { paddingBottom: 20 }]}>
+    <View style={[containerHeader, { backgroundColor: '#F0F8FF' }]}>
+      <ScrollView contentContainerStyle={[scrollContent, { paddingBottom: 40 }]}>
         
         <View style={styles.receiptContainer}>
           
-          <View style={styles.outerCircle}>
-            <View style={styles.innerCircle}>
-              <Ionicons name="checkmark" size={40} color={COLORS.primary} />
+          {/* Ikon Centang dengan Efek Glow */}
+          <View style={styles.glowCircle}>
+            <View style={styles.outerCircle}>
+              <View style={styles.innerCircle}>
+                <Ionicons name="checkmark" size={35} color="#64B5F6" />
+              </View>
             </View>
           </View>
 
-          {/* Kartu Putih */}
+          {/* Kartu Struk */}
           <View style={styles.card}>
             <Text style={styles.statusTitle}>Pembayaran Berhasil</Text>
 
-            {/* Rincian Harga */}
-            <View style={[{marginVertical: 5}]}>
+            {/* Bagian Atas: Rincian Harga */}
+            <View style={styles.section}>
               <View style={styles.row}>
                 <Text style={styles.label}>Harga</Text>
                 <Text style={styles.value}>Rp{harga.toLocaleString('id-ID')}</Text>
@@ -40,22 +43,22 @@ export default function ReceiptScreen() {
               </View>
             </View>
 
-            
+            {/* Garis Putus-putus dengan Lubang (Cutout) */}
             <View style={styles.dashedLineContainer}>
+                <View style={styles.cutoutLeft} />
                 <View style={styles.dashedLine} />
-                <View style={[styles.cutout, { left: -25 }]} />
-                <View style={[styles.cutout, { right: -25 }]} />
+                <View style={styles.cutoutRight} />
             </View>
 
-            {/* Rincian Transaksi */}
-            <View style={[{marginVertical: 5}]}>
+            {/* Bagian Tengah: Detail Transaksi */}
+            <View style={styles.section}>
               {[
                 { label: 'No. Pemesanan', value: '1876543234567876' },
                 { label: 'Barang', value: params.itemName || 'Paket Hati' },
                 { label: 'Waktu', value: '20.03.2026 - 19:28:30' },
                 { label: 'Metode Pembayaran', value: params.method || 'OVO' },
                 { label: 'Nama', value: 'Renata' },
-                { label: 'Email', value: 'Rena@student.slbn1.ac.id' },
+                { label: 'Email', value: 'Rena@student.SLBN1.ac.id' },
               ].map((item, index) => (
                 <View key={index} style={styles.row}>
                   <Text style={styles.label}>{item.label}</Text>
@@ -64,17 +67,16 @@ export default function ReceiptScreen() {
               ))}
             </View>
 
-            {/* Total Pembayaran */}
+            {/* Total Pembayaran (Kotak Biru Muda) */}
             <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total Pembayaran </Text>
+              <Text style={styles.totalLabel}>Total Pembayaran</Text>
               <Text style={styles.totalValue}>Rp{total.toLocaleString('id-ID')}</Text>
             </View>
           </View>
         </View>
 
-        {/* Tombol Kembali */}
         <TouchableOpacity 
-          style={[BTN.primary.box, { marginTop: 40, marginHorizontal: 20 }]} 
+          style={[BTN.primary.box, { marginTop: 30, marginHorizontal: 30, borderRadius: 15 }]} 
           onPress={() => router.replace('/siswa/toko')}
         >
           <Text style={BTN.primary.text}>Kembali</Text>
@@ -88,108 +90,106 @@ export default function ReceiptScreen() {
 const styles = StyleSheet.create({
   receiptContainer: { 
     alignItems: 'center', 
-    marginTop: 60, 
-    paddingHorizontal: 25 
-},
-  
+    marginTop: 80, 
+    paddingHorizontal: 20 
+  },
+  glowCircle: {
+    width: 110, height: 110,
+    borderRadius: 55,
+    backgroundColor: 'rgba(100, 181, 246, 0.2)',
+    justifyContent: 'center', alignItems: 'center',
+    zIndex: 5, marginBottom: -55
+  },
   outerCircle: {
-    width: 80, height: 80, 
-    borderRadius: 40, 
-    backgroundColor: 'COLORS.softBlue',
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    zIndex: 2, 
-    marginBottom: -40,
-    elevation: 5
+    width: 85, height: 85,
+    borderRadius: 42.5,
+    backgroundColor: 'rgba(100, 181, 246, 0.4)',
+    justifyContent: 'center', alignItems: 'center',
   },
-
   innerCircle: {
-    width: 46, 
-    height: 46, 
-    borderRadius: 23, 
-    backgroundColor: 'white',
-    justifyContent: 'center', 
-    alignItems: 'center'
+    width: 60, height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center', alignItems: 'center',
+    elevation: 3,
   },
-
   card: {
-    backgroundColor: 'white', width: '100%', borderRadius: 25,
-    paddingTop: 60, paddingHorizontal: 20, paddingBottom: 20,
-    elevation: 4, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10
+    backgroundColor: COLORS.white, 
+    width: '100%', 
+    borderRadius: 15,
+    paddingTop: 70, 
+    paddingHorizontal: 20, 
+    paddingBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E3F2FD',
   },
   statusTitle: { 
-    fontSize: 20, fontWeight: 'bold', textAlign: 'center', 
-    color: '#1A237E', marginBottom: 25 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    textAlign: 'center', 
+    color: COLORS.textMain, 
+    marginBottom: 30 
   },
-
-  row: { flexDirection: 'row', 
+  section: { marginVertical: 5 },
+  row: { 
+    flexDirection: 'row', 
     justifyContent: 'space-between', 
-    marginBottom: 12 
+    marginBottom: 15 
   },
-
   label: { 
-    color: '#757575', 
-    fontSize: 14, 
-    fontWeight: '500' 
-  },
-  value: { 
-    color: '#333', 
+    color: COLORS.textMain, 
     fontSize: 14, 
     fontWeight: '700' 
   },
-  
+  value: { 
+    color: '#64B5F6', 
+    fontSize: 14, 
+    fontWeight: '800' 
+  },
   valueDetail: { 
-    color: '#333', 
+    color: COLORS.textMain, 
     fontSize: 13, 
     fontWeight: '600', 
     flex: 1, 
-    textAlign: 'right', 
-    marginLeft: 10 
+    textAlign: 'right' 
   },
-  
   dashedLineContainer: {
     flexDirection: 'row', 
     alignItems: 'center', 
-    marginVertical: 15, 
+    marginVertical: 10,
+    marginHorizontal: -20,
     position: 'relative'
   },
-
   dashedLine: {
     flex: 1, 
     height: 1, 
     borderStyle: 'dashed', 
     borderWidth: 1, 
-    borderColor: '#E0E0E0', 
-    borderRadius: 1
+    borderColor: '#BBDEFB',
   },
-
-  cutout: { 
-    position: 'absolute', 
-    width: 20, 
-    height: 20, 
-    borderRadius: 10, 
-    backgroundColor: '#F0F8FF'
+  cutoutLeft: { 
+    width: 24, height: 24, 
+    borderRadius: 12, 
+    backgroundColor: '#F0F8FF', 
+    marginLeft: -12 
   },
-  
+  cutoutRight: { 
+    width: 24, height: 24, 
+    borderRadius: 12, 
+    backgroundColor: '#F0F8FF',
+    marginRight: -12 
+  },
   totalContainer: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center',
-    backgroundColor: '#F9F9F9', 
-    padding: 18, 
-    borderRadius: 12, 
-    marginTop: 15,
-    borderWidth: 1, 
-    borderColor: '#EEF2FF'
+    backgroundColor: '#FFFFFF', 
+    paddingVertical: 20,
+    paddingHorizontal: 5,
+    borderTopWidth: 1,
+    borderTopColor: '#E3F2FD',
+    marginTop: 10
   },
-  totalLabel: { 
-    fontSize: 15, 
-    fontWeight: 'bold', 
-    color: '#333' 
-},
-  totalValue: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: COLORS.primary 
-}
+  totalLabel: { fontSize: 16, fontWeight: 'bold', color: COLORS.textMain },
+  totalValue: { fontSize: 18, fontWeight: 'bold', color: '#64B5F6' }
 });
