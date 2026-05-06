@@ -49,9 +49,10 @@ export const subtitle ={ //subtitle seperti utk mapel
   fontWeight : 'bold' as const,
 }
 
-export const caption ={ //tulisan caption seperti utk detail materi atau subtitle
-  fontSize : 12,
-  color : COLORS.textMain
+export const moreSubtitle ={ //tulisan caption seperti utk detail materi atau subtitle
+  fontSize : 10,
+  color : COLORS.textMain,
+  fontWeight : 'bold' as const,
 }
 
 export const container ={
