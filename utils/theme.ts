@@ -11,6 +11,7 @@ export const COLORS = {
   success: '#4CAF50',
   error: '#F44336',
   gray: '#D6D6D6',
+  darkGray: '#939393',
   yellow: '#F8B64C',
   red: '#FF383C'
 };

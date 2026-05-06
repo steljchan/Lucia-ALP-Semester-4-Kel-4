@@ -6,7 +6,7 @@ import { COLORS, title, BTN } from '@/utils/theme';
 export default function StepKonfirmasi({ selectedItem, selectedMethod, onBack, onClose, onPay, pajak }: any) {
   const rows = [
     { label: 'Item', value: selectedItem.name, color: COLORS.primary },
-    { label: 'Detail', value: selectedItem.coin ? `${selectedItem.coin} 🪙` : `${selectedItem.heart} ❤️`, color: COLORS.error },
+    { label: 'Detail', value: selectedItem.coin ? `${selectedItem.coin} 🪙` : `${selectedItem.heart} ❤️`, color: COLORS.textMain },
     { label: 'Harga', value: Number(selectedItem.price).toLocaleString('id-ID') },
     { label: 'Pajak', value: Number(pajak).toLocaleString('id-ID') },
   ];
@@ -29,7 +29,7 @@ export default function StepKonfirmasi({ selectedItem, selectedMethod, onBack, o
       <View style={styles.lineDivider} />
       <View style={styles.infoRow}>
         <Text style={styles.label}>Total</Text>
-        <Text style={[styles.value, { fontSize: 18, color: COLORS.primary }]}>
+        <Text style={[styles.value, { fontSize: 18, color: COLORS.textMain }]}>
           Rp {Number(selectedItem.price + pajak).toLocaleString('id-ID')}
         </Text>
       </View>
@@ -67,8 +67,14 @@ const styles = StyleSheet.create({
     },
 
     cardItem: { 
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FA', 
-        padding: 12, borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#EEE' 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#F8F9FA', 
+        padding: 12, 
+        borderRadius: 12, 
+        marginBottom: 8, 
+        borderWidth: 1, 
+        borderColor: '#EEE' 
     },
 
     methodIcon: { 
@@ -78,12 +84,13 @@ const styles = StyleSheet.create({
 
    
     label: { 
-        color: COLORS.gray, 
+        color: COLORS.darkGray, 
         fontSize: 14 
     },
 
     value: { 
-        fontWeight: 'bold' 
+        fontWeight: 'bold' ,
+        color: COLORS.textMain,
     },
 
     lineDivider: { 

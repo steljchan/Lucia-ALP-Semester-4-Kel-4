@@ -30,12 +30,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    
-    
     paddingHorizontal: 16,
-    paddingTop: 40, // Sesuaikan dengan status bar HP
+    paddingTop: 40, 
     paddingBottom: 10,
-    backgroundColor: 'transparent', // Agar mengikuti background halaman
+    backgroundColor: 'transparent', 
   },
 
   logo: {

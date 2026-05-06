@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BTN } from '@/utils/theme';
+import { Background } from '@react-navigation/elements';
 
 export default function StepStatus({ step, onClose }: any) {
   return (
@@ -16,10 +17,7 @@ export default function StepStatus({ step, onClose }: any) {
       ) : (
         <>
           <View style={styles.checkCircle}><Ionicons name="checkmark" size={60} color="white" /></View>
-          <Text style={[styles.statusTitle, { marginTop: 20 }]}>Pembayaran Berhasil!</Text>
-          <TouchableOpacity style={[BTN.primary.box, { width: '100%', marginTop: 30 }]} onPress={onClose}>
-            <Text style={BTN.primary.text}>Kembali ke Toko</Text>
-          </TouchableOpacity>
+            <Text style={[styles.statusTitle, { marginTop: 20 }]}>Pembayaran Berhasil!</Text>
         </>
       )}
     </View>
@@ -32,7 +30,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center', 
         paddingVertical: 20 
     },
-    
+
     mascotLarge: { 
         width: 150, 
         height: 150, 
@@ -42,12 +40,12 @@ const styles = StyleSheet.create({
     statusTitle: { 
         fontSize: 20, 
         fontWeight: 'bold', 
-        color: '#333' 
+        color: COLORS.textMain, 
     },
 
     statusSubtitle: { 
         fontSize: 14, 
-        color: COLORS.gray, 
+        color: COLORS.darkGray, 
         textAlign: 'center' 
     },
     
@@ -55,9 +53,8 @@ const styles = StyleSheet.create({
         width: 100, 
         height: 100, 
         borderRadius: 50, 
-        backgroundColor: '#8ED7FF', 
+        backgroundColor: COLORS.primary, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        elevation: 5 
     },
 });
