@@ -1,15 +1,6 @@
 import React from 'react';
-import NavbarBase from './navbarBase';
-
-const menuAdmin = [
-  { name: 'index', icon: 'home', label: 'Beranda' },
-];
+import NavbarBaseAdmin from './NavbarAdminBase';
 
 export default function NavbarAdmin(props: any) {
-  return (
-    <NavbarBase 
-      {...props} 
-      menuItems={menuAdmin} 
-    />
-  );
+  return <NavbarBaseAdmin {...props} />;
 }

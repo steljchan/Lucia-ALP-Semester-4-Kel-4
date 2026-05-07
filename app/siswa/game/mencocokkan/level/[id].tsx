@@ -124,7 +124,7 @@ export default function MatchingGame() {
 
       <View style={styles.mapContainer}>
         {/* 🔥 GARIS */}
-        <Svg style={StyleSheet.absoluteFill}>
+        <Svg style={[StyleSheet.absoluteFill, {top: -20}]}>
           {connections.map((c, i) => {
             const from = wordPositions[c.word];
             const to = imagePositions[c.image];
