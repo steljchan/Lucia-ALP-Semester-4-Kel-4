@@ -4,9 +4,9 @@ import { View, StyleSheet, Image } from 'react-native';
 export default function AppHeader() {
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
+      {/* <View style={styles.topRow}>
         <Image source={require('../../../assets/images/lucia.png')} style={styles.logo}/>
-      </View>
+      </View> */}
     </View>
   );
 }

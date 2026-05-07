@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent, BORDER_RADIUS} from '@/utils/theme';
-import AppHeader from '../../../src/components/common/appheaderguru';
+import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent, SafeArea} from '@/utils/theme';
+import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MATERI = [
   {
@@ -48,87 +49,90 @@ export default function ProfilGuru() {
   };
 
   return (
-    <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
-      <AppHeader/>
+    <SafeAreaView style={SafeArea}>
+      <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
+        <AppHeader/>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
-        
-        {/*AVATAR & INFO */}
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarWrapper}>
-            <Image
-              source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')}
-              style={PROFILE.avatar} 
-            />
-            <TouchableOpacity style={PROFILE.cameraBtn} onPress={pickImage}>
-              <Ionicons name="camera" size={16} color={COLORS.primary} />
-            </TouchableOpacity>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
           
+          {/*AVATAR & INFO */}
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarWrapper}>
+              <Image
+                source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')}
+                style={PROFILE.avatar} 
+              />
+              <TouchableOpacity style={PROFILE.cameraBtn} onPress={pickImage}>
+                <Ionicons name="camera" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            
+            </View>
+
+            <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arsya Aulia</Text>          
+            <View style={PROFILE.emailBadge}>
+              <Text style={subtitle}>Arsya@teacher.SLBN1.ac.id</Text>
+            </View>
           </View>
 
-          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arsya Aulia</Text>          
-          <View style={PROFILE.emailBadge}>
-             <Text style={subtitle}>Arsya@teacher.SLBN1.ac.id</Text>
-          </View>
-        </View>
-
-        {/* LOGOUT */}
-        <TouchableOpacity 
-          style={BTN.logout.box}
-          onPress={() => setShowLogout(true)}
-        >
-          <Ionicons name="log-out-outline" size={20} color="white" />
-          <Text style={BTN.logout.text}>Log Out</Text>
-        </TouchableOpacity>
-
-        <LogoutModal
-          visible={showLogout}
-          onClose={() => setShowLogout(false)}
-          onConfirm={() => {
-            setShowLogout(false);
-            router.replace('/auth/login'); 
-          }}
-        />
-
-        <View style={styles.reportDivider}>
-          <View style={styles.line} />
-          <Text style={styles.reportTitle}>Daftar Materi</Text>
-          <View style={styles.line} />
-        </View>
-
-        <View>
-        {MATERI.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={{ marginBottom: 15 }}
-            onPress={() => Alert.alert(item.title)}
+          {/* LOGOUT */}
+          <TouchableOpacity 
+            style={BTN.logout.box}
+            onPress={() => setShowLogout(true)}
           >
-            <Card style={styles.materiRow}>
-              
-              {/* GAMBAR KIRI */}
-              <Image source={item.image} style={styles.materiImage} />
-
-              {/* KONTEN KANAN */}
-              <View style={styles.materiContent}>
-                
-                {/* TANGGAL */}
-                <Text style={styles.materiDate}>{item.date}</Text>
-
-                {/* JUDUL */}
-                <Text style={styles.materiTitle}>{item.title}</Text>
-
-                {/* SUBTITLE */}
-                <Text style={styles.materiSubtitle}>{item.subtitle}</Text>
-
-              </View>
-
-            </Card>
+            <Ionicons name="log-out-outline" size={20} color="white" />
+            <Text style={BTN.logout.text}>Log Out</Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      </ScrollView>
-    </View>
+          <LogoutModal
+            visible={showLogout}
+            onClose={() => setShowLogout(false)}
+            onConfirm={() => {
+              setShowLogout(false);
+              router.replace('/auth/login'); 
+            }}
+          />
+
+          <View style={styles.reportDivider}>
+            <View style={styles.line} />
+            <Text style={styles.reportTitle}>Daftar Materi</Text>
+            <View style={styles.line} />
+          </View>
+
+          <View>
+          {MATERI.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={{ marginBottom: 15 }}
+              onPress={() => Alert.alert(item.title)}
+            >
+              <Card style={styles.materiRow}>
+                
+                {/* GAMBAR KIRI */}
+                <Image source={item.image} style={styles.materiImage} />
+
+                {/* KONTEN KANAN */}
+                <View style={styles.materiContent}>
+                  
+                  {/* TANGGAL */}
+                  <Text style={styles.materiDate}>{item.date}</Text>
+
+                  {/* JUDUL */}
+                  <Text style={styles.materiTitle}>{item.title}</Text>
+
+                  {/* SUBTITLE */}
+                  <Text style={styles.materiSubtitle}>{item.subtitle}</Text>
+
+                </View>
+
+              </Card>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+    
   );
 }
 

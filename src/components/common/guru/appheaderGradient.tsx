@@ -1,7 +1,7 @@
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './searchbar';
+import SearchBar from '../searchbar';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
@@ -15,33 +15,20 @@ export default function AppHeader() {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      
+      {/* TOP ROW */}
       <View style={styles.topRow}>
         
-        
+        {/* LOGO */}
         <Image
           source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
 
-        
-        <TouchableOpacity 
-        style={styles.shopBtn}
-        onPress={() => router.push('/siswa/toko')}>
-          <Ionicons name="storefront-outline" size={20} color="#fff" />
-          
-        </TouchableOpacity>
-
       </View>
 
-      
+      {/* SEARCH BAR */}
       <SearchBar />
 
-      
-      <Image
-        source={require('../../../assets/images/ViboBuku.png')}
-        style={styles.robot}
-      />
           </LinearGradient>
         );
       }
@@ -69,26 +56,5 @@ const styles = StyleSheet.create({
     height: 55,
     resizeMode: 'contain',
     marginTop: 2,
-  },
-
-  robot: {
-    position: 'absolute',
-    right: 12,
-    bottom: 5, 
-
-    width: 45,  
-    height: 65,
-  },
-
-  // SHOP BUTTON
-  shopBtn: {
-    backgroundColor: COLORS.secondary,
-
-    width: 44,
-    height: 44,
-    borderRadius: 50,
-
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

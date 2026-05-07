@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image
 } from 'react-native';
-import AppHeader from '../../../src/components/common/appheaderguruWOsearch';
+import AppHeader from '../../../src/components/common/guru/appheaderguruWOsearch';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
@@ -129,7 +129,7 @@ export default function NilaiSiswa() {
             }
           >
             <Image
-              source={require('../../../assets/images/lucia.png')}
+              source={require('@/assets/images/lucia.png')}
               style={styles.avatar}
             />
 

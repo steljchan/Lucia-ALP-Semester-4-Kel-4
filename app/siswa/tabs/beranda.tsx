@@ -1,11 +1,16 @@
 import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { useRouter } from 'expo-router';
+
 import AppHeader from '../../../src/components/common/appheader';
 import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
 import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
-import {scrollContent} from '@/utils/theme';
+
+import { scrollContent } from '@/utils/theme';
 import { UI } from '../../../constants/theme';
 
 export default function DashboardSiswa() {
+
+  const router = useRouter();
 
   const subjects = [
     { id: '1', title: "Matematika", image: { uri: 'https://cdn-icons-png.flaticon.com/512/2721/2721297.png' } },
@@ -19,7 +24,7 @@ export default function DashboardSiswa() {
   return (
     <View style={styles.container}>
 
-      <AppHeader/>
+      <AppHeader />
 
       <FlatList
         data={subjects}
@@ -39,13 +44,14 @@ export default function DashboardSiswa() {
         }
 
         renderItem={({ item }) => (
-          <SubjectCard 
+          <SubjectCard
             title={item.title}
             image={item.image}
+            onPress={() => router.push('/siswa/materi/submateri')}
           />
         )}
       />
-      
+
     </View>
   );
 }
