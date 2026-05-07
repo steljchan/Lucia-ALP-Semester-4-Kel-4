@@ -31,7 +31,7 @@ export default function ReceiptScreen() {
           <View style={styles.card}>
             <Text style={styles.statusTitle}>Pembayaran Berhasil</Text>
 
-            {/* Bagian Atas: Rincian Harga */}
+            
             <View style={styles.section}>
               <View style={styles.row}>
                 <Text style={styles.label}>Harga</Text>
@@ -43,14 +43,14 @@ export default function ReceiptScreen() {
               </View>
             </View>
 
-            {/* Garis Putus-putus dengan Lubang (Cutout) */}
+            
             <View style={styles.dashedLineContainer}>
                 <View style={styles.cutoutLeft} />
                 <View style={styles.dashedLine} />
                 <View style={styles.cutoutRight} />
             </View>
 
-            {/* Bagian Tengah: Detail Transaksi */}
+            
             <View style={styles.section}>
               {[
                 { label: 'No. Pemesanan', value: '1876543234567876' },
@@ -77,7 +77,7 @@ export default function ReceiptScreen() {
 
         <TouchableOpacity 
           style={[BTN.primary.box, { marginTop: 30, marginHorizontal: 30, borderRadius: 15 }]} 
-          onPress={() => router.replace('/siswa/toko')}
+          onPress={() => router.back()}
         >
           <Text style={BTN.primary.text}>Kembali</Text>
         </TouchableOpacity>
