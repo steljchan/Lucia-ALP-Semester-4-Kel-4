@@ -3,7 +3,7 @@ import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, StatusBar} 
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL, title, caption, scrollContent, container, containerHeader } from '@/utils/theme';
+import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL, title,  scrollContent, container, containerHeader } from '@/utils/theme';
 import PaymentModal from '@/src/components/toko/paymentModal';
 
 export default function TokoScreen() {

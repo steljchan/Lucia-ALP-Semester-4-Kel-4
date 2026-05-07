@@ -2,12 +2,14 @@ import { View, FlatList, Image, TouchableOpacity, ScrollView } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet } from 'react-native';
 
 import GameCard from '../../../src/components/game/gameCard';
-import SearchBar from '../../../src/components/common/searchbar';
+// import SearchBar from '../../../src/components/common/searchbar';
 
 import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
-import AppHeaderWOsearch from '../../../src/components/common/appheaderWOsearch';
+import AppHeaderWOsearch from '../../../src/components/common/appheader';
+import AppHeader from '../../../src/components/common/appheader';
 
 
 export default function GameMenu() {
@@ -51,34 +53,39 @@ export default function GameMenu() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
+        <AppHeader/>
+        <FlatList
+          data={games}
+          numColumns={2}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={[scrollContent, styles.list]} 
+          columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
+          
+         
+          // ListHeaderComponent={
+          //   <>
+          //     <AppHeader/>
+          //     <View style={{ marginBottom: 10 }}>
+          //        <SearchBar/>
+          //     </View>
+          //   </>
+          // }
 
-        <AppHeaderWOsearch />
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
-          <SearchBar/>
-          {/* 🎮 GAME GRID */}
-          <FlatList
-            data={games}
-            numColumns={2}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.list}
-            columnWrapperStyle={styles.row}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <GameCard
-                title={item.title}
-                image={item.image}
-                onPress={() => item.route && router.push(item.route)}
-              />
-            )}
-          />
-        </ScrollView>
+          renderItem={({ item }) => (
+            <GameCard
+              title={item.title}
+              image={item.image}
+              onPress={() => item.route && router.push(item.route)}
+            />
+          )}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
-import { StyleSheet } from 'react-native';
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -114,7 +121,7 @@ const styles = StyleSheet.create({
   },
 
   list: {
-    paddingTop: 12,
+    paddingTop: 20,
   },
 
   row: {

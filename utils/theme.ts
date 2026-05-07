@@ -16,6 +16,11 @@ export const COLORS = {
   red: '#FF383C'
 };
 
+export const SafeArea ={
+  flex: 1,
+  backgroundColor: '#EAF6FF',
+}
+
 export const SPACING = {
   xs: 4,
   sm: 8,
@@ -50,7 +55,7 @@ export const subtitle ={ //subtitle seperti utk mapel
 }
 
 export const moreSubtitle ={ //tulisan caption seperti utk detail materi atau subtitle
-  fontSize : 10,
+  fontSize : 12,
   color : COLORS.textMain,
   fontWeight : 'bold' as const,
 }

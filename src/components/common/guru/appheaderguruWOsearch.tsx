@@ -1,5 +1,5 @@
 import { View, StyleSheet, Image } from 'react-native';
-import SearchBar from './searchbar';
+// import SearchBar from './searchbar';
 import { COLORS } from '@/utils/theme';
 
 export default function AppHeader() {
@@ -11,18 +11,15 @@ export default function AppHeader() {
         
         {/* LOGO */}
         <Image
-          source={require('../../../assets/images/lucia.png')}
+          source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
 
       </View>
 
-      {/* SEARCH BAR */}
-      <SearchBar />
-
       {/* ROBOT IMAGE */}
       <Image
-        source={require('../../../assets/images/ViboBuku.png')}
+        source={require('@/assets/images/ViboBuku.png')}
         style={styles.robot}
       />
 

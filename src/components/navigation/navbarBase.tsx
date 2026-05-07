@@ -92,6 +92,7 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
                   {route.label}
                 </Text>
               </View>
+              
             </TouchableOpacity>
           );
         })}

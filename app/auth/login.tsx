@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const router = useRouter();
   
   const handleLogin = () => {
-    router.replace('/admin'); 
+    router.replace('/siswa/tabs'); 
   };
 
   return (
