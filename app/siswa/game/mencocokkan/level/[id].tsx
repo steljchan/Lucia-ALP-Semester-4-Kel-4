@@ -10,6 +10,7 @@ import MatchWord from '../../../../../src/components/game/matchword';
 import MatchImage from '../../../../../src/components/game/matchimage';
 import GameHeader from '../../../../../src/components/game/gameHeader';
 import HintModal from '../../../../../src/components/game/hintModal';
+import ResultModal from '../../../../../src/components/game/resultModal';
 
 export default function MatchingGame() {
   const { id } = useLocalSearchParams();
@@ -40,6 +41,14 @@ export default function MatchingGame() {
   >([]);
 
   const [submitted, setSubmitted] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  const [earnedStars, setEarnedStars] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [coin, setCoin] = useState(0);
+
+  const [isNavigating, setIsNavigating] = useState(false);
 
   /* =========================
      🔥 CONNECT LOGIC
@@ -75,14 +84,7 @@ export default function MatchingGame() {
       }),
     ]).start();
 
-    if (correct) {
-      setTimeout(() => {
-        const next = levelIndex + 2;
-        if (next <= mencocokkanLevels.length) {
-          router.replace(`/siswa/game/mencocokkan/level/${next}`);
-        }
-      }, 800);
-    } else {
+    if (!correct) {
       setTimeout(() => {
         reset();
         setConnections([]);
@@ -93,8 +95,27 @@ export default function MatchingGame() {
 
   const onSubmit = () => {
     const result = checkAll();
+
     setSubmitted(true);
+    setIsCorrect(result);
+
     playAnimation(result);
+
+    if (result) {
+      const finalStars = 3;
+
+      setEarnedStars(finalStars);
+      setXp(50 + finalStars * 25);
+      setCoin(5 + finalStars * 5);
+    } else {
+      setEarnedStars(1);
+      setXp(10);
+      setCoin(2);
+    }
+
+    setTimeout(() => {
+      setShowResult(true);
+    }, 500);
   };
 
   const [showHint, setShowHint] = useState(false);
@@ -222,6 +243,49 @@ export default function MatchingGame() {
           setHintStep((prev) => {
             if (prev < 2) return prev + 1;
             return prev;
+          });
+        }}
+      />
+      <ResultModal
+        visible={showResult && !isNavigating}
+        gameTitle="Mencocokkan"
+        stars={earnedStars}
+        xp={xp}
+        coin={coin}
+
+        onRetry={() => {
+          setShowResult(false);
+
+          reset();
+          setConnections([]);
+          setSubmitted(false);
+
+          setTimeout(() => {
+            setIsNavigating(false);
+          }, 100);
+        }}
+
+        onNext={() => {
+          setIsNavigating(true);
+          setShowResult(false);
+
+          requestAnimationFrame(() => {
+            const next = levelIndex + 2;
+
+            if (next <= mencocokkanLevels.length) {
+              router.replace(`/siswa/game/mencocokkan/level/${next}`);
+            } else {
+              router.back();
+            }
+          });
+        }}
+
+        onLeaderboard={() => {
+          setIsNavigating(true);
+          setShowResult(false);
+
+          requestAnimationFrame(() => {
+            router.push('/siswa/tabs/leaderboard');
           });
         }}
       />
