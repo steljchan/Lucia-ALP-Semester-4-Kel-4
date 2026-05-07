@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import SearchBar from '../../src/components/common/searchbar';
+import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
 
 export default function AdminPanel() {
   const router = useRouter();
@@ -182,39 +183,14 @@ export default function AdminPanel() {
       />
 
       {/* 🔥 MODAL DELETE */}
-      <Modal visible={showDeleteModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Hapus User</Text>
-            <Text style={styles.modalText}>
-              Apakah kamu yakin ingin menghapus user ini?
-            </Text>
-
-            <View style={styles.modalActions}>
-
-              {/* BATAL */}
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setShowDeleteModal(false)}
-              >
-                <Text style={styles.cancelText}>Batal</Text>
-              </TouchableOpacity>
-
-              {/* HAPUS */}
-              <TouchableOpacity
-                style={styles.deleteBtn}
-                onPress={() => {
-                  console.log('Deleted user', selectedUser);
-                  setShowDeleteModal(false);
-                }}
-              >
-                <Text style={styles.deleteText}>Hapus</Text>
-              </TouchableOpacity>
-
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <DeleteUserModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          console.log('Deleted user', selectedUser);
+          setShowDeleteModal(false);
+        }}
+      />
     </View>
   );
 }
@@ -369,41 +345,6 @@ const styles = StyleSheet.create({
 
   actionButton: {
     padding: 8,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  modalCard: {
-    width: '80%',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginBottom: 10,
-  },
-
-  modalText: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginBottom: 20,
-  },
-
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
   },
 
   cancelBtn: {
