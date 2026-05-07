@@ -7,6 +7,7 @@ import useSiapakahAku from '../../../../../src/hooks/usesiapakahaku';
 import LetterBox from '../../../../../src/components/game/letterbox';
 import GameHeader from '../../../../../src/components/game/gameHeader';
 import HintModal from '../../../../../src/components/game/hintModal';
+import ResultModal from '../../../../../src/components/game/resultModal';
 
 export default function GamePlay() {
   const { id } = useLocalSearchParams();
@@ -65,6 +66,7 @@ export default function GamePlay() {
   const bottomRow = options.length > 6 ? options.slice(4) : [];
 
   /* 🔥 ANIMASI */
+  /* 🔥 ANIMASI */
   const playAnimation = (correct: boolean) => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -79,28 +81,43 @@ export default function GamePlay() {
       }),
     ]).start();
 
-    if (correct) {
-      setTimeout(() => {
-        const next = levelIndex + 2;
-
-        if (next <= siapakahAkuLevels.length) {
-          router.replace(`/siswa/game/siapakahaku/level/${next}`);
-        } else {
-          router.back();
-        }
-      }, 900);
-    } else {
+    // ❌ JANGAN ADA router.replace DI SINI
+    // karena sudah ditangani ResultModal
+    if (!correct) {
       setTimeout(() => {
         reset();
       }, 900);
     }
   };
+  const [showResult, setShowResult] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [coin, setCoin] = useState(0);
+
+  const stars = selected.join('') === level.answer ? 3 : 2;
 
   const onSubmit = () => {
     if (!isFull) return;
 
-    const result = check() ?? false;
-    playAnimation(Boolean(result));
+    const result = check();
+
+    if (result) {
+      const finalStars = stars;
+
+      playAnimation(true);
+
+      setEarnedStars(finalStars);
+      setXp(50 + finalStars * 75);
+      setCoin(3 + finalStars * 2);
+
+      setTimeout(() => {
+        setShowResult(true);
+      }, 400);
+
+    } else {
+      playAnimation(false);
+    }
   };
 
   const [showHint, setShowHint] = useState(false);
@@ -244,6 +261,48 @@ export default function GamePlay() {
           setHintStep((prev) => {
             if (prev < 2) return prev + 1;
             return prev;
+          });
+        }}
+      />
+
+      <ResultModal
+        visible={showResult && !isNavigating}
+        gameTitle="Siapakah Aku?"
+        stars={earnedStars}
+        xp={xp}
+        coin={coin}
+
+        onRetry={() => {
+          setShowResult(false);
+
+          reset();
+
+          setTimeout(() => {
+            setIsNavigating(false);
+          }, 100);
+        }}
+
+        onNext={() => {
+          setIsNavigating(true);
+          setShowResult(false);
+
+          requestAnimationFrame(() => {
+            const next = levelIndex + 2;
+
+            if (next <= siapakahAkuLevels.length) {
+              router.replace(`/siswa/game/siapakahaku/level/${next}`);
+            } else {
+              router.back();
+            }
+          });
+        }}
+
+        onLeaderboard={() => {
+          setIsNavigating(true);
+          setShowResult(false);
+
+          requestAnimationFrame(() => {
+            router.push('/siswa/tabs/leaderboard');
           });
         }}
       />
