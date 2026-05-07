@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS, title, containerHeader, scrollContent, moreSubtitle, subtitle } from '@/utils/theme';
-import AppHeader from '../../../src/components/common/appheaderguru';
+import AppHeader from '../../../src/components/common/guru/appheaderGradient';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../../src/components/common/card'; 
 import CategoryFilter from '../../../src/components/dashboard/guru/categoryFilter';
@@ -21,14 +21,13 @@ export default function DashboardGuru() {
   const [isGridView, setIsGridView] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Semua');
 
-  // Logika Filter Data
   const filteredTemplates = selectedCategory === 'Semua' 
     ? TEMPLATES 
     : TEMPLATES.filter(item => item.category === selectedCategory);
 
   return (
     <View style={[containerHeader, { flex: 1 }]}>
-      <AppHeader />
+      <AppHeader/>
 
       <ScrollView 
         showsVerticalScrollIndicator={false} 
@@ -36,7 +35,6 @@ export default function DashboardGuru() {
       >
         <Text style={[title, { fontSize: 22, marginTop: 20 }]}>Jelajahi Template Materi</Text>
 
-        {/* Masukkan Komponen Filter di sini */}
         <CategoryFilter 
           categories={CATEGORIES}
           selectedCategory={selectedCategory}
