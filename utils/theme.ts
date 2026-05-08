@@ -4,6 +4,7 @@ export const COLORS = {
   primary: '#5CBEFA',
   secondary: '#76CFFF', 
   background: '#F0F9FF',
+  gray: '#D6D6D6',
   smoothBlue: '#D6EFFF',
   white: '#FFFFFF',
   textMain: '#091F5B',
@@ -65,6 +66,7 @@ export const container ={
   backgroundColor: COLORS.background,
   justifyContent: 'center' as const,
   alignItems: 'center' as const,
+  
 }
 
 export const containerHeader ={
