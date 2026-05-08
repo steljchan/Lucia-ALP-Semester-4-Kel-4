@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
@@ -11,11 +11,13 @@ export default function QuizScreen() {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [timerActive, setTimerActive] = useState(true);
   const correctRef = useRef(0);
   const wrongRef = useRef(0);
+  const skippedRef = useRef(0);
   const answersRef = useRef<any[]>([]);
+  const navigatingRef = useRef(false);
 
   const questions = [
     {
@@ -45,94 +47,81 @@ export default function QuizScreen() {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
-      alert('Waktu habis!');
-      finalizeAnswer(null);
-
-      handleNextQuestion();
+    } else if (timeLeft === 0 && timerActive) {
+      setTimerActive(false);
+      setSelectedOption(null);
+      finalizeAnswer(null, true);
+      setShowResult(true);
+      setTimeout(() => {
+        handleNextQuestion();
+      }, 2000);
     }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
   const resetTimer = () => {
-    setTimeLeft(60);
+    setTimeLeft(30);
     setTimerActive(true);
   };
 
-  const handleAnswer = (option: string) => {
+  const finalizeAnswer = (selectedOption: string | null, isSkippedByTimer = false) => {
     const current = questions[currentQuestionIndex];
-    const isCorrect = option === current.correctAnswer;
-    const answerData = {
-      question: current.questionText,
-      number: current.number,
-      options: current.options,
-      userAnswer: option,
-      correctAnswer: current.correctAnswer,
-      isCorrect
-    };
+    const alreadyAnswered = answersRef.current.some(a => a.number === current.number);
+    if (alreadyAnswered) return;
 
-    finalizeAnswer(option);
-  };
-
-  const finalizeAnswer = (selectedOption: string | null) => {
-    const current = questions[currentQuestionIndex];
-
-    const alreadyAnswered = answersRef.current.some(
-      a => a.number === current.number
-    );
-
-    if (alreadyAnswered) return; 
-
-    const isCorrect = selectedOption === current.correctAnswer;
-
-    const answerData = {
-      number: current.number,
-      question: current.questionText,
-      options: current.options,
-      userAnswer: selectedOption, 
-      correctAnswer: current.correctAnswer,
-      isCorrect: isCorrect
-    };
-
-    answersRef.current.push(answerData);
-
-    if (isCorrect) {
+    let isCorrect = false;
+    let status = 'answered';
+    if (isSkippedByTimer || selectedOption === null) {
+      status = 'skipped';
+      skippedRef.current += 1;
+    } else if (selectedOption === current.correctAnswer) {
+      isCorrect = true;
       correctRef.current += 1;
     } else {
       wrongRef.current += 1;
     }
+
+    const answerData = {
+      number: current.number,
+      question: current.questionText,
+      options: current.options,
+      userAnswer: selectedOption,
+      correctAnswer: current.correctAnswer,
+      isCorrect: isCorrect,
+      status: status,
+    };
+    answersRef.current.push(answerData);
+  };
+
+  const handleAnswer = (option: string) => {
+    if (showResult || isChecking) return;
+    finalizeAnswer(option, false);
   };
 
   const handleNextQuestion = () => {
-    const current = questions[currentQuestionIndex];
-
-    const alreadyAnswered = answersRef.current.some(
-      a => a.number === current.number
-    );
-    
-    if (!alreadyAnswered && selectedOption === null) {
-      alert('Pilih jawaban dulu atau biarkan waktu habis');
-      return;
-    }
-
+    if (navigatingRef.current) return;
+    navigatingRef.current = true;
     if (currentQuestionIndex + 1 < totalQuestions) {
       setCurrentQuestionIndex(prev => prev + 1);
       setSelectedOption(null);
       setShowResult(false);
       setIsChecking(false);
       resetTimer();
-      setTimerActive(true);
+      setTimeout(() => {
+        navigatingRef.current = false;
+      }, 100);
     } else {
       const finalCorrect = correctRef.current;
       const finalWrong = wrongRef.current;
+      const finalSkipped = skippedRef.current;
       const finalScore = Math.round((finalCorrect / totalQuestions) * 100);
-
       router.replace({
         pathname: '/siswa/materi/score',
         params: {
           score: finalScore.toString(),
           correct: finalCorrect.toString(),
           wrong: finalWrong.toString(),
+          skipped: finalSkipped.toString(),
           total: totalQuestions.toString(),
           answers: JSON.stringify(answersRef.current)
         }
@@ -141,15 +130,15 @@ export default function QuizScreen() {
   };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const mins = Math.floor(seconds / 30);
+    const secs = seconds % 30;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.header}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <LinearGradient colors={[COLORS.white, '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
         <View style={styles.headerRow}>
           <Text style={styles.headerTitle}>Quiz</Text>
         </View>
@@ -161,23 +150,20 @@ export default function QuizScreen() {
           <View style={styles.leftSection}>
             <Text style={styles.remainingLabel}>Tersisa</Text>
             <Text style={styles.remainingValue}>
-              <Text style={{color: COLORS.textMain}}>{String(currentQuestionNumber).padStart(2, '0')}</Text>
-              <Text style={{color: COLORS.textSub}}>/{String(totalQuestions).padStart(2, '0')}soal</Text>
+              <Text style={{ color: COLORS.textMain }}>{String(currentQuestionNumber).padStart(2, '0')}</Text>
+              <Text style={{ color: COLORS.textSub }}>/{String(totalQuestions).padStart(2, '0')} soal</Text>
             </Text>
           </View>
-
           <View style={styles.rightSection}>
-            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 60) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
-              {() => (
-                <Text style={{fontSize: 12, fontWeight: '600'}}>{formatTime(timeLeft)}</Text>
-              )}
+            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 20) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
+              {() => <Text style={{ fontSize: 12, fontWeight: '600' }}>{formatTime(timeLeft)}</Text>}
             </AnimatedCircularProgress>
           </View>
         </View>
 
         <View style={styles.progressContainer}>
           <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, {width: `${progress * 100}%`}]} />
+            <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
           </View>
         </View>
 
@@ -194,260 +180,221 @@ export default function QuizScreen() {
             const isSelected = selectedOption === option;
             let backgroundColor = COLORS.white;
             let borderColor = COLORS.smoothBlue;
-
             if (isChecking && isSelected) {
               backgroundColor = COLORS.smoothBlue;
               borderColor = COLORS.primary;
             } else if (showResult) {
               if (isCorrect) {
                 backgroundColor = '#D8FAE5';
-                borderColor = '#22C55E';
+                borderColor = COLORS.success;
               } else if (isSelected) {
                 backgroundColor = '#F9C3C4';
-                borderColor = '#FF383C';
+                borderColor = COLORS.error;
               }
             }
-
             return (
-              <TouchableOpacity key={idx} disabled={showResult || isChecking}
-                style={[
-                  styles.optionItem,
-                  { backgroundColor, borderColor, borderWidth: 2 }
-                ]}
+              <TouchableOpacity
+                key={idx}
+                disabled={showResult || isChecking}
+                style={[styles.optionItem, { backgroundColor, borderColor, borderWidth: 2 }]}
                 onPress={() => {
                   if (showResult || isChecking) return;
-
                   setSelectedOption(option);
                   setIsChecking(true);
-
                   setTimeout(() => {
                     setIsChecking(false);
                     setShowResult(true);
                     setTimerActive(false);
-
                     handleAnswer(option);
-                  }, 3000);
+                    setTimeout(() => {
+                      handleNextQuestion();
+                    }, 2000);
+                  }, 1000);
                 }}
               >
-               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={[
-                    styles.optionCircle,
-                    showResult && isCorrect && styles.circleCorrect,
-                    showResult && isSelected && !isCorrect && styles.circleWrong,
-                  ]}
-                >
-                  <Text style={[styles.optionLetterText]}>{letter}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <View style={[styles.optionCircle, showResult && isCorrect && styles.circleCorrect, showResult && isSelected && !isCorrect && styles.circleWrong]}>
+                    <Text style={styles.optionLetterText}>{letter}</Text>
+                  </View>
+                  <Text style={styles.optionText}>{option}</Text>
                 </View>
-                <Text style={styles.optionText}>{option}</Text>
-              </View>
-
-                {showResult && (
-                  isCorrect ? (
-                    <Ionicons name="checkmark-circle" size={24} color="#1DE21D" />
-                  ) : isSelected ? (
-                    <Ionicons name="close-circle" size={24} color="#FF383C" />
-                  ) : null
-                )}
+                {showResult && (isCorrect ? <Ionicons name="checkmark-circle" size={24} color={COLORS.success} /> : isSelected ? <Ionicons name="close-circle" size={24} color={COLORS.error} /> : null)}
               </TouchableOpacity>
             );
           })}
         </View>
-
-        <TouchableOpacity style={styles.nextButton} onPress={handleNextQuestion}>
-          <Text style={styles.nextButtonText}>Soal Selanjutnya</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textMain,
-    textAlign: 'center',
-  },
-
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textMain,
-    textAlign: 'center',
-    fontWeight: '500',
-    opacity: 0.8,
-  },
-
-  scrollContent: {
-    paddingHorizontal: SPACING.md,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.xl,
+  root: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
   },
   
-  topContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+  header: { 
+    paddingHorizontal: 20, 
+    paddingTop: 60, 
+    paddingBottom: 20, 
+    shadowColor: COLORS.primary, 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 8, 
+    elevation: 5 
+  },
+    
+  headerRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: 8 
   },
 
-  leftSection: {
-    flex: 1,
+  headerTitle: { 
+    fontSize: 20, 
+    fontWeight: '600', 
+    color: COLORS.textMain, 
+    textAlign: 'center' 
   },
 
-  rightSection: {
-    marginLeft: 10,
-  },
-
-  remainingLabel: {
+  subtitle: { 
     fontSize: 14,
-    color: COLORS.textMain,
-    fontWeight: '600',
-    marginBottom: 2,
+    color: COLORS.textMain, 
+    textAlign: 'center', 
+    fontWeight: '500', 
+    opacity: 0.8 
   },
 
-  remainingValue: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+  scrollContent: { 
+    paddingHorizontal: SPACING.md, 
+    paddingTop: SPACING.lg, 
+    paddingBottom: SPACING.xl 
+  },
+
+  topContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 10 
+  },
+
+  leftSection: { 
+    flex: 1 
+  },
+
+  rightSection: { 
+    marginLeft: 10 
+  },
+
+  remainingLabel: { 
+    fontSize: 14, 
+    color: COLORS.textMain, 
+    fontWeight: '600', 
+    marginBottom: 2 
+  },
+
+  remainingValue: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: COLORS.primary 
   },
 
   progressContainer: {
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.md 
   },
 
-  progressBarBackground: {
-    height: 8,
-    backgroundColor: COLORS.smoothBlue,
-    borderRadius: 4,
-    overflow: 'hidden',
+  progressBarBackground: { 
+    height: 8, 
+    backgroundColor: COLORS.smoothBlue, 
+    borderRadius: 4, 
+    overflow: 'hidden' 
   },
 
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 4,
+  progressBarFill: { 
+    height: '100%', 
+    backgroundColor: COLORS.primary, 
+    borderRadius: 4 
   },
 
-  numberContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.s,
-    paddingVertical: SPACING.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+  numberContainer: { 
+    backgroundColor: COLORS.white, 
+    borderRadius: BORDER_RADIUS.s, 
+    paddingVertical: SPACING.xl, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: SPACING.lg, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.05, 
+    shadowRadius: 4, 
+    elevation: 2 
   },
 
-  bigNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: COLORS.textMain,
-    letterSpacing: 2,
+  bigNumber: { 
+    fontSize: 48, 
+    fontWeight: 'bold', 
+    color: COLORS.textMain, 
+    letterSpacing: 2 
   },
 
-  questionText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textMain,
-    textAlign: 'center',
-    marginBottom: SPACING.lg,
-  },
-  
-  optionsContainer: {
-    marginBottom: SPACING.xl,
+  questionText: { 
+    fontSize: 20, 
+    fontWeight: '600', 
+    color: COLORS.textMain, 
+    textAlign: 'center', 
+    marginBottom: SPACING.lg 
   },
 
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.s,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.smoothBlue,
+  optionsContainer: { 
+    marginBottom: SPACING.xl 
   },
 
-  optionText: {
-    fontSize: 16,
-    color: COLORS.textMain,
-    flex: 1,
+  optionItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    backgroundColor: COLORS.white, 
+    borderRadius: BORDER_RADIUS.s, 
+    paddingVertical: SPACING.md, 
+    paddingHorizontal: SPACING.lg, 
+    marginBottom: SPACING.sm, 
+    borderWidth: 1, 
+    borderColor: COLORS.smoothBlue 
   },
 
-  nextButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.m,
-    alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
+  optionText: { 
+    fontSize: 16, 
+    color: COLORS.textMain, 
+    flex: 1 
   },
 
-  nextButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
+  optionCircle: { 
+    width: 26, 
+    height: 26, 
+    borderRadius: 18, 
+    backgroundColor: COLORS.primary, 
+    borderWidth: 1, 
+    borderColor: COLORS.smoothBlue, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginRight: 12 
   },
 
-  optionCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary,
-    borderWidth: 1,
-    borderColor: COLORS.smoothBlue,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  optionLetterText: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: COLORS.white 
   },
 
-  optionLetterText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.white,
+  circleCorrect: { 
+    backgroundColor: COLORS.success, 
+    borderColor: COLORS.success 
   },
 
-  circleCorrect: {
-    backgroundColor: COLORS.success,
-    borderColor: COLORS.success,
+  circleWrong: { 
+    backgroundColor: COLORS.error, 
+    borderColor: COLORS.error 
   },
-
-  circleWrong: {
-    backgroundColor: COLORS.error,
-    borderColor: COLORS.error,
-  },
-
 });
