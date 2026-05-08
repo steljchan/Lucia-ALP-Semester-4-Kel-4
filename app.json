@@ -1,27 +1,29 @@
 {
   "expo": {
-    "name": "lucia",
+    "name": "Lucia",
     "slug": "lucia",
     "version": "1.0.0",
     "orientation": "portrait",
-   
     "scheme": "lucia",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/LogoLucia.png", 
+      "resizeMode": "contain", 
+      "backgroundColor": "#E6F4FE" 
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/LogoLucia.png",
         "backgroundColor": "#E6F4FE"
-        
-      },
-      "edgeToEdgeEnabled": false,
-      "predictiveBackGestureEnabled": false
+      }
     },
     "plugins": [
-      "expo-router"
-     
+      "expo-router",
+      "expo-web-browser"
     ]
   }
 }

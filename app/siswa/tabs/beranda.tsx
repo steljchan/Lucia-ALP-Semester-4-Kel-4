@@ -1,37 +1,78 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
-import { COLORS, title, subtitle, container, MARGIN_HORIZONTAL } from '@/utils/theme';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import AppHeader from '../../../src/components/common/appheader';
+import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
+import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
+
+import { scrollContent } from '@/utils/theme';
+import { UI } from '../../../constants/theme';
 
 export default function DashboardSiswa() {
+
+  const router = useRouter();
+
+  const subjects = [
+    { id: '1', title: "Matematika", image: { uri: 'https://cdn-icons-png.flaticon.com/512/2721/2721297.png' } },
+    { id: '2', title: "PKN", image: { uri: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' } },
+    { id: '3', title: "Bahasa Indonesia", image: { uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' } },
+    { id: '4', title: "IPA", image: { uri: 'https://cdn-icons-png.flaticon.com/512/3212/3212608.png' } },
+    { id: '5', title: "Bahasa Inggris", image: { uri: 'https://cdn-icons-png.flaticon.com/512/197/197374.png' } },
+    { id: '6', title: "IPS", image: { uri: 'https://cdn-icons-png.flaticon.com/512/854/854878.png' } },
+  ];
+
   return (
-   <View style={[container, { paddingHorizontal: MARGIN_HORIZONTAL }]}>
-      <Text style={title}>Dashboard Siswa</Text>
-      <Text style={subtitle}>Temukan materi dan latihan untuk belajar lebih mudah.</Text>
+    <View style={styles.container}>
 
-      <Link href="/siswa/materi/detailMateri" style={styles.button}>
-        <Text style={styles.buttonText}>Lihat Detail Materi</Text>
-      </Link>
+      <AppHeader />
 
-       <Link href="/siswa/toko" style={styles.button}>
-        <Text style={styles.buttonText}>Toko</Text>
-      </Link>
+      <FlatList
+        data={subjects}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.grid}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={scrollContent}
+
+        ListHeaderComponent={
+          <>
+            <Text style={styles.sectionTitle}>Terakhir Dilihat</Text>
+            <LastSeenCard />
+
+            <Text style={styles.sectionTitle}>Mata Pelajaran</Text>
+          </>
+        }
+
+        renderItem={({ item }) => (
+          <SubjectCard
+            title={item.title}
+            image={item.image}
+            onPress={() => router.push('/siswa/materi/submateri')}
+          />
+        )}
+      />
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    marginTop: 24,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: UI.background,
   },
-  buttonText: {
-    color: COLORS.white,
-    fontSize: 16,
+  content: {
+    paddingHorizontal: 16,
+    paddingBottom: 130,
+  },
+  sectionTitle: {
+    marginTop: 20,
+    marginBottom: 10,
     fontWeight: '700',
+    fontSize: 16,
+    color: UI.textPrimary,
+  },
+  grid: {
+    justifyContent: 'space-between',
   },
 });

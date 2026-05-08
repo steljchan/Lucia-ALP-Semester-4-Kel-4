@@ -4,12 +4,26 @@ import NavbarAdmin from '../../src/components/navigation/navbarAdmin';
 export default function AdminLayout() {
   return (
     <Tabs
-      tabBar={(props) => <NavbarAdmin {...props} />}
       screenOptions={{ headerShown: false }}
+      tabBar={(props) => {
+        const routeName = props.state.routeNames[props.state.index];
+
+        if (
+          routeName === 'addUser' ||
+          routeName === 'editUser' ||
+          routeName === 'detailUser'
+        ) {
+          return null;
+        }
+
+        return <NavbarAdmin {...props} />;
+      }}
     >
-      {/* app/admin/index.tsx untuk dashboard admin */}
-      <Tabs.Screen name="index" /> 
-      
+      <Tabs.Screen name="index" />
+
+      <Tabs.Screen name="addUser" />
+      <Tabs.Screen name="editUser" />
+      <Tabs.Screen name="detailUser" />
     </Tabs>
   );
 }

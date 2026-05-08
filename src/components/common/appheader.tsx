@@ -2,8 +2,12 @@ import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from './searchbar';
+import { COLORS } from '@/utils/theme';
+import { useRouter } from 'expo-router';
 
 export default function AppHeader() {
+  const router = useRouter();
+
   return (
     <LinearGradient
       colors={['#EBF7FF', '#C9EAFF']}
@@ -11,26 +15,29 @@ export default function AppHeader() {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      {/* TOP ROW */}
+      
       <View style={styles.topRow}>
         
-        {/* LOGO */}
+        
         <Image
-          source={require('../../../assets/images/lucia.png')}
+          source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
 
-        {/* SHOP BUTTON */}
-        <TouchableOpacity style={styles.shopBtn}>
+        
+        <TouchableOpacity 
+        style={styles.shopBtn}
+        onPress={() => router.push('/siswa/toko')}>
           <Ionicons name="storefront-outline" size={20} color="#fff" />
+          
         </TouchableOpacity>
 
       </View>
 
-      {/* SEARCH BAR */}
+      
       <SearchBar />
 
-      {/* ROBOT IMAGE */}
+      
       <Image
         source={require('../../../assets/images/ViboBuku.png')}
         style={styles.robot}
@@ -42,7 +49,7 @@ export default function AppHeader() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 45, // biar gradient keliatan
 
     borderBottomLeftRadius: 32,
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
 
   // SHOP BUTTON
   shopBtn: {
-    backgroundColor: '#5CBEFA',
+    backgroundColor: COLORS.secondary,
 
     width: 44,
     height: 44,

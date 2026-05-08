@@ -3,8 +3,7 @@ import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityInd
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons'; 
-import { COLORS, SPACING, BORDER_RADIUS, title } from '@/utils/theme';
-import * as WebBrowser from 'expo-web-browser';
+import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 
 interface MateriFile {
   id: string;
@@ -68,14 +67,10 @@ export default function DetailMateri() {
         <Text style={styles.subtitle}>Cara Menulis Bilangan</Text>
       </LinearGradient>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageGrid}>
           {loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
+            <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader}/>
           ) : (
             files.map((item) => (
               <View key={item.id}>

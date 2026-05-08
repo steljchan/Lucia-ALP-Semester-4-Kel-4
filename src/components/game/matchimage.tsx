@@ -1,0 +1,135 @@
+import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+
+type StatusType = 'correct' | 'wrong' | undefined;
+
+type Item = {
+  word: string;
+  image: string;
+};
+
+type Props = {
+  item: Item;
+  onPress: (word: string) => void;
+
+  // 🔥 WAJIB untuk garis
+  setImagePosition: (word: string, pos: { x: number; y: number }) => void;
+
+  disabled?: boolean;
+  status?: StatusType;
+};
+
+export default function MatchImage({
+  item,
+  onPress,
+  setImagePosition,
+  disabled = false,
+  status,
+}: Props) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => onPress(item.word)}
+      disabled={disabled}
+      style={styles.wrapper}
+    >
+      {/* 🔴 DOT (ANCHOR LINE) */}
+      <View
+        style={[
+          styles.dot,
+          disabled && styles.dotDisabled,
+          status === 'correct' && styles.dotCorrect,
+          status === 'wrong' && styles.dotWrong,
+        ]}
+        onLayout={(e) => {
+          e.target.measureInWindow((x, y, width, height) => {
+            setImagePosition(item.word, {
+              x: x + width / 2,
+              y: y + height / 2,
+            });
+          });
+        }}
+              />
+
+      {/* 🔵 CARD */}
+      <View
+        style={[
+          styles.card,
+          disabled && styles.disabled,
+          status === 'correct' && styles.correct,
+          status === 'wrong' && styles.wrong,
+        ]}
+      >
+        <Text style={styles.emoji}>{item.image}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrapper: {
+    position: 'relative',
+    marginVertical: 12,
+    alignItems: 'center',
+  },
+
+  /* 🔴 DOT */
+  dot: {
+    position: 'absolute',
+    left: 17, // keluar ke kiri dari card
+    top: '50%',
+    marginTop: -6,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#5CBEFA',
+    zIndex: 10,
+  },
+
+  dotDisabled: {
+    backgroundColor: '#CBD5E1',
+  },
+
+  dotCorrect: {
+    backgroundColor: '#4CAF50',
+  },
+
+  dotWrong: {
+    backgroundColor: '#FF4D4F',
+  },
+
+  /* 🔵 CARD */
+  card: {
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#5CBEFA',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#5CBEFA',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  disabled: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#CBD5E1',
+  },
+
+  correct: {
+    backgroundColor: '#C8E6C9',
+    borderColor: '#4CAF50',
+  },
+
+  wrong: {
+    backgroundColor: '#FFCDD2',
+    borderColor: '#FF4D4F',
+  },
+
+  emoji: {
+    fontSize: 36,
+  },
+});
