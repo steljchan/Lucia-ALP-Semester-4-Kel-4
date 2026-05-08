@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import SearchBar from '../searchbar';
+import SearchBar from '@/src/components/common/searchbar';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
 export default function AppHeader() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
 
   return (
     <LinearGradient
@@ -15,10 +17,7 @@ export default function AppHeader() {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      {/* TOP ROW */}
       <View style={styles.topRow}>
-        
-        {/* LOGO */}
         <Image
           source={require('@/assets/images/lucia.png')}
           style={styles.logo}
@@ -26,8 +25,11 @@ export default function AppHeader() {
 
       </View>
 
-      {/* SEARCH BAR */}
-      <SearchBar />
+      <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Cari..."
+      />
 
           </LinearGradient>
         );
@@ -37,7 +39,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 40,
-    paddingBottom: 45, // biar gradient keliatan
+    paddingBottom: 45,
 
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,

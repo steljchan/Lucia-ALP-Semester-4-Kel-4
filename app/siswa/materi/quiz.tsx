@@ -34,13 +34,13 @@ export default function QuizScreen() {
     }
   ];
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
+  const totalQuestions = questionData.totalQuestions;
   const currentQuestionNumber = currentQuestionIndex + 1;
   const progress = currentQuestionNumber / totalQuestions;
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
+  // Timer countdown
   useEffect(() => {
     let interval: number;
     if (timerActive && timeLeft > 0) {
@@ -102,7 +102,7 @@ export default function QuizScreen() {
     if (navigatingRef.current) return;
     navigatingRef.current = true;
     if (currentQuestionIndex + 1 < totalQuestions) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
       setSelectedOption(null);
       setShowResult(false);
       setIsChecking(false);
@@ -168,15 +168,15 @@ export default function QuizScreen() {
         </View>
 
         <View style={styles.numberContainer}>
-          <Text style={styles.bigNumber}>{currentQuestion.number.toLocaleString()}</Text>
+          <Text style={styles.bigNumber}>{questionData.number.toLocaleString()}</Text>
         </View>
 
-        <Text style={styles.questionText}>{currentQuestion.questionText}</Text>
+        <Text style={styles.questionText}>{questionData.questionText}</Text>
 
         <View style={styles.optionsContainer}>
-          {currentQuestion.options.map((option, idx) => {
+          {questionData.options.map((option, idx) => {
             const letter = String.fromCharCode(65 + idx);
-            const isCorrect = option === currentQuestion.correctAnswer;
+            const isCorrect = option === questionData.correctAnswer;
             const isSelected = selectedOption === option;
             let backgroundColor = COLORS.white;
             let borderColor = COLORS.smoothBlue;
