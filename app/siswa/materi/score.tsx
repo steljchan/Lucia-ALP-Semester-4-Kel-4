@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,151 +7,171 @@ import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 
 export default function ScoreScreen() {
   const router = useRouter();
-  const { score, correct, wrong, total } = useLocalSearchParams();
-  
+  const { score, correct, wrong, skipped, total, answers } = useLocalSearchParams();
+
   const correctNum = parseInt(correct as string) || 0;
   const wrongNum = parseInt(wrong as string) || 0;
+  const skippedNum = parseInt(skipped as string) || 0;
   const totalNum = parseInt(total as string) || 1;
   const scoreNum = parseInt(score as string) || 0;
   const progress = totalNum ? (correctNum / totalNum) * 100 : 0;
-  console.log('DEBUG SCORE:', { correctNum, wrongNum, totalNum, scoreNum });
+
   const [openPembahasan, setOpenPembahasan] = useState<Record<number, boolean>>({});
   const togglePembahasan = (index: number) => {
     setOpenPembahasan(prev => ({ ...prev, [index]: !prev[index] }));
   };
 
-  const { answers } = useLocalSearchParams();
-  let parsedAnswers = [];
-    try {
-      parsedAnswers = answers ? JSON.parse(answers as string) : [];
-      if (!Array.isArray(parsedAnswers)) parsedAnswers = [];
-    } catch (e) {
-      parsedAnswers = [];
-    }
+  let parsedAnswers: any[] = [];
+  try {
+    parsedAnswers = answers ? JSON.parse(answers as string) : [];
+    if (!Array.isArray(parsedAnswers)) parsedAnswers = [];
+  } catch (e) {
+    parsedAnswers = [];
+  }
 
+  const getCircleColor = (option: string, correctAnswer: string, userAnswer: string | null, isSkipped: boolean, isCorrectAnswer: boolean) => {
+    if (isSkipped && isCorrectAnswer) return COLORS.yellow;
+    if (!isSkipped && userAnswer === option) {
+      if (option === correctAnswer) return COLORS.success;
+      return COLORS.error;
+    }
+    if (option === correctAnswer) return '#22C55E';
+    return COLORS.primary;
+  };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} style={styles.header}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <LinearGradient colors={[COLORS.white, '#ADDFFD']} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color={COLORS.textMain}/>
+            <Ionicons name="chevron-back" size={24} color={COLORS.textMain} />
           </TouchableOpacity>
-
           <Text style={styles.headerTitle}>Score</Text>
-
-          <TouchableOpacity onPress={() => router.push('/siswa/leaderboard')}style={styles.iconButton}>
+          <TouchableOpacity onPress={() => router.push('/siswa/tabs/leaderboard')} style={styles.iconButton}>
             <Ionicons name="podium-outline" size={24} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content}>
-
         <View style={styles.mascotWrapper}>
-          <Image source={require('@/assets/images/maskot1.png')} style={styles.mascot} resizeMode="contain"/>
+          <Image source={require('@/assets/images/maskot1.png')} style={styles.mascot} resizeMode="contain" />
         </View>
+
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.title}>CONGRATULATIONS</Text>
             <Text style={styles.subtitle}>Kamu mendapatkan nilai {scoreNum}!</Text>
             <View style={styles.progressBar}>
-              <View style={[styles.fill, {width: `${progress}%`}]} />
+              <View style={[styles.fill, { width: `${progress}%` }]} />
             </View>
+            <View style={styles.divider} />
 
-            <View style={styles.divider}/>
-              <View style={styles.statsRow}>
-                <View style={styles.statBox}>
-                  <View style={styles.iconRow}>
-                    <Ionicons name="document-text-outline" size={24} color={COLORS.primary} />
-                    <Text style={styles.statNumber}>{totalNum}</Text>
-                  </View>
-                  <Text style={styles.statLabel}>Soal Terjawab</Text>
-                </View>
-
-                <View style={styles.verticalDivider} />
-
-                <View style={styles.statBox}>
-                  <View style={styles.iconRow}>
-                    <Ionicons name="checkmark-circle-outline" size={24} color="#22C55E" />
-                    <Text style={[styles.statNumber, { color: '#22C55E' }]}>{correctNum}</Text>
-                  </View>
-                  <Text style={styles.statLabel}>Benar</Text>
-                </View>
-
-                <View style={styles.verticalDivider} />
-
-                <View style={styles.statBox}>
-                  <View style={styles.iconRow}>
-                    <Ionicons name="close-circle-outline" size={24} color="#EF4444" />
-                    <Text style={[styles.statNumber, { color: '#EF4444' }]}>{wrongNum}</Text>
-                  </View>
-                  <Text style={styles.statLabel}>Salah</Text>
-                </View>
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
+                <Text style={styles.statNumber}>{totalNum}</Text>
+                <Text style={styles.statLabel}>Total Soal</Text>
               </View>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.success} />
+                <Text style={[styles.statNumber, { color: COLORS.success }]}>{correctNum}</Text>
+                <Text style={styles.statLabel}>Benar</Text>
+              </View>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="close-circle-outline" size={28} color={COLORS.error} />
+                <Text style={[styles.statNumber, { color: COLORS.error }]}>{wrongNum}</Text>
+                <Text style={styles.statLabel}>Salah</Text>
+              </View>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="hourglass-outline" size={28} color={COLORS.yellow} />
+                <Text style={[styles.statNumber, { color: COLORS.yellow }]}>{skippedNum}</Text>
+                <Text style={styles.statLabel}>Kosong</Text>
+              </View>
+            </View>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Pembahasan Jawaban</Text>
         <View style={styles.quizContainer}>
-          {Array.isArray(parsedAnswers) && parsedAnswers.map((item, index) => {
+          {parsedAnswers.map((item, index) => {
             const letter = (i: number) => String.fromCharCode(65 + i);
-            const isSkipped = item.userAnswer === null;
+            const isSkipped = item.status === 'skipped' || item.userAnswer === null;
 
             return (
               <View key={index} style={styles.quizCard}>
-                <Text style={styles.questionNumber}>Soal {index + 1}</Text>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.questionNumber}>Soal {index + 1}</Text>
+                  {isSkipped && (
+                    <View style={styles.skippedBadge}>
+                      <Ionicons name="time-outline" size={16} color={COLORS.yellow} />
+                      <Text style={styles.skippedBadgeText}>Skip</Text>
+                    </View>
+                  )}
+                </View>
+
                 <Text style={styles.questionText}>{item.number} dibaca sebagai:</Text>
 
                 {item.options.map((option: string, i: number) => {
-                  const isCorrect = option === item.correctAnswer;
-                  const isUserWrong = option === item.userAnswer && !item.isCorrect;
-                  const isSkipped = item.userAnswer === null;
+                  const isCorrectAnswer = option === item.correctAnswer;
+                  const isUserAnswer = !isSkipped && option === item.userAnswer;
+                  const isUserCorrect = isUserAnswer && item.isCorrect;
+                  const isUserWrong = isUserAnswer && !item.isCorrect;
+
+                  // Background dan border dinamis
+                  let optionBg = COLORS.white;
+                  let borderColor = '#E5E7EB'; // default abu-abu
+
+                  if (isUserCorrect) {
+                    optionBg = '#D8FAE5';
+                    borderColor = COLORS.success;
+                  } else if (isUserWrong) {
+                    optionBg = '#F9C3C4';
+                    borderColor = COLORS.error;
+                  } else if (isSkipped && isCorrectAnswer) {
+                    optionBg = '#FEF3C7';
+                    borderColor = COLORS.yellow;
+                  } else if (!isSkipped && !isUserAnswer && isCorrectAnswer) {
+                    optionBg = '#D8FAE5';
+                    borderColor = COLORS.success;
+                  }
+
+                  const circleColor = getCircleColor(option, item.correctAnswer, item.userAnswer, isSkipped, isCorrectAnswer);
+
+                  let rightIcon = null;
+                  if (isUserCorrect) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
+                  else if (isUserWrong) rightIcon = <Ionicons name="close-circle" size={22} color={COLORS.error} />;
+                  else if (!isSkipped && !isUserAnswer && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
+                  else if (isSkipped && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.yellow} />;
 
                   return (
-                    <View key={i}
-                      style={[
-                        styles.option,
-                        isCorrect && styles.correctOption,
-                        isUserWrong && styles.wrongOption
-                      ]}>
-                      <View style={styles.optionLetterBox}>
+                    <View key={i} style={[styles.option, { backgroundColor: optionBg, borderColor }]}>
+                      <View style={[styles.optionLetterBox, { backgroundColor: circleColor }]}>
                         <Text style={styles.optionLetterText}>{letter(i)}</Text>
                       </View>
-
                       <Text style={styles.optionText}>{option}</Text>
-                      {isSkipped && i === 0 && (
-                        <Text style={{ color: '#9CA3AF', fontSize: 12 }}>
-                          Tidak dijawab
-                        </Text>
-                      )}
-
-                      {isCorrect && (
-                        <Ionicons name="checkmark-circle" size={22} color="#22C55E" />
-                      )}
-
-                      {isUserWrong && (
-                        <Ionicons name="close-circle" size={22} color="#FF383C" />
-                      )}
+                      {rightIcon}
                     </View>
                   );
                 })}
 
                 <TouchableOpacity style={styles.dropdownButton} onPress={() => togglePembahasan(index)}>
                   <Text style={styles.dropdownButtonText}>
-                    {openPembahasan[index]
-                      ? "Sembunyikan Pembahasan"
-                      : "Lihat Pembahasan"}
+                    {openPembahasan[index] ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan'}
                   </Text>
                 </TouchableOpacity>
 
                 {openPembahasan[index] && (
                   <View style={styles.explanationBox}>
-                    <Text>Pembahasan:</Text>
-                    <Text>Jawaban benar: {item.correctAnswer}</Text>
-                    <Text>Jawaban kamu: {item.userAnswer ?? 'Tidak dijawab'}</Text>
+                    <Text style={styles.explanationTitle}>Pembahasan:</Text>
+                    <Text style={styles.explanationText}>Jawaban benar: {item.correctAnswer}</Text>
+                    <Text style={styles.explanationText}>
+                      Jawaban kamu: {isSkipped ? 'Tidak dijawab' : (item.userAnswer ?? 'Tidak dijawab')}
+                    </Text>
                   </View>
                 )}
               </View>
@@ -208,7 +228,7 @@ const styles = StyleSheet.create({
 
   mascotWrapper: {
     position: 'absolute',
-    top: 0, 
+    top: 0,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -220,7 +240,7 @@ const styles = StyleSheet.create({
     height: 200,
     transform: [{ scale: 1.05 }],
   },
-
+  
   card: {
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.s,
@@ -228,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.lg,
     elevation: 3,
-    borderWidth: 1, 
+    borderWidth: 1,
     borderColor: COLORS.primary,
   },
 
@@ -236,19 +256,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 1,
     backgroundColor: COLORS.primary,
+    marginVertical: 12,
   },
 
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-around',
     width: '100%',
-    marginTop: 10,
   },
 
   verticalDivider: {
     width: 1,
-    height: 40,
+    height: 50,
     backgroundColor: COLORS.primary,
+    marginHorizontal: 8,
   },
 
   cardContent: {
@@ -266,7 +288,7 @@ const styles = StyleSheet.create({
 
   subtitle: {
     fontSize: 14,
-    color:  COLORS.textMain,
+    color: COLORS.textMain,
     marginBottom: 16,
   },
 
@@ -288,41 +310,27 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 8,
   },
 
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.primary,
+    marginTop: 4,
   },
 
   statLabel: {
     fontSize: 12,
     color: COLORS.textSub,
     marginTop: 2,
+    textAlign: 'center',
   },
-
+  
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     color: COLORS.textMain,
-  },
-
-  iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
-
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-  },
-
-  quizSection: {
-    marginBottom: SPACING.lg,
   },
 
   quizContainer: {
@@ -342,11 +350,17 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
+  
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
 
   questionNumber: {
     fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    color: COLORS.textSub,
   },
 
   questionText: {
@@ -363,47 +377,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     marginBottom: 10,
-    backgroundColor: '#fff',
-  },
-
-  optionLetter: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827',
   },
 
   optionLetterBox: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
-  
+
   optionLetterText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
     fontSize: 13,
   },
 
   optionText: {
     fontSize: 14,
-    color: '#374151',
+    color: COLORS.textMain,
     flex: 1,
   },
 
-  correctOption: {
-    backgroundColor: '#D8FAE5',
-    borderColor: '#22C55E'
+  skippedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    gap: 4,
   },
 
-  wrongOption: {
-    backgroundColor : '#F9C3C4',
-    borderColor : '#FF383C'
+  skippedBadgeText: {
+    color: COLORS.yellow,
+    fontWeight: '600',
+    fontSize: 12,
   },
 
   dropdownButton: {
@@ -415,7 +426,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: 8,
   },
 
