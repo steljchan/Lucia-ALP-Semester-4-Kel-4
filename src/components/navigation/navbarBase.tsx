@@ -65,7 +65,10 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
       <View style={styles.content}>
         {menuItems.map((route: any, index: number) => {
           const isFocused = state.index === index;
-    
+        
+        if (!menuItems || !Array.isArray(menuItems)) {
+            return null;
+        }
           return (
             <TouchableOpacity
               key={index}
