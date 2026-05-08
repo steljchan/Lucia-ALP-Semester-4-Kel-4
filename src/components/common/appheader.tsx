@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './searchbar';
+import SearchBar from '@/src/components/common/searchbar';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
 export default function AppHeader() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
 
   return (
     <LinearGradient
@@ -35,8 +37,11 @@ export default function AppHeader() {
       </View>
 
       
-      <SearchBar />
-
+       <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Cari..."
+      />
       
       <Image
         source={require('../../../assets/images/ViboBuku.png')}

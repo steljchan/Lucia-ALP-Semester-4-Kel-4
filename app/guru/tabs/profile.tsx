@@ -1,32 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent, SafeArea} from '@/utils/theme';
+import { COLORS, TEXT, subtitle, PROFILE, BTN, scrollContent } from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import LogoutModal from '@/src/components/common/logout';
-import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import FilterChips from '@/src/components/common/guru/filter';
 
+// Data materi dengan tambahan id, subject, dan file contoh
 const MATERI = [
   {
+    id: '1',
     title: 'Mengenal Mata Uang',
     subtitle: 'Materi dasar tentang uang',
     date: '12 Mei 2026',
+    subject: 'Matematika',
     image: require('../../../assets/images/lucia.png'),
+    files: [
+      { id: 'f1', type: 'image', url: 'https://picsum.photos/id/30/400/200' },
+      { id: 'f2', type: 'image', url: 'https://picsum.photos/id/31/400/200' },
+    ],
   },
   {
+    id: '2',
     title: 'Perhitungan Uang',
     subtitle: 'Belajar menghitung uang',
     date: '10 Mei 2026',
+    subject: 'Matematika',
     image: require('../../../assets/images/lucia.png'),
+    files: [
+      { id: 'f3', type: 'pdf', pages: ['https://picsum.photos/id/32/400/200'] },
+    ],
+  },
+  {
+    id: '3',
+    title: 'Greetings',
+    subtitle: 'Ungkapan sapaan dalam Bahasa Inggris',
+    date: '15 Mei 2026',
+    subject: 'Bahasa Inggris',
+    image: require('../../../assets/images/lucia.png'),
+    files: [
+      { id: 'f4', type: 'image', url: 'https://picsum.photos/id/33/400/200' },
+    ],
   },
 ];
 
 export default function ProfilGuru() {
   const [image, setImage] = useState<string | null>(null);
   const [showLogout, setShowLogout] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
   const router = useRouter();
 
   const pickImage = async () => {
@@ -35,184 +58,220 @@ export default function ProfilGuru() {
       Alert.alert("Izin dibutuhkan", "Kami butuh izin akses galeri untuk mengubah foto.");
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], 
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
-
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
   };
 
+  // Filter materi berdasarkan mata pelajaran
+  const filteredMateri = MATERI.filter(item => 
+    selectedSubject === 'Semua' ? true : item.subject === selectedSubject
+  );
+
+  const handleMateriPress = (materi: typeof MATERI[0]) => {
+    router.push({
+      pathname: '/guru/detailMateri',
+      params: {
+        id: materi.id,
+        title: materi.title,
+        subtitle: materi.subtitle,
+        subject: materi.subject,
+        date: materi.date,
+        files: JSON.stringify(materi.files),
+      },
+    });
+  };
+
+  const filterOptions = ['Semua', 'Matematika', 'Bahasa Inggris'];
+
   return (
-    <SafeAreaView style={SafeArea}>
-      <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
-        <AppHeader/>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
-          
-          {/*AVATAR & INFO */}
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')}
-                style={PROFILE.avatar} 
-              />
-              <TouchableOpacity style={PROFILE.cameraBtn} onPress={pickImage}>
-                <Ionicons name="camera" size={16} color={COLORS.primary} />
-              </TouchableOpacity>
-            
-            </View>
-
-            <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arsya Aulia</Text>          
-            <View style={PROFILE.emailBadge}>
-              <Text style={subtitle}>Arsya@teacher.SLBN1.ac.id</Text>
-            </View>
+    <View style={styles.container}>
+      <AppHeader />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarWrapper}>
+            <Image source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')} style={PROFILE.avatar} />
+            <TouchableOpacity style={PROFILE.cameraBtn} onPress={pickImage}>
+              <Ionicons name="camera" size={16} color={COLORS.primary} />
+            </TouchableOpacity>
           </View>
-
-          {/* LOGOUT */}
-          <TouchableOpacity 
-            style={BTN.logout.box}
-            onPress={() => setShowLogout(true)}
-          >
-            <Ionicons name="log-out-outline" size={20} color="white" />
-            <Text style={BTN.logout.text}>Log Out</Text>
-          </TouchableOpacity>
-
-          <LogoutModal
-            visible={showLogout}
-            onClose={() => setShowLogout(false)}
-            onConfirm={() => {
-              setShowLogout(false);
-              router.replace('/auth/login'); 
-            }}
-          />
-
-          <View style={styles.reportDivider}>
-            <View style={styles.line} />
-            <Text style={styles.reportTitle}>Daftar Materi</Text>
-            <View style={styles.line} />
+          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arsya Aulia</Text>
+          <View style={PROFILE.emailBadge}>
+            <Text style={subtitle}>Arsya@teacher.SLBN1.ac.id</Text>
           </View>
+        </View>
 
-          <View>
-          {MATERI.map((item, index) => (
+        <TouchableOpacity style={BTN.logout.box} onPress={() => setShowLogout(true)}>
+          <Ionicons name="log-out-outline" size={20} color="white" />
+          <Text style={BTN.logout.text}>Log Out</Text>
+        </TouchableOpacity>
+
+        <LogoutModal
+          visible={showLogout}
+          onClose={() => setShowLogout(false)}
+          onConfirm={() => {
+            setShowLogout(false);
+            router.replace('/auth/login');
+          }}
+        />
+
+        <View style={styles.reportDivider}>
+          <View style={styles.line} />
+          <Text style={styles.reportTitle}>Daftar Materi</Text>
+          <View style={styles.line} />
+        </View>
+
+        <FilterChips
+          data={filterOptions}
+          selected={selectedSubject}
+          onSelect={setSelectedSubject}
+        />
+
+        <View style={styles.materiList}>
+          {filteredMateri.map((item) => (
             <TouchableOpacity
-              key={index}
-              style={{ marginBottom: 15 }}
-              onPress={() => Alert.alert(item.title)}
+              key={item.id}
+              activeOpacity={0.7}
+              onPress={() => handleMateriPress(item)}
+              style={styles.materiCard}
             >
-              <Card style={styles.materiRow}>
-                
-                {/* GAMBAR KIRI */}
-                <Image source={item.image} style={styles.materiImage} />
-
-                {/* KONTEN KANAN */}
-                <View style={styles.materiContent}>
-                  
-                  {/* TANGGAL */}
-                  <Text style={styles.materiDate}>{item.date}</Text>
-
-                  {/* JUDUL */}
-                  <Text style={styles.materiTitle}>{item.title}</Text>
-
-                  {/* SUBTITLE */}
-                  <Text style={styles.materiSubtitle}>{item.subtitle}</Text>
-
+              <View style={styles.cardLeftAccent} />
+              <View style={styles.materiRow}>
+                <View style={styles.iconWrapper}>
+                  <Image source={item.image} style={styles.materiImage} />
                 </View>
-
-              </Card>
+                <View style={styles.materiContent}>
+                  <Text style={styles.materiTitle}>{item.title}</Text>
+                  <Text style={styles.materiSubtitle}>{item.subtitle}</Text>
+                  <Text style={styles.materiSubject}>{item.subject}</Text>
+                </View>
+                <View style={styles.dateBadge}>
+                  <Ionicons name="calendar-outline" size={12} color={COLORS.primary} />
+                  <Text style={styles.materiDate}>{item.date}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
-
-        </ScrollView>
-      </View>
-    </SafeAreaView>
-    
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   profileHeader: {
     alignItems: 'center',
-    marginTop: -40, 
+    marginTop: -40,
   },
-
   avatarWrapper: {
     position: 'relative',
     alignItems: 'center',
   },
-  
-  badge: {
-    position: 'absolute',
-    bottom: -10,
-    backgroundColor: COLORS.secondary,
-    paddingHorizontal: 20,
-    paddingVertical: 4,
-    borderRadius: 15,
-  },
-
-  badgeText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-
-  reportDivider: { 
-    flexDirection: 'row', 
-    alignItems: 'center',
-    marginVertical: 25 
-  },
-
-  line: { 
-    flex: 1, 
-    height: 1, 
-    backgroundColor: COLORS.secondary },
-    reportTitle: { marginHorizontal: 15, fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
-    reportGrid: {
+  reportDivider: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 25,
   },
-
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.secondary,
+  },
+  reportTitle: {
+    marginHorizontal: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  materiList: {
+    marginTop: 8,
+    gap: 16,
+  },
+  materiCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    position: 'relative',
+  },
+  cardLeftAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    backgroundColor: COLORS.primary,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+  },
   materiRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    paddingVertical: 14,
+    paddingRight: 16,
+    paddingLeft: 16,
   },
-
+  iconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: '#F0F9FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
   materiImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 12,
+    width: 32,
+    height: 32,
+    tintColor: COLORS.primary,
   },
-
   materiContent: {
     flex: 1,
     justifyContent: 'center',
   },
-
-  materiDate: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    fontSize: 10,
-    color: COLORS.textSub,
-  },
-
   materiTitle: {
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.textMain,
+    marginBottom: 2,
   },
-
   materiSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: COLORS.textSub,
-    marginTop: 2,
+    lineHeight: 18,
+  },
+  materiSubject: {
+    fontSize: 11,
+    color: COLORS.primary,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  materiDate: {
+    fontSize: 11,
+    color: COLORS.primary,
+    fontWeight: '500',
   },
 });

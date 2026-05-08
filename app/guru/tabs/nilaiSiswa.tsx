@@ -3,9 +3,10 @@ import {
   View, Text, StyleSheet, ScrollView,
   TouchableOpacity, Image
 } from 'react-native';
-import AppHeader from '../../../src/components/common/guru/appheaderguruWOsearch';
+import AppHeader from '../../../src/components/common/guru/appheaderGradient';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
+import FilterChips from '@/src/components/common/guru/filter';
 
 const DATA = [
   { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', },
@@ -60,20 +61,11 @@ export default function NilaiSiswa() {
         </View>
 
         {/* FILTER (SCROLL HORIZONTAL) */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-          {['Semua', 'Matematika', 'Bahasa Inggris', 'IPA'].map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              onPress={() => setSelectedMapel(item)}
-              style={[
-                styles.filterBtn,
-                selectedMapel === item && styles.filterActive
-              ]}
-            >
-              <Text style={[styles.filterText, selectedMapel === item && { color: COLORS.white }]}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <FilterChips
+          data={['Semua', 'Matematika', 'Bahasa Inggris', 'IPA']}
+          selected={selectedMapel}
+          onSelect={setSelectedMapel}
+        />
 
         {/* TITLE + CLASS */}
         <View style={styles.titleRow}>
@@ -174,24 +166,6 @@ const styles = StyleSheet.create({
 
   semesterText: {
     color: COLORS.white,
-    fontWeight: 'bold',
-  },
-
-  filterBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    marginRight: 10,
-  },
-
-  filterActive: {
-    backgroundColor: COLORS.primary,
-  },
-
-  filterText: {
-    color: COLORS.primary,
     fontWeight: 'bold',
   },
 

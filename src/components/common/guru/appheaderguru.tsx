@@ -1,12 +1,23 @@
+import { useState } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '@/src/components/common/searchbar';
 import { COLORS } from '@/utils/theme';
-import { View, StyleSheet, Image } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function AppHeader() {
+  const router = useRouter();
+  const [search, setSearch] = useState('');
+
   return (
-    <View style={styles.container}>
-      {/* <View style={styles.topRow}>
-        <Image source={require('../../../assets/images/lucia.png')} style={styles.logo}/>
-      </View> */}
+   <View style={styles.container}>
+      <View style={styles.topRow}>
+        <Image
+          source={require('@/assets/images/lucia.png')}
+          style={styles.logo}
+        />
+      </View>
     </View>
   );
 }
@@ -16,18 +27,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingHorizontal: 16,
     paddingTop: 40,
-    
   },
 
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start', 
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 10,
   },
 
   logo: {
     width: 145, 
     height: 55,
     resizeMode: 'contain',
+    marginTop: 2,
   },
 });

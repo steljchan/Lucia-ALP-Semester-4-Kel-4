@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const router = useRouter();
   
   const handleLogin = () => {
-    router.replace('/siswa/tabs'); 
+    router.replace('/guru/tabs'); 
   };
 
   return (
