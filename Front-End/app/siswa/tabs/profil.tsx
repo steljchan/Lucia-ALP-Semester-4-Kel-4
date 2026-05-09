@@ -37,7 +37,19 @@ const ReportCard = ({ subject, score, grade, image }: ReportCardProps) => {
       </View>
       <View style={styles.reportFooter}>
         <Text style={styles.subjectText} numberOfLines={1}>{subject}</Text>
-        <TouchableOpacity style={styles.detailBtn}>
+         <TouchableOpacity
+          style={styles.detailBtn}
+          onPress={() =>
+            router.push({
+              pathname: '/siswa/detailNilaiSiswa',
+              params: {
+                subject,
+                score,
+                grade,
+              },
+            })
+          }
+        >
           <Text style={styles.detailText}>Detail</Text>
         </TouchableOpacity>
       </View>
