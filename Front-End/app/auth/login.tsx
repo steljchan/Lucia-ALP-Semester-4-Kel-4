@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { 
   View, 
   Text, 
@@ -14,12 +14,45 @@ import { COLORS, MARGIN_HORIZONTAL, BTN, TEXT} from '../../utils/theme';
 import Card from '../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
+//database
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../src/config/firebase";
+import { login } from "../../src/services/authservices";
+
 
 export default function LoginScreen() {
   const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   
-  const handleLogin = () => {
-    router.replace('/guru/tabs'); 
+  const handleLogin = async () => {
+    console.log("1. Mencoba login dengan:", email);
+    try {
+      const userCredential = await login(email.trim(), password);
+      const uid = userCredential.user.uid;
+      console.log("2. Login Auth Berhasil! UID:", uid);
+
+      // Ambil data dari Firestore
+      const userDoc = await getDoc(doc(db, "users", uid));
+
+      if (userDoc.exists()) {
+        const role = userDoc.data().role;
+        console.log("3. Data User Ditemukan! Role:", role);
+
+        if (role === 'admin') router.replace('/admin');
+        else if (role === 'guru') router.replace('/guru/tabs/beranda');
+        else if (role === 'siswa') router.replace('/siswa/tabs/beranda');
+        else console.log("4. Role tidak dikenal:", role);
+        
+      } else {
+        console.log("3. ERROR: Dokumen user tidak ada di Firestore!");
+        alert("Data profil tidak ditemukan di database.");
+      }
+    } catch (error: any) {
+      console.log("ERROR LOGIN:", error.code, error.message);
+      alert("Login Gagal: " + error.message);
+    }
   };
 
   return (
@@ -28,7 +61,7 @@ export default function LoginScreen() {
       style={styles.container}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* SECTION ATAS: LOGO & JUDUL */}
+        
         <View style={styles.topSection}>
           <Image 
             source={require('../../assets/images/lucia.png')} 
@@ -37,7 +70,7 @@ export default function LoginScreen() {
           />
         </View>
 
-        {/* SECTION KARTU: FORM LOGIN */}
+        
         <Card style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
           <Text style={TEXT.bigTitle}>Masuk</Text>
           <Text style={styles.descMasuk}>Masuk ke Akun Kamu</Text>
@@ -45,9 +78,12 @@ export default function LoginScreen() {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
-              placeholder="Contoh@gmail.com"
-              placeholderTextColor={COLORS.textSub}
+              style={styles.input} 
+              placeholder="Email"
+              value={email} 
+              onChangeText={(text) => setEmail(text)}
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
           </View>
 
@@ -55,9 +91,10 @@ export default function LoginScreen() {
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="Masukkan 8 Karakter"
-              placeholderTextColor={COLORS.textSub}
-              secureTextEntry
+              placeholder="Password"
+              value={password} 
+              onChangeText={(text) => setPassword(text)} 
+              secureTextEntry={true} 
             />
           </View>
 
