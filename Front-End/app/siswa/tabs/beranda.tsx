@@ -13,12 +13,12 @@ export default function DashboardSiswa() {
   const router = useRouter();
 
   const subjects = [
-    { id: '1', title: "Matematika", image: { uri: 'https://cdn-icons-png.flaticon.com/512/2721/2721297.png' } },
-    { id: '2', title: "PKN", image: { uri: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' } },
-    { id: '3', title: "Bahasa Indonesia", image: { uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' } },
-    { id: '4', title: "IPA", image: { uri: 'https://cdn-icons-png.flaticon.com/512/3212/3212608.png' } },
-    { id: '5', title: "Bahasa Inggris", image: { uri: 'https://cdn-icons-png.flaticon.com/512/197/197374.png' } },
-    { id: '6', title: "IPS", image: { uri: 'https://cdn-icons-png.flaticon.com/512/854/854878.png' } },
+    { id: '1', title: "Matematika", image: require('@/assets/images/materi/Matematika.png')},
+    { id: '2', title: "PKN", image: require('@/assets/images/materi/PKN.png') },
+    { id: '3', title: "Bahasa Indonesia", image: require('@/assets/images/materi/Indonesia.png') },
+    { id: '4', title: "IPA", image: require('@/assets/images/materi/IPA.png') },
+    { id: '5', title: "Bahasa Inggris", image: require('@/assets/images/materi/Inggris.png')},
+    { id: '6', title: "IPS", image: require('@/assets/images/materi/IPS.png')},
   ];
 
   return (

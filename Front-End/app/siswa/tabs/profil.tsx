@@ -10,14 +10,39 @@ import { useRouter } from 'expo-router';
 
 // data report dummy
 const REPORT_DATA = [
-  { id: '1', title: "Bahasa Inggris", score: 96, grade: "A+", image: require('../../../assets/images/maskot1.png') },
-  { id: '2', title: "Matematika", score: 96, grade: "A+", image: require('../../../assets/images/maskotMTK.png') },
-  { id: '3', title: "IPA", score: 96, grade: "A+", image: require('../../../assets/images/maskot1.png') },
-  { id: '4', title: "Indonesia", score: 96, grade: "A+", image: require('../../../assets/images/maskotMTK.png') },
+  {
+    id: '1',
+    title: "Bahasa Inggris",
+    score: 96,
+    grade: "A+",
+    image: require('@/assets/images/materi/Inggris.png'),
+    imageName: 'Inggris',
+  },
+  {
+    id: '2',
+    title: "Matematika",
+    score: 96,
+    grade: "A+",
+    image: require('@/assets/images/materi/Matematika.png'),
+    imageName: 'Matematika',
+  },
+  {
+    id: '3',
+    title: "IPA",
+    score: 96,
+    grade: "A+",
+    image: require('@/assets/images/materi/IPA.png'),
+    imageName: 'IPA',
+  },
+  {
+    id: '4',
+    title: "Indonesia",
+    score: 96,
+    grade: "A+",
+    image: require('@/assets/images/materi/Indonesia.png'),
+    imageName: 'Indonesia',
+  },
 ];
-
-const [showLogout, setShowLogout] = useState(false);
-const router = useRouter();
 
 // komponen report card
 interface ReportCardProps {
@@ -25,31 +50,25 @@ interface ReportCardProps {
   score: number;
   grade: string;
   image: any;
+  onPress: () => void;
 }
 
-const ReportCard = ({ subject, score, grade, image }: ReportCardProps) => {
+const ReportCard = ({subject, score, grade, image, onPress,}: ReportCardProps) => {
   return (
     <Card style={styles.reportCardWrapper}>
-      <Image source={image} style={styles.reportIcon} />
-      <View style={styles.scoreRow}>
-        <Text style={styles.scoreNumber}>{score}</Text>
-        <Text style={styles.scoreGrade}>{grade}</Text>
+      <View style={styles.topContent}>
+        <Image source={image} style={styles.reportIcon} />
+        <View style={styles.scoreRow}>
+          <Text style={styles.scoreNumber}>{score}</Text>
+          <Text style={styles.scoreGrade}>{grade}</Text>
+        </View>
       </View>
       <View style={styles.reportFooter}>
         <Text style={styles.subjectText} numberOfLines={1}>{subject}</Text>
          <TouchableOpacity
-          style={styles.detailBtn}
-          onPress={() =>
-            router.push({
-              pathname: '/siswa/detailNilaiSiswa',
-              params: {
-                subject,
-                score,
-                grade,
-              },
-            })
-          }
-        >
+            style={styles.detailBtn}
+            onPress={onPress}
+          >
           <Text style={styles.detailText}>Detail</Text>
         </TouchableOpacity>
       </View>
@@ -60,16 +79,22 @@ const ReportCard = ({ subject, score, grade, image }: ReportCardProps) => {
 // profile
 export default function ProfilSiswa() {
   const [image, setImage] = useState<string | null>(null);
+  const [showLogout, setShowLogout] = useState(false);
+  const router = useRouter();
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (!permission.granted) {
-      Alert.alert("Izin dibutuhkan", "Kami butuh izin akses galeri untuk mengubah foto.");
+      Alert.alert(
+        "Izin dibutuhkan",
+        "Kami butuh izin akses galeri untuk mengubah foto."
+      );
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], 
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
@@ -156,12 +181,23 @@ export default function ProfilSiswa() {
 
         <View style={styles.reportGrid}>
           {REPORT_DATA.map((item) => (
-            <ReportCard 
+            <ReportCard
               key={item.id}
-              subject={item.title} 
-              score={item.score} 
-              grade={item.grade} 
-              image={item.image} 
+              subject={item.title}
+              score={item.score}
+              grade={item.grade}
+              image={item.image}
+              onPress={() =>
+                router.push({
+                  pathname: '/siswa/detailNilaiSiswa',
+                  params: {
+                    subject: item.title,
+                    score: item.score,
+                    grade: item.grade,
+                    imageName: item.imageName,
+                  },
+                })
+              }
             />
           ))}
         </View>
@@ -204,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 15,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: COLORS.primary,
     elevation: 2,
   },
 
@@ -216,7 +252,7 @@ const styles = StyleSheet.create({
   statBorder: { 
     borderLeftWidth: 1, 
     borderRightWidth: 1, 
-    borderColor: '#EEE' 
+    borderColor: COLORS.primary
   },
 
   statLabel: { 
@@ -230,22 +266,20 @@ const styles = StyleSheet.create({
     color: COLORS.secondary 
   },
 
-  
   reportDivider: { 
     flexDirection: 'row', 
     alignItems: 'center',
-     marginVertical: 25 },
+    marginVertical: 25 },
 
   line: { 
     flex: 1, 
     height: 1, 
     backgroundColor: COLORS.secondary },
-  reportTitle: { marginHorizontal: 15, fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
-  reportGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    
+    reportTitle: { marginHorizontal: 15, fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
+    reportGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
   },
 
   reportCardWrapper: {
@@ -259,25 +293,32 @@ const styles = StyleSheet.create({
   reportIcon: { 
     width: 60, 
     height: 60, 
-    resizeMode: 'contain' 
+    resizeMode: 'contain', 
+    borderRadius: 15,
   },
 
-  scoreRow: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-end', 
-    marginVertical: 5 
+  topContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
   
   scoreNumber: { 
     fontSize: 32, 
     fontWeight: 'bold', 
-    color: '#64B5F6' 
+    color: COLORS.primary 
   },
 
   scoreGrade: { 
     fontSize: 18, 
     fontWeight: 'bold', 
-    color: '#64B5F6', 
+    color: COLORS.primary, 
     marginLeft: 4, 
     marginBottom: 4 
   },
@@ -293,7 +334,7 @@ const styles = StyleSheet.create({
   subjectText: { 
     fontSize: 12, 
     fontWeight: 'bold', 
-    color: '#333', 
+    color: COLORS.textMain, 
     flex: 1 
   },
 
