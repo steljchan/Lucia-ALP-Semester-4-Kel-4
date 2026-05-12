@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
 import { COLORS, containerHeader, scrollContent, SPACING } from '@/utils/theme';
 import AppHeaderWOsearch from '@/src/components/common/appheaderWOsearch';
 import Card from '@/src/components/common/card';
+
+import { auth, db } from "@/src/config/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 const { width } = Dimensions.get('window');
 
