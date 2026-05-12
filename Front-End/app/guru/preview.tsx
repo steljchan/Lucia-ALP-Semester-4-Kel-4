@@ -35,8 +35,6 @@ export default function PreviewTemplate() {
             <View style={{ width: 40 }} />
         </View>
 
-        
-
         <ScrollView contentContainerStyle={scrollContent} showsVerticalScrollIndicator={false}>
             <Text style={styles.templateTitle}>{titleName}</Text>
 
@@ -47,7 +45,6 @@ export default function PreviewTemplate() {
                     style={styles.webview}
                 />
             </View>
-
         
             <View style={styles.footer}>
                 <TouchableOpacity style={BTN.primary.box} onPress={handleOpenCanva}>
