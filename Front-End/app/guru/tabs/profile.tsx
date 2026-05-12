@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,12 @@ import LogoutModal from '@/src/components/common/logout';
 import { useRouter } from 'expo-router';
 import FilterChips from '@/src/components/common/guru/filter';
 
+// FIREBASE IMPORTS
+import { auth, db } from "../../../src/config/firebase";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 // Data materi dengan tambahan id, subject, dan file contoh
+
 const MATERI = [
   {
     id: '1',
@@ -48,24 +53,63 @@ const MATERI = [
 
 export default function ProfilGuru() {
   const [image, setImage] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null); 
   const [showLogout, setShowLogout] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
   const router = useRouter();
 
+  //ambil data guru
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      const unsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setUserData(data);
+          if (data.profilePicture) setImage(data.profilePicture);
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  // upload foto profil
+  const handleUpload = async (uri: string) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const storage = getStorage();
+      const fileRef = ref(storage, `profilePictures/${user.uid}`);
+      await uploadBytes(fileRef, blob);
+      const photoURL = await getDownloadURL(fileRef);
+
+      await updateDoc(doc(db, "users", user.uid), {
+        profilePicture: photoURL
+      });
+      Alert.alert("Sukses", "Foto profil guru berhasil diperbarui!");
+    } catch (error) {
+      Alert.alert("Error", "Gagal mengunggah foto.");
+    }
+  };
+
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert("Izin dibutuhkan", "Kami butuh izin akses galeri untuk mengubah foto.");
+      Alert.alert("Izin dibutuhkan", "Butuh izin galeri.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.5,
     });
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setImage(uri);
+      handleUpload(uri);
     }
   };
 
@@ -94,6 +138,8 @@ export default function ProfilGuru() {
     <View style={styles.container}>
       <AppHeader />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
+        
+        {/* Foto profil dan data guru */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrapper}>
             <Image source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')} style={PROFILE.avatar} />
@@ -101,9 +147,21 @@ export default function ProfilGuru() {
               <Ionicons name="camera" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
-          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arsya Aulia</Text>
+          
+          {/* Ambil Nama dari Firestore */}
+          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat Nama..."}</Text>
+          
+          {/* Tambahan NIK & Badge Wali Kelas sesuai Class Diagram */}
+          <Text style={{ color: COLORS.textSub, fontSize: 14 }}>NIK: {userData?.NIK || "-"}</Text>
+          
+          {userData?.isHomeroom && (
+            <View style={{ backgroundColor: COLORS.secondary, paddingHorizontal: 10, borderRadius: 5, marginTop: 5 }}>
+              <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>WALI KELAS</Text>
+            </View>
+          )}
+
           <View style={PROFILE.emailBadge}>
-            <Text style={subtitle}>Arsya@teacher.SLBN1.ac.id</Text>
+            <Text style={subtitle}>{auth.currentUser?.email}</Text>
           </View>
         </View>
 
