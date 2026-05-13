@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  Switch,
-  Alert,
-  Image
-} from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, Image} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
+import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import { useRouter } from 'expo-router';
 
 export default function AddUser() {
@@ -22,7 +14,6 @@ export default function AddUser() {
   const [password, setPassword] = useState('');
   const [sendEmail, setSendEmail] = useState(true);
 
-  // 🔥 Generate password
   const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let pass = '';
@@ -32,7 +23,6 @@ export default function AddUser() {
     setPassword(pass);
   };
 
-  // 🔥 VALIDASI
   const handleSubmit = () => {
     if (!name || !email || !password) {
       Alert.alert('Error', 'Semua field wajib diisi!');
@@ -52,24 +42,9 @@ export default function AddUser() {
 
   return (
     <View style={styles.root}>
+      <AppHeaderSimple title="Tambah User" />
 
-      {/* 🔥 HEADER */}
-      <View style={styles.headerRow}>
-
-        {/* BACK */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
-        </TouchableOpacity>
-
-        {/* TITLE */}
-        <Text style={styles.headerTitle}>Tambah User</Text>
-        <View style={{ width: 40 }} /> {/* Placeholder untuk buat title tetap di tengah */}
-      </View>
-
-      {/* 🔥 FORM */}
       <View style={styles.card}>
-
-        {/* Nama */}
         <Text style={styles.label}>Nama Lengkap</Text>
         <TextInput
           placeholder="Masukkan nama"
@@ -78,7 +53,6 @@ export default function AddUser() {
           style={styles.input}
         />
 
-        {/* Email */}
         <Text style={styles.label}>Email</Text>
         <TextInput
           placeholder="Masukkan email"
@@ -87,52 +61,41 @@ export default function AddUser() {
           style={styles.input}
         />
 
-        {/* Role */}
         <Text style={styles.label}>Role</Text>
         <View style={styles.roleContainer}>
           <TouchableOpacity
             style={[styles.roleButton, role === 'guru' && styles.roleActive]}
-            onPress={() => setRole('guru')}
-          >
+            onPress={() => setRole('guru')}>
             <Ionicons name="school-outline" size={18} color={role === 'guru' ? COLORS.white : COLORS.primary} />
-            <Text style={[styles.roleText, role === 'guru' && { color: COLORS.white }]}>
-              Guru
-            </Text>
+            <Text style={[styles.roleText, role === 'guru' && { color: COLORS.white }]}>Guru</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.roleButton, role === 'siswa' && styles.roleActive]}
-            onPress={() => setRole('siswa')}
-          >
+            onPress={() => setRole('siswa')}>
             <Ionicons name="person-outline" size={18} color={role === 'siswa' ? COLORS.white : COLORS.primary} />
-            <Text style={[styles.roleText, role === 'siswa' && { color: COLORS.white }]}>
-              Siswa
-            </Text>
+            <Text style={[styles.roleText, role === 'siswa' && { color: COLORS.white }]}>Siswa</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Password */}
         <Text style={styles.label}>Password</Text>
         <View style={styles.passwordRow}>
           <TextInput
             placeholder="Generate password"
             value={password}
             editable={false}
-            style={styles.passwordInput}
-          />
+            style={styles.passwordInput}/>
 
           <TouchableOpacity style={styles.generateButton} onPress={generatePassword}>
-            <Ionicons name="refresh" size={20} color={COLORS.white} />
+            <Ionicons name="refresh" size={20} color={COLORS.white}/>
           </TouchableOpacity>
         </View>
 
-        {/* Switch */}
         <View style={styles.switchRow}>
           <Text style={styles.switchText}>Kirim password ke email</Text>
-          <Switch value={sendEmail} onValueChange={setSendEmail} />
+          <Switch value={sendEmail} onValueChange={setSendEmail}/>
         </View>
 
-        {/* Submit */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitText}>Tambah User</Text>
         </TouchableOpacity>
@@ -145,45 +108,16 @@ export default function AddUser() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#EAF3FF',
+    backgroundColor: COLORS.background,
   },
 
-  // 🔥 HEADER
-  headerRow: {
-    marginTop: 90,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  backButton: {
-    width: 40,
-    alignItems: 'flex-start',
-  },
-
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.textMain,
-    textAlign: 'center',
-  },
-
-  logo: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-  },
-
-  // 🔥 FORM CARD
   card: {
-    marginTop: 60, // 🔥 lebih turun
+    marginTop: 16, 
     marginHorizontal: 20,
     backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.l,
+    borderRadius: BORDER_RADIUS.s,
     padding: 20,
-
-    shadowColor: '#000',
+    shadowColor: COLORS.darkGray,
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
@@ -193,12 +127,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 6,
-    color: '#374151',
+    color: COLORS.textMain,
   },
 
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.smoothBlue,
     borderRadius: 10,
     padding: 12,
     marginBottom: 14,
@@ -216,7 +150,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     borderWidth: 1,
     borderColor: COLORS.primary,
     gap: 6,
@@ -239,13 +173,12 @@ const styles = StyleSheet.create({
   passwordInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.smoothBlue,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
     padding: 12,
   },
 
-  // 🔥 FIX ukuran sama tinggi input
   generateButton: {
     width: 50,
     backgroundColor: COLORS.primary,
@@ -264,13 +197,13 @@ const styles = StyleSheet.create({
 
   switchText: {
     fontSize: 13,
-    color: '#374151',
+    color: COLORS.textMain,
   },
 
   submitButton: {
     backgroundColor: COLORS.primary,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
 

@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@/utils/theme';
+import { BORDER_RADIUS, COLORS } from '@/utils/theme';
+import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function DetailUser() {
@@ -20,7 +15,6 @@ export default function DetailUser() {
 
   const [showModal, setShowModal] = useState(false);
 
-  // 🔥 DATA
   const student = {
     name: 'Budi Santoso',
     email: 'budi@mail.com',
@@ -49,24 +43,16 @@ export default function DetailUser() {
     <View style={styles.root}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
 
-        {/* 🔥 HEADER */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
-          </TouchableOpacity>
+      <AppHeaderSimple
+        title="Detail User"
+        rightText="Edit"
+        onRightPress={() => router.push('/admin/editUser')}
+      />
 
-          <Text style={styles.title}>Detail User</Text>
-
-          <View style={{ width: 22 }} />
-        </View>
-
-        {/* 🔵 PERSONAL */}
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
-
           <Row label="Nama" value={role === 'guru' ? teacher.name : student.name} isFirst />
           <Row label="Email" value={role === 'guru' ? teacher.email : student.email} />
 
@@ -77,11 +63,9 @@ export default function DetailUser() {
           <Row label="Role" value={role} isLast />
         </View>
 
-        {/* 🔵 SISWA */}
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-
             <Row label="NIS" value={student.nis} isFirst />
             <Row label="Kelas" value={student.kelas} />
             <Row label="XP" value={student.xp.toString()} />
@@ -90,19 +74,16 @@ export default function DetailUser() {
           </View>
         )}
 
-        {/* 🔵 GURU */}
         {role === 'guru' && (
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
-
             <Row label="Wali Kelas" value={teacher.waliKelas} isFirst />
 
             <TouchableOpacity onPress={() => setOpenPairs(!openPairs)}>
               <Row
                 label="Kelas & Subject"
                 value="Lihat Detail"
-                icon={openPairs ? "chevron-up" : "chevron-down"}
-              />
+                icon={openPairs ? "chevron-up" : "chevron-down"}/>
             </TouchableOpacity>
 
             {openPairs && (
@@ -117,28 +98,22 @@ export default function DetailUser() {
           </View>
         )}
 
-        {/* 🔥 ACTION */}
         <View style={styles.actions}>
-
-          <TouchableOpacity onPress={() => router.push('/admin/editUser')}>
-            <Text style={styles.actionPrimary}>Edit User</Text>
-          </TouchableOpacity>
-
           {role === 'guru' && (
-            <TouchableOpacity onPress={() => setShowModal(true)}>
-              <Text style={styles.actionPrimary}>Assign Kelas & Subject</Text>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => setShowModal(true)}
+            >
+              <Text style={styles.primaryButtonText}>Assign Kelas & Subject</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity>
-            <Text style={styles.actionDelete}>Hapus User</Text>
+          <TouchableOpacity style={styles.deleteButton}>
+            <Text style={styles.deleteButtonText}>Hapus User</Text>
           </TouchableOpacity>
-
         </View>
-
       </ScrollView>
 
-      {/* 🔥 MODAL REUSABLE */}
       <AssignPairModal
         visible={showModal}
         onClose={() => setShowModal(false)}
@@ -151,12 +126,9 @@ export default function DetailUser() {
           });
         }}
       />
-
     </View>
   );
 }
-
-/* ---------- COMPONENT ---------- */
 
 function Row({ label, value, icon, isFirst, isLast }: any) {
   return (
@@ -172,14 +144,12 @@ function Row({ label, value, icon, isFirst, isLast }: any) {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={styles.value}>{value}</Text>
         {icon && (
-          <Ionicons name={icon} size={16} color="#9CA3AF" style={{ marginLeft: 6 }} />
+          <Ionicons name={icon} size={16} color={COLORS.darkGray} style={{ marginLeft: 6 }} />
         )}
       </View>
     </View>
   );
 }
-
-/* ---------- STYLE ---------- */
 
 const styles = StyleSheet.create({
   root: {
@@ -187,32 +157,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  header: {
-    marginTop: 60,
-    marginBottom: 10,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-
   card: {
     marginHorizontal: 20,
     marginTop: 16,
-    borderRadius: 16,
+    borderRadius: BORDER_RADIUS.s,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     elevation: 2,
   },
 
   section: {
     backgroundColor: COLORS.primary,
-    color: '#fff',
+    color: COLORS.white,
     padding: 12,
     fontWeight: '700',
   },
@@ -227,7 +183,7 @@ const styles = StyleSheet.create({
   row: {
     padding: 14,
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.gray,
   },
 
   rowTop: {
@@ -242,7 +198,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    color: '#9CA3AF',
+    color: COLORS.textSub,
     fontSize: 12,
   },
 
@@ -256,10 +212,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginTop: 8,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: BORDER_RADIUS.s,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#fff',
+    borderColor: COLORS.gray,
+    backgroundColor: COLORS.white,
   },
 
   pairText: {
@@ -268,7 +224,7 @@ const styles = StyleSheet.create({
 
   dropdown: {
     padding: 12,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: COLORS.gray,
   },
 
   dropdownItem: {
@@ -283,14 +239,32 @@ const styles = StyleSheet.create({
     gap: 14,
   },
 
-  actionPrimary: {
-    color: COLORS.primary,
-    fontWeight: '600',
+  primaryButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.s,
+    width: '100%',
+    alignItems: 'center',
   },
 
-  actionDelete: {
-    color: '#EF4444',
-    fontWeight: '600',
-    marginBottom: 40,
+  primaryButtonText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: COLORS.error,
+    paddingVertical: 14,
+    borderRadius: BORDER_RADIUS.s,
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  deleteButtonText: {
+    color: COLORS.error,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });

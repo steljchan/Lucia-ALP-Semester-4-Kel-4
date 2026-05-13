@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  StatusBar,
-  Image,
-  Modal,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, Modal} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import SearchBar from '../../src/components/common/searchbar';
+import LogoutModal from '@/src/components/common/logout';
 import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
 
 export default function AdminPanel() {
@@ -22,6 +14,7 @@ export default function AdminPanel() {
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLogout, setShowLogout] = useState(false);
 
   const users = [
     { id: 1, email: 'guru1@mail.com', role: 'guru' },
@@ -65,15 +58,10 @@ export default function AdminPanel() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-
-      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.leftSection}>
-            <Image
-              source={require('@/assets/images/lucia.png')}
-              style={styles.iconImage}
-            />
+            <Image source={require('@/assets/images/lucia.png')} style={styles.iconImage}/>
           </View>
 
           <View style={styles.centerSection}>
@@ -83,14 +71,21 @@ export default function AdminPanel() {
 
           <TouchableOpacity
             style={styles.rightIcon}
-            onPress={() => console.log('logout')}
-          >
-            <Ionicons name="log-out-outline" size={22} color="#EF4444" />
+            onPress={() => setShowLogout(true)}>
+            <Ionicons name="log-out-outline" size={22} color={COLORS.error}/>
           </TouchableOpacity>
+
+          <LogoutModal
+            visible={showLogout}
+            onClose={() => setShowLogout(false)}
+            onConfirm={() => {
+              setShowLogout(false);
+              router.replace('/auth/login');
+            }}
+          />
         </View>
       </View>
 
-      {/* SEARCH */}
       <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
         <SearchBar
           value={search}
@@ -99,7 +94,6 @@ export default function AdminPanel() {
         />
       </View>
 
-      {/* FILTER */}
       <View style={styles.filterContainer}>
         {['all', 'guru', 'siswa'].map((item) => (
           <TouchableOpacity
@@ -130,15 +124,13 @@ export default function AdminPanel() {
         ))}
       </View>
 
-      {/* LIST */}
       <FlatList
         data={filteredUsers}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => handleDetailUser(item)}
-          >
+            onPress={() => handleDetailUser(item)}>
             <View style={styles.cardLeft}>
               <View
                 style={[
@@ -182,7 +174,6 @@ export default function AdminPanel() {
         contentContainerStyle={styles.listContent}
       />
 
-      {/* 🔥 MODAL DELETE */}
       <DeleteUserModal
         visible={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
@@ -231,7 +222,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     borderColor: COLORS.red,
     borderWidth: 1,
   },
@@ -293,7 +284,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: COLORS.white,
     padding: 16,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.s,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.primary,
@@ -318,7 +309,7 @@ const styles = StyleSheet.create({
   },
 
   email: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
 
@@ -329,6 +320,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
     borderRadius: BORDER_RADIUS.l,
+    alignSelf: 'flex-start',
   },
 
   roleText: {
@@ -343,29 +335,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  actionButton: {
-    padding: 8,
-  },
-
-  cancelBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-
-  cancelText: {
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-
   deleteBtn: {
-    backgroundColor: '#EF4444',
+    backgroundColor: COLORS.error,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-
-  deleteText: {
-    color: '#fff',
-    fontWeight: '700',
+    borderRadius: BORDER_RADIUS.s,
   },
 });
