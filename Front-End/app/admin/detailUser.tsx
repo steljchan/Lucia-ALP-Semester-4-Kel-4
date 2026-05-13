@@ -144,7 +144,7 @@ function Row({ label, value, icon, isFirst, isLast }: any) {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={styles.value}>{value}</Text>
         {icon && (
-          <Ionicons name={icon} size={16} color="#9CA3AF" style={{ marginLeft: 6 }} />
+          <Ionicons name={icon} size={16} color={COLORS.darkGray} style={{ marginLeft: 6 }} />
         )}
       </View>
     </View>
