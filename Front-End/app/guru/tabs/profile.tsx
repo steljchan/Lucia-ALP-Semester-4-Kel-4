@@ -66,7 +66,7 @@ export default function ProfilGuru() {
         if (snapshot.exists()) {
           const data = snapshot.data();
           setUserData(data);
-          if (data.profilePicture) setImage(data.profilePicture);
+          if (data.profilePicture) setImage(data.fotoProfile);
         }
       });
       return () => unsubscribe();
