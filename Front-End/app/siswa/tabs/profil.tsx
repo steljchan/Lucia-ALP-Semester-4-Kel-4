@@ -144,8 +144,12 @@ export default function ProfilSiswa() {
             </TouchableOpacity>
             
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{userData?.kelas || "SMP 7"}</Text>
+              <Text style={styles.badgeText}>
+                {`${userData?.tinkat || "Tingkat"} ${userData?.kelas || "Kelas"}`} 
+                {/* ada typo memang tinkat disitu, krna di firebase typo,, jdi biarmi tinkat terus */}
+              </Text>
             </View>
+            
           </View>
 
           <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat..."}</Text>
