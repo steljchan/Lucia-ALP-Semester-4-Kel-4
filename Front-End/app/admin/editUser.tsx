@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { COLORS } from '@/utils/theme';
+import { COLORS, BORDER_RADIUS} from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function EditUser() {
@@ -18,20 +12,16 @@ export default function EditUser() {
 
   const role = params.role as string;
 
-  // 🔥 COMMON
   const [name, setName] = useState(params.name as string || 'Nama User');
   const [editingName, setEditingName] = useState(false);
 
-  // 🔥 STUDENT
   const [nis, setNis] = useState(params.nis as string || '');
   const [kelas, setKelas] = useState('10A');
   const [showClass, setShowClass] = useState(false);
 
-  // 🔥 OPTIONS
   const classOptions = ['10A', '10B', '11A'];
   const subjectOptions = ['Matematika', 'Fisika', 'Kimia'];
 
-  // 🔥 TEACHER
   const [waliKelas, setWaliKelas] = useState('None');
   const [showWali, setShowWali] = useState(false);
 
@@ -56,18 +46,8 @@ export default function EditUser() {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
 
-        {/* 🔥 HEADER (SAMA DENGAN DETAIL) */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.primary} />
-          </TouchableOpacity>
+       <AppHeaderSimple title="Edit User" />
 
-          <Text style={styles.headerTitle}>Edit User</Text>
-
-          <View style={{ width: 22 }} />
-        </View>
-
-        {/* 🔵 PERSONAL */}
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
 
@@ -82,7 +62,6 @@ export default function EditUser() {
           <Row label="Role" value={role} />
         </View>
 
-        {/* 🔵 SISWA */}
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
@@ -93,8 +72,7 @@ export default function EditUser() {
               <Row
                 label="Kelas"
                 value={kelas}
-                icon={showClass ? 'chevron-up' : 'chevron-down'}
-              />
+                icon={showClass ? 'chevron-up' : 'chevron-down'}/>
             </TouchableOpacity>
 
             {showClass &&
@@ -104,20 +82,17 @@ export default function EditUser() {
                   onPress={() => {
                     setKelas(c);
                     setShowClass(false);
-                  }}
-                >
+                  }}>
                   <Text style={styles.dropdownItem}>{c}</Text>
                 </TouchableOpacity>
               ))}
           </View>
         )}
 
-        {/* 🔵 GURU */}
         {role === 'guru' && (
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
 
-            {/* WALI KELAS */}
             <TouchableOpacity onPress={() => setShowWali(!showWali)}>
               <Row
                 label="Wali Kelas"
@@ -139,7 +114,6 @@ export default function EditUser() {
                 </TouchableOpacity>
               ))}
 
-            {/* PAIRS */}
             <Text style={styles.subTitle}>Kelas & Subject</Text>
 
             {pairs.map((p, i) => (
@@ -153,26 +127,32 @@ export default function EditUser() {
                     setPairs(pairs.filter((_, index) => index !== i))
                   }
                 >
-                  <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  <Ionicons name="close-circle" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               </View>
             ))}
 
-            <TouchableOpacity onPress={() => setShowModal(true)}>
-              <Text style={styles.addText}>+ Tambah Pair</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowModal(true)}
+            >
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={COLORS.primary}
+              />
+
+              <Text style={styles.addText}>Tambah Pair</Text>
             </TouchableOpacity>
 
           </View>
         )}
 
-        {/* 🔥 SAVE */}
         <TouchableOpacity style={styles.button} onPress={handleSave}>
           <Text style={styles.buttonText}>Simpan</Text>
         </TouchableOpacity>
-
       </ScrollView>
 
-      {/* 🔥 MODAL REUSABLE */}
       <AssignPairModal
         visible={showModal}
         onClose={() => setShowModal(false)}
@@ -186,17 +166,14 @@ export default function EditUser() {
   );
 }
 
-/* ---------- COMPONENT ---------- */
-
 function Row({ label, value, icon }: any) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
-
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={styles.value}>{value}</Text>
         {icon && (
-          <Ionicons name={icon} size={16} color="#9CA3AF" style={{ marginLeft: 6 }} />
+          <Ionicons name={icon} size={16} color={COLORS.darkGray} style={{ marginLeft: 6 }} />
         )}
       </View>
     </View>
@@ -212,7 +189,6 @@ function EditableRow({ label, value, onChange }: any) {
   );
 }
 
-/* ---------- STYLE ---------- */
 
 const styles = StyleSheet.create({
   root: {
@@ -220,32 +196,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  header: {
-    marginTop: 60,
-    marginBottom: 10,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-
   card: {
     marginHorizontal: 20,
     marginTop: 16,
-    borderRadius: 16,
-    backgroundColor: '#fff',
+    borderRadius: BORDER_RADIUS.s,
+    backgroundColor: COLORS.white,
     overflow: 'hidden',
     elevation: 2,
   },
 
   section: {
     backgroundColor: COLORS.primary,
-    color: '#fff',
+    color: COLORS.white,
     padding: 12,
     fontWeight: '700',
   },
@@ -260,12 +222,12 @@ const styles = StyleSheet.create({
   row: {
     padding: 14,
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.gray, 
   },
 
   label: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: COLORS.textSub,
   },
 
   value: {
@@ -276,15 +238,15 @@ const styles = StyleSheet.create({
   input: {
     marginTop: 6,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: BORDER_RADIUS.s,
     padding: 8,
   },
 
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: COLORS.gray,
   },
 
   pairCard: {
@@ -293,14 +255,20 @@ const styles = StyleSheet.create({
     padding: 10,
     marginHorizontal: 10,
     marginTop: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.s,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor:COLORS.smoothBlue,
   },
 
   pairText: {
     fontWeight: '600',
+  },
+
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 12,
   },
 
   addText: {
@@ -314,12 +282,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: COLORS.primary,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
 
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
 });
