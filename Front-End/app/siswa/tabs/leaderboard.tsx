@@ -5,32 +5,56 @@ import AppHeaderWOsearch from '@/src/components/common/appheaderWOsearch';
 import Card from '@/src/components/common/card';
 
 import { auth, db } from "@/src/config/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, orderBy, limit } from "firebase/firestore";
 
 const { width } = Dimensions.get('window');
 
-// Data dummy (Maksimal sampai rank 10)
-const RANKING_DATA = [
-  { id: '1', name: 'Dhiva', xp: 50000000, avatar: require('@/assets/images/avatar3.jpeg') },
-  { id: '2', name: 'Patrick', xp: 300, avatar: require('@/assets/images/avatar1.jpeg') },
-  { id: '3', name: 'Cherryl', xp: 299, avatar: require('@/assets/images/avatar2.jpeg') },
-  { id: '4', name: 'Arstellian', xp: 200, avatar: require('@/assets/images/miniong.jpeg') },
-  { id: '5', name: 'Rakha', xp: 200, avatar: require('@/assets/images/avatar4.jpeg') },
-  { id: '6', name: 'Gledis', xp: 200, avatar: require('@/assets/images/avatar5.jpeg') },
-  { id: '7', name: 'Valderio', xp: 200, avatar: require('@/assets/images/avatar6.jpeg') },
-  { id: '8', name: 'Laury', xp: 150, avatar: require('@/assets/images/avatar7.jpeg') },
-  { id: '9', name: 'Abyan', xp: 100, avatar: require('@/assets/images/avatar8.jpeg') },
-  { id: '10', name: 'Aristo', xp: 10, avatar: require('@/assets/images/avatar9.jpeg') },
-];
-
 export default function LeaderboardSiswa() {
-  const CURRENT_USER_NAME = "Arstellian"; 
+  const [students, setStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const CURRENT_USER_UID = auth.currentUser?.uid;
 
-  const topThree = RANKING_DATA.slice(0, 3);
-  const others = RANKING_DATA.slice(3, 10);
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    
+    const q = query(
+      collection(db, "users"),
+      where("role", "==", "siswa"),
+      orderBy("xp", "desc"), 
+      limit(10)
+    );
+
+    const unsubLeaderboard = onSnapshot(q, (querySnapshot) => {
+      const list: any[] = [];
+      querySnapshot.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      setStudents(list);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error Leaderboard:", error);
+      setLoading(false);
+    });
+
+    return () => unsubLeaderboard();
+  }, []);
+
+  
+  const topThree = students.slice(0, 3);
+  const others = students.slice(3, 10);
 
   const renderPodiumItem = (user: any, rank: number, height: number, color: string) => {
-    const isMe = user.name === CURRENT_USER_NAME;
+    if (!user) {
+      return (
+        <View style={[styles.podiumItem, { opacity: 0.3 }]}>
+          <View style={[styles.step, { height, backgroundColor: '#E0E0E0' }]} />
+        </View>
+      );
+    }
+    
+    const isMe = user.id === CURRENT_USER_UID;
     const medals = ['', '🥇', '🥈', '🥉'];
 
     return (
@@ -38,7 +62,7 @@ export default function LeaderboardSiswa() {
         {rank === 1 && <Text style={styles.crownIcon}>👑</Text>}
         <View style={styles.avatarWrapper}>
           <Image 
-            source={user.avatar} 
+            source={{ uri: user.profilePicture || 'https://via.placeholder.com/150' }} 
             style={[
                 rank === 1 ? styles.avatarMain : styles.avatarSecondary,
                 isMe && { borderColor: COLORS.primary, borderWidth: 3 }
@@ -46,7 +70,11 @@ export default function LeaderboardSiswa() {
           />
           <Text style={styles.medalIcon}>{medals[rank]}</Text>
         </View>
-        <Text style={[styles.namePodium, isMe && { color: COLORS.primary }]}>
+        <Text 
+          style={[styles.namePodium, isMe && { color: COLORS.primary }]} 
+          numberOfLines={1} 
+          ellipsizeMode="tail"
+        >
             {user.name}{isMe ? ' (Anda)' : ''}
         </Text>
         <View style={[styles.xpBadge, isMe && { backgroundColor: COLORS.primary }]}>
@@ -78,18 +106,26 @@ export default function LeaderboardSiswa() {
 
         {/* list rank */}
         <Card style={styles.listCard}>
-          {others.map((item) => {
-            const isMe = item.name === CURRENT_USER_NAME;
+          {others.map((item, index) => { 
+            const isMe = item.id === CURRENT_USER_UID;
             return (
               <View key={item.id} style={[styles.rankRow, isMe && styles.highlightRow]}>
                 <View style={[styles.rankNumberCircle, isMe && {backgroundColor: COLORS.primary}]}>
-                  <Text style={[styles.rankNumberText, isMe && {color: 'white'}]}>{item.id}</Text>
+                  <Text style={[styles.rankNumberText, isMe && {color: 'white'}]}>
+                    {index + 4} 
+                  </Text>
                 </View>
-                <Image source={item.avatar} style={styles.rankAvatar} />
+                
+                <Image 
+                  source={{ uri: item.profilePicture || 'https://via.placeholder.com/150' }} 
+                  style={styles.rankAvatar} 
+                />
+                
                 <Text style={[styles.rankName, isMe && {color: COLORS.primary}]}>
                     {item.name}{isMe ? ' (Anda)' : ''}
                 </Text>
-                <Text style={[styles.rankXP, isMe && {fontSize: 16}]}>{item.xp}XP</Text>
+                
+                <Text style={[styles.rankXP, isMe && {fontSize: 16}]}>{item.xp} XP</Text>
               </View>
             );
           })}
@@ -151,7 +187,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     fontSize: 13, 
     color: COLORS.textMain, 
-    marginTop: 4 
+    marginTop: 4, 
+    width: width * 0.28,
+    height: 20,
   },
 
   xpBadge: { 
