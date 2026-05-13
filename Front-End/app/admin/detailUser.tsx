@@ -104,9 +104,7 @@ export default function DetailUser() {
               style={styles.primaryButton}
               onPress={() => setShowModal(true)}
             >
-              <Text style={styles.primaryButtonText}>
-                Assign Kelas & Subject
-              </Text>
+              <Text style={styles.primaryButtonText}>Assign Kelas & Subject</Text>
             </TouchableOpacity>
           )}
 
