@@ -1,3 +1,4 @@
+"use strict";
 /**
  * Import function triggers from their respective submodules:
  *
@@ -6,14 +7,16 @@
  *
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
-
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.helloWorld = void 0;
+const firebase_functions_1 = require("firebase-functions");
+const https_1 = require("firebase-functions/https");
+(0, firebase_functions_1.setGlobalOptions)({ maxInstances: 10 });
+exports.helloWorld = (0, https_1.onRequest)((request, response) => {
+    response.send("Hello dari Firebase 🚀");
+});
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
-
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
 // traffic spikes by instead downgrading performance. This limit is a
@@ -24,9 +27,8 @@ import * as logger from "firebase-functions/logger";
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
-
 // export const helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+//# sourceMappingURL=index.js.map
