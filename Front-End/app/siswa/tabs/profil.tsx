@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,11 @@ import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
-// data report dummy
+// FIREBASE IMPORTS
+import { auth, db } from "../../../src/config/firebase";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 const REPORT_DATA = [
   {
     id: '1',
@@ -44,7 +48,6 @@ const REPORT_DATA = [
   },
 ];
 
-// komponen report card
 interface ReportCardProps {
   subject: string;
   score: number;
@@ -76,12 +79,57 @@ const ReportCard = ({subject, score, grade, image, onPress,}: ReportCardProps) =
   );
 };
 
-// profile
 export default function ProfilSiswa() {
   const [image, setImage] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [showLogout, setShowLogout] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      const unsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setUserData(data);
+          if (data.profilePicture) {
+            setImage(data.profilePicture); 
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const handleUpload = async (uri: string) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const storage = getStorage();
+      const fileRef = ref(storage, `profilePictures/${user.uid}`);
+      
+      await uploadBytes(fileRef, blob);
+
+    
+      const photoURL = await getDownloadURL(fileRef);
+
+      
+      await updateDoc(doc(db, "users", user.uid), {
+        profilePicture: photoURL
+      });
+
+      Alert.alert("Sukses", "Foto profil berhasil diperbarui!");
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Gagal mengunggah foto ke server.");
+    }
+  };
+
+  
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -95,13 +143,16 @@ export default function ProfilSiswa() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.5, 
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      const selectedUri = result.assets[0].uri;
+      setImage(selectedUri); 
+      handleUpload(selectedUri); 
     }
   };
 
@@ -111,7 +162,7 @@ export default function ProfilSiswa() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
         
-        {/*AVATAR & INFO */}
+        {/* AVATAR & INFO */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrapper}>
             <Image
@@ -123,38 +174,41 @@ export default function ProfilSiswa() {
             </TouchableOpacity>
             
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>SMP 7</Text>
+              <Text style={styles.badgeText}>
+                {`${userData?.tinkat || "Tingkat"} ${userData?.kelas || "Kelas"}`} 
+                {/* ada typo memang tinkat disitu, krna di firebase typo,, jdi biarmi tinkat terus */}
+              </Text>
             </View>
+            
           </View>
 
-          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>Arstellian</Text>
-          <Text style={PROFILE.studentId}>230101</Text> 
+          <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat..."}</Text>
+          <Text style={PROFILE.studentId}>{userData?.NIS || "-"}</Text> 
           
           <View style={PROFILE.emailBadge}>
-             <Text style={subtitle}>Rena@student.SLBN1.ac.id</Text>
+             <Text style={subtitle}>{auth.currentUser?.email || "Email tidak ditemukan"}</Text>
           </View>
         </View>
 
-        {/* XP, RANK, QUIZ */}
+        {/* STATS */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Ionicons name="star" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>XP</Text>
-            <Text style={styles.statValue}>200</Text>
+            <Text style={styles.statValue}>{userData?.xp || 0}</Text>
           </View>
           <View style={[styles.statBox, styles.statBorder]}>
             <Ionicons name="podium" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Rank</Text>
-            <Text style={styles.statValue}>11</Text>
+            <Text style={styles.statValue}>{userData?.rank || "11"}</Text>
           </View>
           <View style={styles.statBox}>
             <Ionicons name="document-text" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Quiz Selesai</Text>
-            <Text style={styles.statValue}>14</Text>
+            <Text style={styles.statValue}>{userData?.completedQuizzes || 0}</Text>
           </View>
         </View>
 
-        {/* LOGOUT */}
         <TouchableOpacity 
           style={BTN.logout.box}
           onPress={() => setShowLogout(true)}
@@ -168,11 +222,10 @@ export default function ProfilSiswa() {
           onClose={() => setShowLogout(false)}
           onConfirm={() => {
             setShowLogout(false);
-            router.replace('/auth/login'); 
+            auth.signOut().then(() => router.replace('/auth/login'));
           }}
         />
 
-        {/* REPORT GRID  */}
         <View style={styles.reportDivider}>
           <View style={styles.line} />
           <Text style={styles.reportTitle}>Report</Text>
