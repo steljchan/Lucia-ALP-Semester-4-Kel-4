@@ -37,6 +37,14 @@ const QUIZ = [
 export default function DetailNilai() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const avatarIndex = params.avatar || '0';
+  const avatarMap: any = {
+    '0': require('@/assets/images/avatar1.jpeg'),
+    '1': require('@/assets/images/avatar2.jpeg'),
+    '2': require('@/assets/images/avatar3.jpeg'),
+    '3': require('@/assets/images/avatar4.jpeg'),
+    '4': require('@/assets/images/avatar5.jpeg'),
+  };
 
   const name = params.name || 'Nama Siswa';
   const nis = params.nis || '000000';
@@ -62,7 +70,7 @@ export default function DetailNilai() {
         {/* PROFILE */}
         <View style={styles.profile}>
           <Image
-            source={require('@/assets/images/maskotMTK.png')}
+            source={avatarMap[avatarIndex as string]}
             style={styles.avatar}
           />
 

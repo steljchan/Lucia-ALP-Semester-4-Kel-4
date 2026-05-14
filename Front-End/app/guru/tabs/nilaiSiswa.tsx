@@ -9,11 +9,41 @@ import { useRouter } from 'expo-router';
 import FilterChips from '@/src/components/common/guru/filter';
 
 const DATA = [
-  { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', },
-  { name: 'Lily Hartanto', nis: '230101', score: 80, mapel: 'Bahasa Inggris' },
-  { name: 'Ricky bambang', nis: '230101', score: 100, mapel: 'IPA' },
-  { name: 'Arsya Aulia', nis: '230101', score: 90, mapel: 'Matematika' },
-  { name: 'Budi Budiman', nis: '230101', score: 70, mapel: 'Matematika' },
+  {
+    name: 'Renata Ramadhani',
+    nis: '230101',
+    score: 90,
+    mapel: 'Matematika',
+    avatar: require('@/assets/images/avatar1.jpeg'),
+  },
+  {
+    name: 'Lily Hartanto',
+    nis: '230101',
+    score: 80,
+    mapel: 'Bahasa Inggris',
+    avatar: require('@/assets/images/avatar2.jpeg'),
+  },
+  {
+    name: 'Ricky bambang',
+    nis: '230101',
+    score: 100,
+    mapel: 'IPA',
+    avatar: require('@/assets/images/avatar3.jpeg'),
+  },
+  {
+    name: 'Arsya Aulia',
+    nis: '230101',
+    score: 90,
+    mapel: 'Matematika',
+    avatar: require('@/assets/images/avatar4.jpeg'),
+  },
+  {
+    name: 'Budi Budiman',
+    nis: '230101',
+    score: 70,
+    mapel: 'Matematika',
+    avatar: require('@/assets/images/avatar5.jpeg'),
+  },
 ];
 
 export default function NilaiSiswa() {
@@ -116,12 +146,13 @@ export default function NilaiSiswa() {
                   nis: item.nis,
                   score: item.score,
                   mapel: item.mapel,
-                },
+                  avatar: index.toString(),
+                }
               })
             }
           >
             <Image
-              source={require('@/assets/images/lucia.png')}
+              source={item.avatar}
               style={styles.avatar}
             />
 
@@ -207,6 +238,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 50,
     height: 50,
+    borderRadius: 25,
     marginRight: 10,
   },
 
