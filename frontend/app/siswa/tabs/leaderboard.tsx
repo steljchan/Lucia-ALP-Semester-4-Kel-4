@@ -18,27 +18,35 @@ export default function LeaderboardSiswa() {
     const user = auth.currentUser;
     if (!user) return;
 
+    const userDocRef = doc(db, "users", user.uid);
     
-    const q = query(
-      collection(db, "users"),
-      where("role", "==", "siswa"),
-      orderBy("xp", "desc"), 
-      limit(10)
-    );
+    const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userTingkat = docSnap.data().tinkat; 
 
-    const unsubLeaderboard = onSnapshot(q, (querySnapshot) => {
-      const list: any[] = [];
-      querySnapshot.forEach((d) => {
-        list.push({ id: d.id, ...d.data() });
-      });
-      setStudents(list);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error Leaderboard:", error);
-      setLoading(false);
+        const q = query(
+          collection(db, "users"),
+          where("role", "==", "siswa"),
+          where("tinkat", "==", userTingkat), 
+          orderBy("xp", "desc"), 
+          limit(10)
+        );
+
+        const unsubLeaderboard = onSnapshot(q, (querySnapshot) => {
+          const list: any[] = [];
+          querySnapshot.forEach((d) => {
+            list.push({ id: d.id, ...d.data() });
+          });
+          setStudents(list);
+          setLoading(false);
+        });
+
+        // Cleanup leaderboard listener di dalam
+        return () => unsubLeaderboard();
+      }
     });
 
-    return () => unsubLeaderboard();
+    return () => unsubUser();
   }, []);
 
   
@@ -92,7 +100,11 @@ export default function LeaderboardSiswa() {
       <AppHeaderWOsearch />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
-        
+        <View style={{ alignItems: 'center', marginTop: 10 }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.primary }}>
+            Leaderboard {students[0]?.tinkat || ""} 🏆
+          </Text>
+        </View>
         {/* 3 terartas */}
         <View style={styles.podiumContainer}>
           {renderPodiumItem(topThree[1], 2, 110, COLORS.secondary)}
