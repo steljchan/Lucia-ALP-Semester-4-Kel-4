@@ -197,11 +197,13 @@ export default function ProfilSiswa() {
             <Text style={styles.statLabel}>XP</Text>
             <Text style={styles.statValue}>{userData?.xp || 0}</Text>
           </View>
+
           <View style={[styles.statBox, styles.statBorder]}>
             <Ionicons name="podium" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Rank</Text>
             <Text style={styles.statValue}>{userData?.rank || "11"}</Text>
           </View>
+          
           <View style={styles.statBox}>
             <Ionicons name="document-text" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Quiz Selesai</Text>
