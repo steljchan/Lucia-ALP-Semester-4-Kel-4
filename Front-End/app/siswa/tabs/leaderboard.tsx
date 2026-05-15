@@ -75,7 +75,7 @@ export default function LeaderboardSiswa() {
           numberOfLines={1} 
           ellipsizeMode="tail"
         >
-            {user.name}{isMe ? ' (Anda)' : ''}
+            {user.name}
         </Text>
         <View style={[styles.xpBadge, isMe && { backgroundColor: COLORS.primary }]}>
             <Text style={[styles.xpText, isMe && { color: 'white' }]}>{user.xp} XP</Text>
@@ -122,7 +122,7 @@ export default function LeaderboardSiswa() {
                 />
                 
                 <Text style={[styles.rankName, isMe && {color: COLORS.primary}]}>
-                    {item.name}{isMe ? ' (Anda)' : ''}
+                    {item.name}
                 </Text>
                 
                 <Text style={[styles.rankXP, isMe && {fontSize: 16}]}>{item.xp} XP</Text>
@@ -190,6 +190,7 @@ const styles = StyleSheet.create({
     marginTop: 4, 
     width: width * 0.28,
     height: 20,
+    textAlign: "center",
   },
 
   xpBadge: { 
