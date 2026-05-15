@@ -3,6 +3,7 @@ import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityInd
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons'; 
+import * as WebBrowser from 'expo-web-browser';
 import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 
 interface MateriFile {

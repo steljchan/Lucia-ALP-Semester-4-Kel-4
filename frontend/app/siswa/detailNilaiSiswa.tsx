@@ -1,15 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Image} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
+
 
 const QUIZ_DATA = [
   {
@@ -36,12 +30,20 @@ const QUIZ_DATA = [
 
 export default function DetailNilaiSiswa() {
   const router = useRouter();
+  const { subject, score, grade, imageName } = useLocalSearchParams();
 
-  const subjectName = 'Matematika';
-  const finalGrade = 100;
-  const gradeLetter = 'A+';
+  const subjectName = subject;
+  const finalGrade = score;
+  const gradeLetter = grade;
   const topicName = 'Cara menghitung mata uang';
   const topicScore = 92.75;
+
+  const imageMap: any = {
+    Inggris: require('@/assets/images/materi/Inggris.png'),
+    Matematika: require('@/assets/images/materi/Matematika.png'),
+    IPA: require('@/assets/images/materi/IPA.png'),
+    Indonesia: require('@/assets/images/materi/Indonesia.png'),
+  };
 
   return (
     <View style={styles.container}>
@@ -58,7 +60,6 @@ export default function DetailNilaiSiswa() {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Card Grade Recap dengan divider "KOIN" */}
         <View style={styles.card}>
           <View style={styles.sectionDivider}>
             <View style={styles.line} />
@@ -72,7 +73,7 @@ export default function DetailNilaiSiswa() {
             </View>
             <View style={styles.gradeRight}>
               <Image
-                source={require('@/assets/images/maskotMTK.png')}
+                source={imageMap[imageName as string]}
                 style={styles.subjectImage}
               />
             </View>
@@ -194,6 +195,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     resizeMode: 'contain',
+    borderRadius: 15,
   },
   quizSectionTitle: {
     fontSize: 18,
