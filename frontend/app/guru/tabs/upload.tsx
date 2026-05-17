@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Image,
-  FlatList,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Image, FlatList, Alert} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@/utils/theme';
+import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -39,7 +29,6 @@ export default function UploadMateri() {
     }
   };
 
-  // 🔥 PICK IMAGE
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -62,7 +51,6 @@ export default function UploadMateri() {
     }
   };
 
-  // 🔥 DELETE FILE (DRAFT DELETE)
   const removeFile = (id: string) => {
     Alert.alert(
       'Hapus File',
@@ -89,7 +77,6 @@ export default function UploadMateri() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
 
-        {/* HEADER TEXT */}
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>Upload Template</Text>
           <Text style={styles.headerSub}>
@@ -97,14 +84,12 @@ export default function UploadMateri() {
           </Text>
         </View>
 
-        {/* UPLOAD BOX */}
         <TouchableOpacity style={styles.uploadBox} onPress={pickImage}>
           <Ionicons name="cloud-upload-outline" size={40} color="#1E3A8A" />
           <Text style={styles.uploadTitle}>Upload</Text>
           <Text style={styles.uploadSub}>Pilih file</Text>
         </TouchableOpacity>
 
-        {/* FILE PREVIEW */}
         <FlatList
           data={files}
           horizontal
@@ -124,10 +109,8 @@ export default function UploadMateri() {
           )}
         />
 
-        {/* FORM */}
         <View style={styles.form}>
 
-          {/* TITLE */}
           <Text style={styles.label}>Judul Materi</Text>
           <TextInput
             value={title}
@@ -135,7 +118,6 @@ export default function UploadMateri() {
             style={styles.input}
           />
 
-          {/* DESC */}
           <Text style={styles.label}>Deskripsi</Text>
           <TextInput
             value={desc}
@@ -145,7 +127,6 @@ export default function UploadMateri() {
             textAlignVertical="top"
           />
 
-          {/* SUBJECT */}
           <Text style={styles.label}>Mata Pelajaran</Text>
 
           <TouchableOpacity
@@ -160,9 +141,14 @@ export default function UploadMateri() {
 
           {showSubject && (
             <View style={styles.dropdownList}>
-              {subjects.map((s) => (
+              {subjects.map((s, index) => (
                 <TouchableOpacity
                   key={s}
+                  style={[
+                    styles.dropdownItemContainer,
+                    index !== subjects.length - 1 &&
+                      styles.dropdownDivider,
+                  ]}
                   onPress={() => {
                     setSubject(s);
                     setShowSubject(false);
@@ -174,7 +160,6 @@ export default function UploadMateri() {
             </View>
           )}
 
-          {/* MULTI CLASS */}
           <Text style={styles.label}>Kelas</Text>
           {classes.map((c) => {
             const active = selectedClasses.includes(c);
@@ -196,7 +181,6 @@ export default function UploadMateri() {
 
         </View>
 
-        {/* BUTTON */}
         <TouchableOpacity
           style={[styles.button, isDisabled && styles.buttonDisabled]}
           disabled={isDisabled}
@@ -217,25 +201,29 @@ const styles = StyleSheet.create({
 
   headerText: {
     paddingHorizontal: 20,
-    marginTop: 10,
+    marginTop: 12,
+    marginBottom: 12,
   },
 
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E3A8A',
+    color: COLORS.textMain,
   },
 
   headerSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: COLORS.textSub,
   },
 
   uploadBox: {
     marginHorizontal: 20,
     marginTop: 10,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.m,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    paddingHorizontal: 12,
     height: 140,
     justifyContent: 'center',
     alignItems: 'center',
@@ -245,20 +233,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E3A8A',
+    color: COLORS.textMain,
   },
 
   uploadSub: {
     fontSize: 12,
-    color: '#6B7280',
+    color: COLORS.textSub,
   },
 
   fileCard: {
     width: 90,
     height: 70,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     marginRight: 10,
   },
 
@@ -271,7 +259,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 10,
     padding: 2,
   },
@@ -283,39 +271,64 @@ const styles = StyleSheet.create({
 
   label: {
     marginTop: 12,
+    marginBottom: 12,
     fontWeight: '600',
   },
 
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: BORDER_RADIUS.s,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
   },
 
   descInput: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: BORDER_RADIUS.s,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     height: 100,
   },
 
   dropdown: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: BORDER_RADIUS.s,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
 
   dropdownList: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
+    borderColor: COLORS.primary,
+    borderWidth: 1,
     marginTop: 5,
     borderRadius: 10,
     padding: 10,
   },
 
   dropdownItem: {
-    paddingVertical: 8,
+    fontSize: 14,
+    color: COLORS.textMain,
+    fontWeight: '500',
+  },
+
+  dropdownItemContainer: {
+    paddingVertical: 10,
+  },
+
+  dropdownDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.smoothBlue,
   },
 
   checkboxRow: {
@@ -326,18 +339,18 @@ const styles = StyleSheet.create({
 
   button: {
     margin: 20,
-    backgroundColor: '#3B82F6',
+    backgroundColor: COLORS.primary,
     padding: 14,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
 
   buttonDisabled: {
-    backgroundColor: '#D1D5DB',
+    backgroundColor: COLORS.gray,
   },
 
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
 });

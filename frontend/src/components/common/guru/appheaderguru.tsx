@@ -1,32 +1,32 @@
 import { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import SearchBar from '@/src/components/common/searchbar';
-import { COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
 
 export default function AppHeader() {
-  const router = useRouter();
-  const [search, setSearch] = useState('');
 
   return (
-   <View style={styles.container}>
+    <LinearGradient
+      colors={['#FFFFFF', '#C4E8FF']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1.5 }}
+      style={styles.container}
+    >
       <View style={styles.topRow}>
         <Image
           source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.background,
     paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingTop: 50,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
   },
 
   topRow: {

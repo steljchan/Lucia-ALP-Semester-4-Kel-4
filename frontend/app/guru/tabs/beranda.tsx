@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Linking } from 'react-native';
-import { COLORS, title, containerHeader, scrollContent, moreSubtitle, subtitle, MARGIN_HORIZONTAL } from '@/utils/theme';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView} from 'react-native';
+import {COLORS, title, containerHeader, scrollContent, MARGIN_HORIZONTAL} from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderGradient';
-import { Ionicons } from '@expo/vector-icons';
-import CategoryFilter from '../../../src/components/dashboard/guru/categoryFilter';
-
-import { useRouter } from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import FilterChips from '../../../src/components/dashboard/guru/filter';
+import {useRouter} from 'expo-router';
 import TemplateCard from '../../../src/components/common/guru/tmplateCard'; 
 
 const TulisBilangan = require('@/assets/images/Template/MenulisBilangan.png');
@@ -58,11 +57,11 @@ export default function DashboardGuru() {
     <View style={[containerHeader, { flex: 1 }]}>
       <AppHeader/>
       <View style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
-        <Text style={[title, { fontSize: 22, marginTop: 20 }]}>Jelajahi Template Materi</Text>
-        <CategoryFilter 
-          categories={CATEGORIES}
-          selectedCategory={selectedCategory}
-          onSelect={(cat) => setSelectedCategory(cat)}
+        <Text style={[title, { fontSize: 16, marginTop: 20 }]}>Jelajahi Template Materi</Text>
+        <FilterChips
+          data={CATEGORIES}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
         />
       </View>
       
@@ -72,7 +71,7 @@ export default function DashboardGuru() {
       >
  
         <View style={styles.sectionHeader}>
-          <Text style={{ color: COLORS.gray, fontSize: 14 }}>
+          <Text style={{ color: COLORS.darkGray, fontSize: 14 }}>
             Menampilkan {filteredTemplates.length} template
           </Text>
           <TouchableOpacity onPress={() => setIsGridView(!isGridView)}>
@@ -103,15 +102,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  
-
   listWrapper: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between', 
-  },
-
-  
-
-  
+  },  
 });

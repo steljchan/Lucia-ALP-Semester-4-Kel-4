@@ -12,7 +12,7 @@ export default function AppHeader() {
 
   return (
     <LinearGradient
-      colors={['#EBF7FF', '#C9EAFF']}
+      colors={['#FFFFFF', '#C4E8FF']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.container}

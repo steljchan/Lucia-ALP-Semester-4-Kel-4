@@ -82,7 +82,6 @@ export default function EditMateriGuru() {
       Alert.alert("Error", "Judul materi tidak boleh kosong");
       return;
     }
-    // Simpan ke backend atau state global (contoh hanya alert)
     Alert.alert("Berhasil", `Perubahan materi "${materiTitle}" untuk ${materiClass} - ${materiSubject} telah disimpan`);
     router.back();
   };
@@ -104,7 +103,6 @@ export default function EditMateriGuru() {
     </View>
   );
 
-  // Daftar kelas
   const classOptions = ['Kelas 7', 'Kelas 8', 'Kelas 9'];
 
   return (
@@ -184,7 +182,6 @@ export default function EditMateriGuru() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Modal Pilih Mata Pelajaran */}
       <Modal visible={showSubjectPicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -208,7 +205,6 @@ export default function EditMateriGuru() {
         </View>
       </Modal>
 
-      {/* Modal Pilih Kelas */}
       <Modal visible={showClassPicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -240,40 +236,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   header: {
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
   },
+
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+
   backButton: {
     padding: 8,
   },
+
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: COLORS.textMain,
   },
+
   saveButton: {
     padding: 8,
   },
+
   scrollContent: {
     padding: SPACING.md,
     paddingBottom: 40,
   },
+
   formGroup: {
     marginBottom: SPACING.md,
   },
+
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textMain,
     marginBottom: 4,
   },
+
   input: {
     backgroundColor: COLORS.white,
     borderWidth: 1,
@@ -283,6 +288,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 14,
   },
+
   pickerButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -294,20 +300,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
+
   pickerText: {
     fontSize: 14,
     color: COLORS.textMain,
   },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.textMain,
     marginVertical: 12,
   },
+
   fileList: {
     gap: 12,
     paddingVertical: 8,
   },
+
   fileCard: {
     width: 150,
     height: 120,
@@ -318,34 +328,40 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+
   fileImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
+
   pdfPreview: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   pdfText: {
     fontSize: 12,
     color: COLORS.textSub,
     marginTop: 4,
   },
+
   deleteButton: {
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: COLORS.gray,
     borderRadius: 12,
     padding: 4,
   },
+
   buttonRow: {
     flexDirection: 'row',
     gap: 12,
     marginVertical: 16,
   },
+
   addButton: {
     flex: 1,
     flexDirection: 'row',
@@ -358,53 +374,63 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
+
   addButtonText: {
     color: COLORS.primary,
     fontWeight: '600',
   },
+
   deleteMateriButton: {
-    marginTop: 24,
-    backgroundColor: '#FEE2E2',
+    marginTop: 4,
+    backgroundColor: COLORS.error,
     paddingVertical: 12,
     borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
+
   deleteMateriText: {
-    color: '#EF4444',
+    color: COLORS.white,
     fontWeight: '600',
   },
+
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
   modalContent: {
     width: '80%',
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.m,
     padding: 20,
   },
+
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: 16,
     textAlign: 'center',
   },
+
   modalOption: {
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.smoothBlue,
   },
+
   modalOptionText: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
   },
+
   modalClose: {
     marginTop: 16,
     alignItems: 'center',
   },
+
   modalCloseText: {
     color: COLORS.error,
     fontWeight: '600',
