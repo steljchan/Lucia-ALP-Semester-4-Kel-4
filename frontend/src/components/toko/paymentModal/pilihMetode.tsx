@@ -18,7 +18,6 @@ export default function StepPilihMetode({
 }: StepPilihMetodeProps) {
   return (
     <View>
-      {/* Header Modal */}
       <View style={styles.header}>
         <Text style={title}>Metode Pembayaran</Text>
         <TouchableOpacity onPress={onClose}>
@@ -26,7 +25,6 @@ export default function StepPilihMetode({
         </TouchableOpacity>
       </View>
 
-      {/* Info Produk Singkat */}
       <View style={styles.productInfo}>
         <Image 
           source={require('@/assets/images/maskot1.png')} 
@@ -45,8 +43,7 @@ export default function StepPilihMetode({
           <Text style={styles.taxLabel}>+ Pajak</Text>
         </View>
       </View>
-
-      {/* List Metode Pembayaran */}
+      
       {paymentMethods && paymentMethods.map((method) => (
         <TouchableOpacity 
           key={method.id} 
@@ -75,37 +72,44 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     marginBottom: 20 
   },
+
   productInfo: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     marginBottom: 25,
-    backgroundColor: '#F0F9FF', 
+    backgroundColor: COLORS.background, 
     padding: 10,
     borderRadius: 12
   },
+
   mascotSmall: { 
     width: 50, 
     height: 50, 
     marginRight: 12 
   },
+
   amountText: { 
     fontSize: 18, 
     fontWeight: 'bold', 
     color: COLORS.textMain 
   },
+
   appLabel: { 
     fontSize: 12, 
     color: COLORS.darkGray 
   },
+
   priceText: { 
     fontSize: 18, 
     fontWeight: 'bold', 
     color: COLORS.primary 
   },
+
   taxLabel: { 
     fontSize: 10, 
     color: COLORS.darkGray 
   },
+
   cardItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -114,18 +118,21 @@ const styles = StyleSheet.create({
     borderRadius: 15, 
     marginBottom: 10, 
     borderWidth: 1, 
-    borderColor: '#EEE' 
+    borderColor: COLORS.gray 
   },
+
   methodIconBox: {
     width: 45,
     height: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   methodIcon: { 
     width: '100%', 
     height: '100%' 
   },
+  
   methodName: { 
     flex: 1, 
     marginLeft: 12, 

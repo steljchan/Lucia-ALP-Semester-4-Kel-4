@@ -8,7 +8,7 @@ export default function Mencocokkan() {
   return (
     <Roadmap
       title="Mencocokkan Kata"
-      levels={mencocokkanLevels} // tetap aman karena ada unlocked
+      levels={mencocokkanLevels} 
       currentLevel={currentLevel}
       routePrefix="/siswa/game/mencocokkan"
     />

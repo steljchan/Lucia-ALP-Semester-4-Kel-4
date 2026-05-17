@@ -1,12 +1,9 @@
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { useRouter } from 'expo-router';
-
+import {View, Text, StyleSheet, FlatList} from 'react-native';
+import {useRouter} from 'expo-router';
 import AppHeader from '../../../src/components/common/appheader';
 import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
 import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
-
-import { scrollContent } from '@/utils/theme';
-import { UI } from '../../../constants/theme';
+import {scrollContent, COLORS} from '@/utils/theme';
 
 export default function DashboardSiswa() {
 
@@ -23,7 +20,6 @@ export default function DashboardSiswa() {
 
   return (
     <View style={styles.container}>
-
       <AppHeader />
 
       <FlatList
@@ -51,7 +47,6 @@ export default function DashboardSiswa() {
           />
         )}
       />
-
     </View>
   );
 }
@@ -59,19 +54,22 @@ export default function DashboardSiswa() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: UI.background,
+    backgroundColor: COLORS.background,
   },
+
   content: {
     paddingHorizontal: 16,
     paddingBottom: 130,
   },
+
   sectionTitle: {
     marginTop: 20,
     marginBottom: 10,
     fontWeight: '700',
     fontSize: 16,
-    color: UI.textPrimary,
+    color: COLORS.textMain,
   },
+
   grid: {
     justifyContent: 'space-between',
   },

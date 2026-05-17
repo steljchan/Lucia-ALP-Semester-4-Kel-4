@@ -25,36 +25,36 @@ export default function StepStatus({ step, onClose }: any) {
 }
 
 const styles = StyleSheet.create({  
-    centerContent: { 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        paddingVertical: 20 
-    },
+  centerContent: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 20 
+  },
 
-    mascotLarge: { 
-        width: 150, 
-        height: 150, 
-        marginBottom: 20 
-    },
+  mascotLarge: { 
+    width: 150, 
+    height: 150, 
+    marginBottom: 20 
+  },
 
-    statusTitle: { 
-        fontSize: 20, 
-        fontWeight: 'bold', 
-        color: COLORS.textMain, 
-    },
+  statusTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: COLORS.textMain, 
+  },
 
-    statusSubtitle: { 
-        fontSize: 14, 
-        color: COLORS.darkGray, 
-        textAlign: 'center' 
-    },
-    
-    checkCircle: { 
-        width: 100, 
-        height: 100, 
-        borderRadius: 50, 
-        backgroundColor: COLORS.primary, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-    },
+  statusSubtitle: { 
+    fontSize: 14, 
+    color: COLORS.darkGray, 
+    textAlign: 'center' 
+  },
+  
+  checkCircle: { 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
+    backgroundColor: COLORS.primary, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
 });

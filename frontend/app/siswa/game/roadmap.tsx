@@ -1,12 +1,7 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Dimensions,
-} from 'react-native';
+import {View, Text, StyleSheet, ScrollView, Dimensions} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
+import {COLORS } from '@/utils/theme';
 
 import Svg, { Path } from 'react-native-svg';
 
@@ -57,7 +52,6 @@ export default function Roadmap(props: RoadmapProps) {
     setTimeout(() => setReady(true), 100);
   }, []);
 
-  // 🔥 Zigzag otomatis (no hardcode)
   const getOffsetX = (index: number) => {
     return Math.sin(index * 0.8) * amplitude;
   };
@@ -72,7 +66,6 @@ export default function Roadmap(props: RoadmapProps) {
     };
   };
 
-  // 🔥 Path smooth (Cubic Bezier)
   const generatePath = () => {
     const points = levels.map((_, i) => getNodePosition(i));
     if (points.length < 2) return '';
@@ -105,18 +98,15 @@ export default function Roadmap(props: RoadmapProps) {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.mapContainer, { height: mapHeight }]}>
-          {/* ROAD */}
           <Svg width="100%" height={mapHeight} style={styles.road}>
-            {/* Main line */}
             <Path
               d={generatePath()}
-              stroke="#5CBEFA"
+              stroke={COLORS.primary}
               strokeWidth="14"
               fill="none"
               strokeLinecap="round"
             />
-
-            {/* Highlight (biar lebih hidup) */}
+            
             <Path
               d={generatePath()}
               stroke="#A7D8FF"
@@ -126,7 +116,6 @@ export default function Roadmap(props: RoadmapProps) {
             />
           </Svg>
 
-          {/* NODES */}
           {ready &&
             levels.map((item, index) => {
               const pos = getNodePosition(index);
@@ -150,7 +139,6 @@ export default function Roadmap(props: RoadmapProps) {
                     }
                   />
 
-                  {/* START FLAG */}
                   {item.id === 1 && (
                     <View style={styles.startMarker}>
                       <Text style={{ fontSize: 20 }}>🚩</Text>
@@ -168,7 +156,7 @@ export default function Roadmap(props: RoadmapProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EAF6FF',
+    backgroundColor: COLORS.background,
   },
 
   scroll: {

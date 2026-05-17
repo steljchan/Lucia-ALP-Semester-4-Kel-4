@@ -1,16 +1,9 @@
-import { View, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, FlatList} from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet } from 'react-native';
-
 import GameCard from '../../../src/components/game/gameCard';
-// import SearchBar from '../../../src/components/common/searchbar';
-
-import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
-import AppHeaderWOsearch from '../../../src/components/common/appheader';
+import { COLORS, containerHeader, scrollContent} from '@/utils/theme';
 import AppHeader from '../../../src/components/common/appheader';
-
 
 export default function GameMenu() {
   const router = useRouter();
@@ -27,7 +20,6 @@ export default function GameMenu() {
       route: '/siswa/game/siapakahaku',
     },
 
-    // dummy games
     {
       title: 'Angka Berapakah Aku?',
       image: { uri: 'https://cdn-icons-png.flaticon.com/512/4341/4341139.png' },
@@ -51,7 +43,7 @@ export default function GameMenu() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
         <AppHeader/>
         <FlatList
@@ -61,16 +53,6 @@ export default function GameMenu() {
           contentContainerStyle={[scrollContent, styles.list]} 
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
-          
-         
-          // ListHeaderComponent={
-          //   <>
-          //     <AppHeader/>
-          //     <View style={{ marginBottom: 10 }}>
-          //        <SearchBar/>
-          //     </View>
-          //   </>
-          // }
 
           renderItem={({ item }) => (
             <GameCard
@@ -81,45 +63,16 @@ export default function GameMenu() {
           )}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#EAF6FF',
+    backgroundColor: COLORS.background,
   },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-
-  logo: {
-    width: 120,
-    height: 45,
-    resizeMode: 'contain',
-  },
-
-  shopBtn: {
-    backgroundColor: '#5CBEFA',
-    width: 42,
-    height: 42,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
+  
   list: {
     paddingTop: 20,
   },

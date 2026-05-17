@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, TouchableOpacity, Modal, StyleSheet} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/utils/theme';
 
@@ -24,7 +18,6 @@ export default function AssignPairModal({
       <View style={styles.overlay}>
         <View style={styles.card}>
 
-          {/* HEADER */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="arrow-back" size={20} color={COLORS.primary} />
@@ -35,7 +28,6 @@ export default function AssignPairModal({
             <View style={{ width: 20 }} />
           </View>
 
-          {/* CLASS */}
           <Text style={styles.label}>Kelas</Text>
           {classOptions.map((c: string) => {
             const active = selectedClass === c;
@@ -50,7 +42,6 @@ export default function AssignPairModal({
             );
           })}
 
-          {/* SUBJECT */}
           <Text style={[styles.label, { marginTop: 10 }]}>Subject</Text>
           {subjectOptions.map((s: string) => {
             const active = selectedSubject === s;
@@ -65,7 +56,6 @@ export default function AssignPairModal({
             );
           })}
 
-          {/* BUTTON */}
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
@@ -85,23 +75,31 @@ export default function AssignPairModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor:  COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   card: {
     width: '85%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 16,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  title: { fontWeight: '700' },
-  label: { marginTop: 10, fontSize: 12, color: '#9CA3AF' },
+  title: {
+    fontWeight: '700' 
+  },
+
+  label: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#9CA3AF'
+  },
 
   item: {
     padding: 12,
@@ -110,10 +108,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
+
   active: {
-    backgroundColor: `${COLORS.primary}20`,
+    backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
+
   activeText: {
     color: COLORS.primary,
     fontWeight: '700',
@@ -126,5 +126,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
-  btnText: { color: '#fff', fontWeight: '700' },
+
+  btnText: {
+    color: COLORS.white,
+    fontWeight: '700'
+  },
 });

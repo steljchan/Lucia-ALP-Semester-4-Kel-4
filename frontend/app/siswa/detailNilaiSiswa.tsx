@@ -6,26 +6,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 
 const QUIZ_DATA = [
-  {
-    title: 'Quiz 1:',
-    desc: 'Mengenal Mata Uang yang terdapat di Indonesia',
-    score: 90,
-  },
-  {
-    title: 'Quiz 2:',
-    desc: 'Mempelajari Perhitungan Mata Uang Indonesia',
-    score: 100,
-  },
-  {
-    title: 'Quiz 3:',
-    desc: 'Mahir dalam Menghitung Mata Uang Indonesia',
-    score: 80,
-  },
-  {
-    title: 'Final Quiz',
-    desc: '',
-    score: 90,
-  },
+  {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90,},
+  {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
+  {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
+  {title: 'Final Quiz', desc: '', score: 90},
 ];
 
 export default function DetailNilaiSiswa() {

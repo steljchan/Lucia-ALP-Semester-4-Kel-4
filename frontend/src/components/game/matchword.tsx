@@ -6,7 +6,6 @@ type Props = {
   word: string;
   onPress: (word: string) => void;
 
-  // 🔥 WAJIB (buat garis)
   setWordPosition: (word: string, pos: { x: number; y: number }) => void;
 
   disabled?: boolean;
@@ -27,7 +26,6 @@ export default function MatchWord({
       disabled={disabled}
       style={styles.wrapper}
     >
-      {/* 🔵 CARD */}
       <View
         style={[
           styles.card,
@@ -39,7 +37,6 @@ export default function MatchWord({
         <Text style={styles.text}>{word}</Text>
       </View>
 
-      {/* 🔴 DOT (ANCHOR LINE) */}
       <View
         style={[
           styles.dot,
@@ -67,7 +64,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* 🔵 CARD */
   card: {
     height: 60,
     width: 120,
@@ -104,8 +100,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1A3B5D',
   },
-
-  /* 🔴 DOT */
+  
   dot: {
     position: 'absolute',
     right: -6,
