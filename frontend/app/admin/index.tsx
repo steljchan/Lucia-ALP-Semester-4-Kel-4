@@ -75,7 +75,6 @@ export default function AdminPanel() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       
-      {/* HEADER TETAP SAMA */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.leftSection}>
@@ -95,7 +94,6 @@ export default function AdminPanel() {
         <SearchBar value={search} onChangeText={setSearch} placeholder="Cari nama atau email..." />
       </View>
 
-      {/* FILTER CHIPS */}
       <View style={styles.filterContainer}>
         {['all', 'guru', 'siswa'].map((item) => (
           <TouchableOpacity
@@ -117,7 +115,7 @@ export default function AdminPanel() {
         ))}
       </View>
 
-      {/* LIST DATA ATAU LOADING */}
+      
       {loading ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
       ) : (
@@ -133,9 +131,13 @@ export default function AdminPanel() {
                 <View style={styles.userInfo}>
                   <Text style={styles.email}>{item.name || 'No Name'}</Text>
                   <Text style={{ fontSize: 12, color: COLORS.textSub }}>{item.email}</Text>
+                  
                   <View style={[styles.roleBadge, { borderColor: getRoleColor(item.role) }]}>
                     <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
-                      {item.role === 'guru' ? 'Guru' : 'Siswa'}
+                      {item.role.toUpperCase()} 
+                      {item.tinkat ? ` • ${item.tinkat}` : ''} 
+                      {item.kelas ? ` • ${item.kelas}` : ''}
+                      {item.mapel ? ` • ${item.mapel}` : ''}
                     </Text>
                   </View>
                 </View>
@@ -154,7 +156,7 @@ export default function AdminPanel() {
         />
       )}
 
-      {/* MODALS */}
+      
       <LogoutModal 
         visible={showLogout} 
         onClose={() => setShowLogout(false)} 
