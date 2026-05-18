@@ -11,28 +11,27 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
   const [loading, setLoading] = useState(true);
   const [selectedTingkat, setSelectedTingkat] = useState('SMP');
   
-  
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
 
-  
   const fetchData = async () => {
     setLoading(true);
     try {
       
-      const qClass = query(collection(db, "class"), where("tingkat", "==", selectedTingkat));
+      const qClass = query(collection(db, "class"), where("tingkat", "==", selectedTingkat.toUpperCase()));
       const classSnap = await getDocs(qClass);
       const classList = classSnap.docs.map(doc => doc.data().kelas);
       setClasses(classList);
       setSelectedClass(classList[0] || '');
 
-     
-      const qSubject = query(collection(db, "subject"), where("tingkat", "==", selectedTingkat));
+      const qSubject = query(collection(db, "subject"), where("tinkat", "==", selectedTingkat.toLowerCase()));
       const subjectSnap = await getDocs(qSubject);
-      const subjectList = subjectSnap.docs.map(doc => doc.data().nama_subject); // sesuaikan nama field di firestore kamu
+      
+    
+      const subjectList = subjectSnap.docs.map(doc => doc.data().name); 
       setSubjects(subjectList);
       setSelectedSubject(subjectList[0] || '');
 

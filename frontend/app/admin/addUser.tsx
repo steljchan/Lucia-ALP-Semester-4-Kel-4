@@ -13,10 +13,13 @@ import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth"
 // firebase
 import { db, firebaseConfig } from "../../src/config/firebase";
 import { collection, getDocs, query, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
+import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function AddUser() {
   const router = useRouter();
-  
+
+  const [pairs, setPairs] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -102,7 +105,7 @@ export default function AddUser() {
         userData.NIK = nik;
         userData.mapel = mapel;
         userData.isWalas = isWalas;
-        userData.pairs = [];
+        userData.pairs = pairs;
       }
 
       await setDoc(doc(db, "users", newUid), userData);
@@ -205,31 +208,40 @@ export default function AddUser() {
               </View>
             )}
 
-            {/* FORM GURU */}
+            
             {role === 'guru' && (
               <View>
                 <Text style={styles.label}>NIK</Text>
                 <TextInput placeholder="Masukkan NIK" value={nik} onChangeText={setNik} keyboardType="numeric" style={styles.input} />
                 
-                <Text style={styles.label}>Mata Pelajaran</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-                  {allSubjects.map((s, i) => (
-                    <TouchableOpacity 
-                      key={i} 
-                      style={[styles.chip, mapel === s.name && styles.chipActive]}
-                      onPress={() => setMapel(s.name)}
-                    >
-                      <Text style={{ color: mapel === s.name ? COLORS.white : COLORS.primary }}>
-                        {s.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-
                 <View style={styles.switchRow}>
                   <Text style={styles.switchText}>Apakah Wali Kelas?</Text>
                   <Switch value={isWalas} onValueChange={setIsWalas} />
                 </View>
+
+                <Text style={styles.label}>Assign Kelas & Subject</Text>
+                {pairs.map((p, i) => (
+                  <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#F3F4F6', borderRadius: 8, marginBottom: 5 }}>
+                    <Text style={{ fontSize: 12 }}>{p.kelas} - {p.subject} ({p.tingkat})</Text>
+                    <TouchableOpacity onPress={() => setPairs(pairs.filter((_, idx) => idx !== i))}>
+                      <Ionicons name="close-circle" size={18} color={COLORS.error} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                
+                <TouchableOpacity 
+                  style={[styles.roleButton, { borderStyle: 'dashed', marginTop: 5 }]} 
+                  onPress={() => setShowModal(true)}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color={COLORS.primary} />
+                  <Text style={styles.roleText}>Tambah Pair</Text>
+                </TouchableOpacity>
+
+                <AssignPairModal
+                  visible={showModal}
+                  onClose={() => setShowModal(false)}
+                  onSubmit={(data: any) => setPairs([...pairs, data])}
+                />
               </View>
             )}
 
