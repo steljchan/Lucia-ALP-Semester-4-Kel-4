@@ -7,7 +7,7 @@ export default function Index() {
   const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
-    if (!rootNavigationState?.key) return; // tunggu router siap
+    if (!rootNavigationState?.key) return;
 
     router.replace('/guru/beranda');
   }, [rootNavigationState]);

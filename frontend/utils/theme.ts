@@ -13,7 +13,8 @@ export const COLORS = {
   error: '#FF383C',
   darkGray: '#939393',
   yellow: '#F8B64C',
-  red: '#FF383C'
+  overlay: 'rgba(0,0,0,0.5)',
+  black: '#000000' 
 };
 
 export const SafeArea ={
@@ -119,7 +120,7 @@ export const BTN = {
   logout: {
     box: {
       flexDirection: 'row' as const,
-      backgroundColor: COLORS.red,
+      backgroundColor: COLORS.error,
       marginTop: 20,
       padding: 15,
       borderRadius: 20,

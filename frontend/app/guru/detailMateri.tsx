@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 
 export default function DetailMateriGuru() {
   const router = useRouter();
@@ -62,18 +62,11 @@ export default function DetailMateriGuru() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Materi</Text>
-          <TouchableOpacity onPress={goToEdit} style={styles.editButton}>
-            <Ionicons name="pencil" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.subtitle}>{title as string}</Text>
-      </LinearGradient>
+      <DetailHeader
+        title="Materi"
+        subtitle={title as string}
+        onEdit={goToEdit}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.infoContainer}>
@@ -113,39 +106,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textMain,
-  },
-  editButton: {
-    padding: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textMain,
-    textAlign: 'center',
-    fontWeight: '500',
-    opacity: 0.8,
-  },
+
   scrollContent: {
     padding: SPACING.md,
     paddingBottom: 40,
   },
+
   infoContainer: {
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.m,
@@ -154,38 +120,45 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.smoothBlue,
   },
+
   infoLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textMain,
     marginBottom: 4,
   },
+
   infoText: {
     fontSize: 14,
     color: COLORS.textSub,
     marginBottom: 12,
     lineHeight: 20,
   },
+
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
   },
+
   infoDetail: {
     fontSize: 13,
     color: COLORS.textMain,
   },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.textMain,
     marginBottom: 12,
   },
+
   filesGrid: {
     flexDirection: 'column',
     gap: 12,
   },
+
   fileCard: {
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.s,
@@ -194,25 +167,30 @@ const styles = StyleSheet.create({
     borderColor: COLORS.smoothBlue,
     marginBottom: 12,
   },
+
   imagePreview: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
   },
+
   pdfPreview: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 150,
   },
+
   pdfText: {
     fontSize: 14,
     color: COLORS.textSub,
     marginTop: 8,
   },
+
   loader: {
     marginVertical: 40,
   },
+
   emptyText: {
     textAlign: 'center',
     color: COLORS.textSub,
