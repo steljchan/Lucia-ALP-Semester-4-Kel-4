@@ -1,5 +1,5 @@
-import { db } from "../config/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import {db} from "../config/firebase";
+import {doc, setDoc} from "firebase/firestore";
 
 export const createUserData = async (user, data) => {
   await setDoc(doc(db, "users", user.uid), {
@@ -11,6 +11,6 @@ export const createUserData = async (user, data) => {
     class_id: data.class_id || null,
     class_name: data.class_name || null,
     xp: 0,
-    hearts: 5
+    hearts: 5,
   });
 };

@@ -1,106 +1,185 @@
 import React, { useState } from 'react';
-import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, Image} from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, KeyboardAvoidingView, Platform, ScrollView, GestureResponderEvent} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import { useRouter } from 'expo-router';
 
+
+
+import { initializeApp, deleteApp } from "firebase/app"; 
+import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
+
+// firebase
+import { db, firebaseConfig } from "../../src/config/firebase"; // sesuaikan path config kamu
+import { collection, addDoc, serverTimestamp, doc, setDoc} from "firebase/firestore";
+
 export default function AddUser() {
   const router = useRouter();
-
+  
+  // State Umum
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'guru' | 'siswa'>('siswa');
   const [password, setPassword] = useState('');
   const [sendEmail, setSendEmail] = useState(true);
 
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let pass = '';
-    for (let i = 0; i < 8; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setPassword(pass);
-  };
+  // State Khusus Siswa
+  const [nis, setNis] = useState('');
+  const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
+  const [kelas, setKelas] = useState('');
 
-  const handleSubmit = () => {
+  // State Khusus Guru
+  const [nik, setNik] = useState('');
+  const [mapel, setMapel] = useState('');
+  const [isWalas, setIsWalas] = useState(false);
+
+  const handleSubmit = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Error', 'Semua field wajib diisi!');
+      Alert.alert('Error', 'Nama, Email, dan Password wajib diisi!');
       return;
     }
 
-    console.log({
-      name,
-      email,
-      role,
-      password,
-      sendEmail,
-    });
+    try {
+      
+      const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+      const secondaryAuth = getAuth(secondaryApp);
 
-    Alert.alert('Success', 'User berhasil ditambahkan!');
+      
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        email,
+        password
+      );
+      const newUid = userCredential.user.uid;
+
+      
+      const userData: any = {
+        uid: newUid,
+        name,
+        email,
+        role,
+        password, 
+        profilePicture: "https://via.placeholder.com/150",
+        createdAt: serverTimestamp(),
+      };
+
+      if (role === 'siswa') {
+        userData.NIS = nis;
+        userData.kelas = kelas;
+        userData.tinkat = tingkat;
+        userData.xp = 0;
+        userData.hearts = 3;
+      } else {
+        userData.NIK = nik;
+        userData.mapel = mapel;
+        userData.isWalas = isWalas;
+      }
+
+      await setDoc(doc(db, "users", newUid), userData);
+      
+      await signOut(secondaryAuth);
+      await deleteApp(secondaryApp);
+
+      Alert.alert('Berhasil!', `User ${name} sudah terdaftar di Auth & Database.`);
+      router.back();
+
+    } catch (error: any) {
+      console.error(error);
+      let msg = "Gagal menambahkan user.";
+      if (error.code === 'auth/email-already-in-use') msg = "Email sudah terdaftar!";
+      Alert.alert('Error', msg);
+    }
   };
+
+  function generatePassword(event: GestureResponderEvent): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <View style={styles.root}>
       <AppHeaderSimple title="Tambah User" />
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Nama Lengkap</Text>
-        <TextInput
-          placeholder="Masukkan nama"
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-        />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={{ flex: 1 }}
+      >
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="Masukkan email"
-          value={email}
-          onChangeText={setEmail}
-          style={styles.input}
-        />
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={{ paddingBottom: 50 }} 
+          keyboardShouldPersistTaps="handled" 
+        >
+          <View style={styles.card}>
+            <Text style={styles.label}>Nama Lengkap</Text>
+            <TextInput placeholder="Masukkan nama" value={name} onChangeText={setName} style={styles.input} />
 
-        <Text style={styles.label}>Role</Text>
-        <View style={styles.roleContainer}>
-          <TouchableOpacity
-            style={[styles.roleButton, role === 'guru' && styles.roleActive]}
-            onPress={() => setRole('guru')}>
-            <Ionicons name="school-outline" size={18} color={role === 'guru' ? COLORS.white : COLORS.primary} />
-            <Text style={[styles.roleText, role === 'guru' && { color: COLORS.white }]}>Guru</Text>
-          </TouchableOpacity>
+            <Text style={styles.label}>Email</Text>
+            <TextInput placeholder="Masukkan email" value={email} onChangeText={setEmail} style={styles.input} />
 
-          <TouchableOpacity
-            style={[styles.roleButton, role === 'siswa' && styles.roleActive]}
-            onPress={() => setRole('siswa')}>
-            <Ionicons name="person-outline" size={18} color={role === 'siswa' ? COLORS.white : COLORS.primary} />
-            <Text style={[styles.roleText, role === 'siswa' && { color: COLORS.white }]}>Siswa</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.label}>Role</Text>
+            <View style={styles.roleContainer}>
+              <TouchableOpacity style={[styles.roleButton, role === 'guru' && styles.roleActive]} onPress={() => setRole('guru')}>
+                <Ionicons name="school-outline" size={18} color={role === 'guru' ? COLORS.white : COLORS.primary} />
+                <Text style={[styles.roleText, role === 'guru' && { color: COLORS.white }]}>Guru</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.roleButton, role === 'siswa' && styles.roleActive]} onPress={() => setRole('siswa')}>
+                <Ionicons name="person-outline" size={18} color={role === 'siswa' ? COLORS.white : COLORS.primary} />
+                <Text style={[styles.roleText, role === 'siswa' && { color: COLORS.white }]}>Siswa</Text>
+              </TouchableOpacity>
+            </View>
 
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.passwordRow}>
-          <TextInput
-            placeholder="Generate password"
-            value={password}
-            editable={false}
-            style={styles.passwordInput}/>
+            {/* FORM DINAMIS SISWA */}
+            {role === 'siswa' && (
+              <View>
+                <Text style={styles.label}>NIS</Text>
+                <TextInput placeholder="Masukkan NIS" value={nis} onChangeText={setNis} keyboardType="numeric" style={styles.input} />
+                
+                <Text style={styles.label}>Tingkat</Text>
+                <View style={styles.roleContainer}>
+                  <TouchableOpacity style={[styles.roleButton, tingkat === 'SMP' && styles.roleActive]} onPress={() => setTingkat('SMP')}>
+                    <Text style={[styles.roleText, tingkat === 'SMP' && { color: COLORS.white }]}>SMP</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.roleButton, tingkat === 'SMA' && styles.roleActive]} onPress={() => setTingkat('SMA')}>
+                    <Text style={[styles.roleText, tingkat === 'SMA' && { color: COLORS.white }]}>SMA</Text>
+                  </TouchableOpacity>
+                </View>
 
-          <TouchableOpacity style={styles.generateButton} onPress={generatePassword}>
-            <Ionicons name="refresh" size={20} color={COLORS.white}/>
-          </TouchableOpacity>
-        </View>
+                <Text style={styles.label}>Kelas</Text>
+                <TextInput placeholder="Contoh: 10A / 9B" value={kelas} onChangeText={setKelas} style={styles.input} />
+              </View>
+            )}
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchText}>Kirim password ke email</Text>
-          <Switch value={sendEmail} onValueChange={setSendEmail}/>
-        </View>
+            {/* FORM DINAMIS GURU */}
+            {role === 'guru' && (
+              <View>
+                <Text style={styles.label}>NIK</Text>
+                <TextInput placeholder="Masukkan NIK" value={nik} onChangeText={setNik} keyboardType="numeric" style={styles.input} />
+                
+                <Text style={styles.label}>Mata Pelajaran</Text>
+                <TextInput placeholder="Contoh: Matematika" value={mapel} onChangeText={setMapel} style={styles.input} />
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitText}>Tambah User</Text>
-        </TouchableOpacity>
+                <View style={styles.switchRow}>
+                  <Text style={styles.switchText}>Apakah Wali Kelas?</Text>
+                  <Switch value={isWalas} onValueChange={setIsWalas} />
+                </View>
+              </View>
+            )}
 
-      </View>
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordRow}>
+              <TextInput placeholder="Password" value={password} onChangeText={setPassword} style={styles.passwordInput} />
+              <TouchableOpacity style={styles.generateButton} onPress={generatePassword}>
+                <Ionicons name="refresh" size={20} color={COLORS.white}/>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+              <Text style={styles.submitText}>Tambah User</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, Modal} from 'react-native';
+import React, { useState, useEffect } from 'react'; 
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
+
+// FIREBASE 
+import { db } from '@/src/config/firebase'; 
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+
 import SearchBar from '../../src/components/common/searchbar';
 import LogoutModal from '@/src/components/common/logout';
 import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
@@ -12,19 +17,35 @@ export default function AdminPanel() {
 
   const [roleFilter, setRoleFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
 
-  const users = [
-    { id: 1, email: 'guru1@mail.com', role: 'guru' },
-    { id: 2, email: 'siswa1@mail.com', role: 'siswa' },
-    { id: 3, email: 'guru2@mail.com', role: 'guru' },
-  ];
+  
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // ambil data firestore
+  useEffect(() => {
+    const q = query(collection(db, "users"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const usersList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(usersList);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // --- LOGIC FILTER ---
   const filteredUsers = users.filter((u) => {
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
-    const matchSearch = u.email.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = (u.email?.toLowerCase().includes(search.toLowerCase())) || 
+                        (u.name?.toLowerCase().includes(search.toLowerCase()));
     return matchRole && matchSearch;
   });
 
@@ -36,21 +57,16 @@ export default function AdminPanel() {
     return role === 'guru' ? COLORS.primary : COLORS.success;
   };
 
+  
   const handleEditUser = (user: any) => {
-    router.push({
-      pathname: '/admin/editUser',
-      params: user,
-    });
+    router.push({ pathname: '/admin/editUser', params: user });
   };
 
   const handleDetailUser = (user: any) => {
-    router.push({
-      pathname: '/admin/detailUser',
-      params: user,
-    });
+    router.push({ pathname: '/admin/detailUser', params: user });
   };
 
-  const handleDeleteUser = (id: number) => {
+  const handleDeleteUser = (id: string) => {
     setSelectedUser(id);
     setShowDeleteModal(true);
   };
@@ -58,50 +74,33 @@ export default function AdminPanel() {
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      
+      {/* HEADER TETAP SAMA */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.leftSection}>
             <Image source={require('@/assets/images/lucia.png')} style={styles.iconImage}/>
           </View>
-
           <View style={styles.centerSection}>
             <Text style={styles.headerTitle}>Admin Panel</Text>
             <Text style={styles.subtitle}>User Management</Text>
           </View>
-
-          <TouchableOpacity
-            style={styles.rightIcon}
-            onPress={() => setShowLogout(true)}>
+          <TouchableOpacity style={styles.rightIcon} onPress={() => setShowLogout(true)}>
             <Ionicons name="log-out-outline" size={22} color={COLORS.error}/>
           </TouchableOpacity>
-
-          <LogoutModal
-            visible={showLogout}
-            onClose={() => setShowLogout(false)}
-            onConfirm={() => {
-              setShowLogout(false);
-              router.replace('/auth/login');
-            }}
-          />
         </View>
       </View>
 
       <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-        <SearchBar
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Cari user..."
-        />
+        <SearchBar value={search} onChangeText={setSearch} placeholder="Cari nama atau email..." />
       </View>
 
+      {/* FILTER CHIPS */}
       <View style={styles.filterContainer}>
         {['all', 'guru', 'siswa'].map((item) => (
           <TouchableOpacity
             key={item}
-            style={[
-              styles.filterChip,
-              roleFilter === item && styles.filterChipActive,
-            ]}
+            style={[styles.filterChip, roleFilter === item && styles.filterChipActive]}
             onPress={() => setRoleFilter(item)}
           >
             {item !== 'all' && (
@@ -109,76 +108,64 @@ export default function AdminPanel() {
                 name={item === 'guru' ? 'school-outline' : 'person-outline'}
                 size={16}
                 color={roleFilter === item ? COLORS.white : COLORS.textSub}
-                style={styles.filterIcon}
               />
             )}
-            <Text
-              style={[
-                styles.filterText,
-                roleFilter === item && styles.filterTextActive,
-              ]}
-            >
+            <Text style={[styles.filterText, roleFilter === item && styles.filterTextActive]}>
               {item === 'all' ? 'Semua' : item === 'guru' ? 'Guru' : 'Siswa'}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <FlatList
-        data={filteredUsers}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => handleDetailUser(item)}>
-            <View style={styles.cardLeft}>
-              <View
-                style={[
-                  styles.avatarContainer,
-                  { backgroundColor: `${getRoleColor(item.role)}20` },
-                ]}
-              >
-                <Ionicons
-                  name={getRoleIcon(item.role)}
-                  size={28}
-                  color={getRoleColor(item.role)}
-                />
-              </View>
-
-              <View style={styles.userInfo}>
-                <Text style={styles.email}>{item.email}</Text>
-                <View style={styles.roleBadge}>
-                  <Text
-                    style={[
-                      styles.roleText,
-                      { color: getRoleColor(item.role) },
-                    ]}
-                  >
-                    {item.role === 'guru' ? 'Guru' : 'Siswa'}
-                  </Text>
+      {/* LIST DATA ATAU LOADING */}
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
+      ) : (
+        <FlatList
+          data={filteredUsers}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.card} onPress={() => handleDetailUser(item)}>
+              <View style={styles.cardLeft}>
+                <View style={[styles.avatarContainer, { backgroundColor: `${getRoleColor(item.role)}20` }]}>
+                  <Ionicons name={getRoleIcon(item.role)} size={28} color={getRoleColor(item.role)} />
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.email}>{item.name || 'No Name'}</Text>
+                  <Text style={{ fontSize: 12, color: COLORS.textSub }}>{item.email}</Text>
+                  <View style={[styles.roleBadge, { borderColor: getRoleColor(item.role) }]}>
+                    <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
+                      {item.role === 'guru' ? 'Guru' : 'Siswa'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
+              <View style={styles.cardActions}>
+                <TouchableOpacity onPress={() => handleEditUser(item)}>
+                  <Ionicons name="create-outline" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteUser(item.id)}>
+                  <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
 
-            <View style={styles.cardActions}>
-              <TouchableOpacity onPress={() => handleEditUser(item)}>
-                <Ionicons name="create-outline" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => handleDeleteUser(item.id)}>
-                <Ionicons name="trash-outline" size={20} color={COLORS.red} />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.listContent}
+      {/* MODALS */}
+      <LogoutModal 
+        visible={showLogout} 
+        onClose={() => setShowLogout(false)} 
+        onConfirm={() => router.replace('/auth/login')} 
       />
-
+      
       <DeleteUserModal
         visible={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => {
-          console.log('Deleted user', selectedUser);
+          console.log('Hapus ID:', selectedUser);
           setShowDeleteModal(false);
         }}
       />
@@ -223,7 +210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: BORDER_RADIUS.s,
-    borderColor: COLORS.red,
+    borderColor: COLORS.error,
     borderWidth: 1,
   },
 

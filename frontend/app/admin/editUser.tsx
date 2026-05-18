@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, BORDER_RADIUS} from '@/utils/theme';
@@ -6,150 +6,178 @@ import { Ionicons } from '@expo/vector-icons';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
+//firebase
+import { db } from '@/src/config/firebase'; 
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { Alert, ActivityIndicator } from 'react-native';
+
 export default function EditUser() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const role = params.role as string;
+  // ID Dokumen untuk edit
+  const userId = params.id as string; 
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [name, setName] = useState(params.name as string || 'Nama User');
+ 
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [nis, setNis] = useState('');
+  const [nik, setNik] = useState(''); // Tambahkan NIK untuk guru
+  const [kelas, setKelas] = useState('');
+  const [waliKelas, setWaliKelas] = useState('None');
+  const [pairs, setPairs] = useState<any[]>([]);
+
   const [editingName, setEditingName] = useState(false);
-
-  const [nis, setNis] = useState(params.nis as string || '');
-  const [kelas, setKelas] = useState('10A');
   const [showClass, setShowClass] = useState(false);
+  const [showWali, setShowWali] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const classOptions = ['10A', '10B', '11A'];
   const subjectOptions = ['Matematika', 'Fisika', 'Kimia'];
 
-  const [waliKelas, setWaliKelas] = useState('None');
-  const [showWali, setShowWali] = useState(false);
+  // 1. Fetch data terbaru dari Firestore saat halaman dibuka
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const docRef = doc(db, "users", userId);
+        const docSnap = await getDoc(docRef);
 
-  const [pairs, setPairs] = useState([
-    { kelas: '10A', subject: 'Matematika' },
-  ]);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setName(data.name || '');
+          setRole(data.role || '');
+          setNis(data.NIS || '');
+          setNik(data.NIK || '');
+          setKelas(data.kelas || '');
+          setWaliKelas(data.waliKelas || 'None');
+          setPairs(data.pairs || []);
+        } else {
+          Alert.alert("Error", "User tidak ditemukan");
+          router.back();
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Error", "Gagal mengambil data terbaru");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const [showModal, setShowModal] = useState(false);
+    fetchUserData();
+  }, [userId]);
 
-  const handleSave = () => {
-    console.log({
-      name,
-      nis,
-      kelas,
-      waliKelas,
-      pairs,
-    });
-    router.back();
+  
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const userRef = doc(db, "users", userId);
+      
+      const updatedData: any = {
+        name,
+        updatedAt: new Date(),
+      };
+
+      if (role === 'siswa') {
+        updatedData.NIS = nis;
+        updatedData.kelas = kelas;
+      } else if (role === 'guru') {
+        updatedData.NIK = nik;
+        updatedData.waliKelas = waliKelas;
+        updatedData.pairs = pairs;
+      }
+
+      await updateDoc(userRef, updatedData);
+      
+      Alert.alert("Berhasil", "Data user telah diperbarui", [
+        { text: "OK", onPress: () => router.back() }
+      ]);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Gagal memperbarui data");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.root, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
-
-       <AppHeaderSimple title="Edit User" />
+        <AppHeaderSimple title="Edit User" />
 
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
-
           {!editingName ? (
             <TouchableOpacity onPress={() => setEditingName(true)}>
               <Row label="Nama" value={name} icon="create-outline" />
             </TouchableOpacity>
           ) : (
-            <EditableRow label="Nama" value={name} onChange={setName} />
+            <EditableRow label="Nama" value={name} onChange={setName} onBlur={() => setEditingName(false)} />
           )}
-
-          <Row label="Role" value={role} />
+          <Row label="Role" value={role.toUpperCase()} />
+          <Row label="Email" value={params.email} />
         </View>
 
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-
             <EditableRow label="NIS" value={nis} onChange={setNis} />
-
             <TouchableOpacity onPress={() => setShowClass(!showClass)}>
-              <Row
-                label="Kelas"
-                value={kelas}
-                icon={showClass ? 'chevron-up' : 'chevron-down'}/>
+              <Row label="Kelas" value={kelas || 'Pilih Kelas'} icon={showClass ? 'chevron-up' : 'chevron-down'}/>
             </TouchableOpacity>
-
-            {showClass &&
-              classOptions.map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  onPress={() => {
-                    setKelas(c);
-                    setShowClass(false);
-                  }}>
-                  <Text style={styles.dropdownItem}>{c}</Text>
-                </TouchableOpacity>
-              ))}
+            {showClass && classOptions.map((c) => (
+              <TouchableOpacity key={c} onPress={() => { setKelas(c); setShowClass(false); }}>
+                <Text style={styles.dropdownItem}>{c}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
         {role === 'guru' && (
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
-
+            <EditableRow label="NIK" value={nik} onChange={setNik} />
             <TouchableOpacity onPress={() => setShowWali(!showWali)}>
-              <Row
-                label="Wali Kelas"
-                value={waliKelas}
-                icon={showWali ? 'chevron-up' : 'chevron-down'}
-              />
+              <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
             </TouchableOpacity>
-
-            {showWali &&
-              ['None', ...classOptions].map((c) => (
-                <TouchableOpacity
-                  key={c}
-                  onPress={() => {
-                    setWaliKelas(c);
-                    setShowWali(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItem}>{c}</Text>
-                </TouchableOpacity>
-              ))}
+            {showWali && ['None', ...classOptions].map((c) => (
+              <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
+                <Text style={styles.dropdownItem}>{c}</Text>
+              </TouchableOpacity>
+            ))}
 
             <Text style={styles.subTitle}>Kelas & Subject</Text>
-
             {pairs.map((p, i) => (
               <View key={i} style={styles.pairCard}>
-                <Text style={styles.pairText}>
-                  {p.kelas} - {p.subject}
-                </Text>
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setPairs(pairs.filter((_, index) => index !== i))
-                  }
-                >
+                <Text style={styles.pairText}>{p.kelas} - {p.subject}</Text>
+                <TouchableOpacity onPress={() => setPairs(pairs.filter((_, index) => index !== i))}>
                   <Ionicons name="close-circle" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               </View>
             ))}
-
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowModal(true)}
-            >
-              <Ionicons
-                name="add-circle-outline"
-                size={20}
-                color={COLORS.primary}
-              />
-
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
+              <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
               <Text style={styles.addText}>Tambah Pair</Text>
             </TouchableOpacity>
-
           </View>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>Simpan</Text>
+        <TouchableOpacity 
+          style={[styles.button, saving && { opacity: 0.7 }]} 
+          onPress={handleSave}
+          disabled={saving}
+        >
+          <Text style={styles.buttonText}>{saving ? "Menyimpan..." : "Simpan Perubahan"}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -158,9 +186,7 @@ export default function EditUser() {
         onClose={() => setShowModal(false)}
         classOptions={classOptions}
         subjectOptions={subjectOptions}
-        onSubmit={(data: any) => {
-          setPairs([...pairs, data]);
-        }}
+        onSubmit={(data: any) => setPairs([...pairs, data])}
       />
     </View>
   );
