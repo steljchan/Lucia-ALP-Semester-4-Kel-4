@@ -6,13 +6,11 @@ import { COLORS, TEXT, subtitle, PROFILE, BTN, scrollContent } from '@/utils/the
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import LogoutModal from '@/src/components/common/logout';
 import { useRouter } from 'expo-router';
-import FilterChips from '@/src/components/common/guru/filter';
+import FilterChips from '@/src/components/dashboard/guru/filter';
 
-// FIREBASE IMPORTS
 import { auth, db } from "../../../src/config/firebase";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-// Data materi dengan tambahan id, subject, dan file contoh
 
 const MATERI = [
   {
@@ -58,7 +56,6 @@ export default function ProfilGuru() {
   const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
   const router = useRouter();
 
-  //ambil data guru
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
@@ -73,7 +70,6 @@ export default function ProfilGuru() {
     }
   }, []);
 
-  // upload foto profil
   const handleUpload = async (uri: string) => {
     const user = auth.currentUser;
     if (!user) return;
@@ -113,7 +109,6 @@ export default function ProfilGuru() {
     }
   };
 
-  // Filter materi berdasarkan mata pelajaran
   const filteredMateri = MATERI.filter(item => 
     selectedSubject === 'Semua' ? true : item.subject === selectedSubject
   );
@@ -132,14 +127,13 @@ export default function ProfilGuru() {
     });
   };
 
-  const filterOptions = ['Semua', 'Matematika', 'Bahasa Inggris'];
+  const filterOptions = ['Semua', 'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'IPA', 'IPS'];
 
   return (
     <View style={styles.container}>
       <AppHeader />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
         
-        {/* Foto profil dan data guru */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrapper}>
             <Image source={image ? { uri: image } : require('../../../assets/images/miniong.jpeg')} style={PROFILE.avatar} />
@@ -148,10 +142,8 @@ export default function ProfilGuru() {
             </TouchableOpacity>
           </View>
           
-          {/* Ambil Nama dari Firestore */}
           <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat Nama..."}</Text>
           
-          {/* Tambahan NIK & Badge Wali Kelas sesuai Class Diagram */}
           <Text style={{ color: COLORS.textSub, fontSize: 14 }}>NIK: {userData?.NIK || "-"}</Text>
           
           {userData?.isHomeroom && (
@@ -166,7 +158,7 @@ export default function ProfilGuru() {
         </View>
 
         <TouchableOpacity style={BTN.logout.box} onPress={() => setShowLogout(true)}>
-          <Ionicons name="log-out-outline" size={20} color="white" />
+          <Ionicons name="log-out-outline" size={20} color="white"/>
           <Text style={BTN.logout.text}>Log Out</Text>
         </TouchableOpacity>
 
@@ -227,45 +219,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   profileHeader: {
     alignItems: 'center',
     marginTop: -40,
   },
+
   avatarWrapper: {
     position: 'relative',
     alignItems: 'center',
   },
+
   reportDivider: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 25,
   },
+
   line: {
     flex: 1,
     height: 1,
     backgroundColor: COLORS.secondary,
   },
+
   reportTitle: {
     marginHorizontal: 15,
     fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.primary,
   },
+
   materiList: {
     marginTop: 8,
     gap: 16,
   },
+
   materiCard: {
     backgroundColor: COLORS.white,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
     position: 'relative',
   },
+
   cardLeftAccent: {
     position: 'absolute',
     left: 0,
@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
   },
+
   materiRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,50 +284,58 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     paddingLeft: 16,
   },
+
   iconWrapper: {
     width: 50,
     height: 50,
     borderRadius: 12,
-    backgroundColor: '#F0F9FF',
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
   },
+
   materiImage: {
     width: 32,
     height: 32,
     tintColor: COLORS.primary,
   },
+
   materiContent: {
     flex: 1,
     justifyContent: 'center',
   },
+
   materiTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.textMain,
     marginBottom: 2,
   },
+
   materiSubtitle: {
     fontSize: 13,
     color: COLORS.textSub,
     lineHeight: 18,
   },
+
   materiSubject: {
     fontSize: 11,
     color: COLORS.primary,
     marginTop: 4,
     fontWeight: '500',
   },
+
   dateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#F5F5F5',
+    backgroundColor:  COLORS.smoothBlue,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
   },
+
   materiDate: {
     fontSize: 11,
     color: COLORS.primary,

@@ -1,46 +1,61 @@
 import React from 'react';
-import {
-  ScrollView,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-} from 'react-native';
+import {ScrollView, TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle} from 'react-native';
 
-import { COLORS } from '@/utils/theme';
+import { COLORS, subtitle } from '@/utils/theme';
 
-type FilterChipsProps = {
+interface FilterChipsProps {
   data: string[];
   selected: string;
   onSelect: (value: string) => void;
-};
+
+  containerStyle?: ViewStyle;
+  chipStyle?: ViewStyle;
+  activeChipStyle?: ViewStyle;
+
+  textStyle?: TextStyle;
+  activeTextStyle?: TextStyle;
+}
 
 export default function FilterChips({
   data,
   selected,
   onSelect,
+  containerStyle,
+  chipStyle,
+  activeChipStyle,
+  textStyle,
+  activeTextStyle,
 }: FilterChipsProps) {
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[
+        styles.container,
+        containerStyle,
+      ]}
     >
-      {data.map((item, index) => {
+      {data.map((item) => {
         const active = selected === item;
 
         return (
           <TouchableOpacity
-            key={index}
+            key={item}
             onPress={() => onSelect(item)}
             style={[
-              styles.filterBtn,
-              active && styles.filterActive,
+              styles.chip,
+              chipStyle,
+              active && styles.activeChip,
+              active && activeChipStyle,
             ]}
           >
             <Text
               style={[
-                styles.filterText,
+                subtitle,
+                styles.text,
+                textStyle,
                 active && styles.activeText,
+                active && activeTextStyle,
               ]}
             >
               {item}
@@ -54,26 +69,26 @@ export default function FilterChips({
 
 const styles = StyleSheet.create({
   container: {
+    paddingVertical: 10,
     paddingRight: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
 
-  filterBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 18,
     borderRadius: 20,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.primary,
     marginRight: 10,
   },
 
-  filterActive: {
+  activeChip: {
     backgroundColor: COLORS.primary,
   },
 
-  filterText: {
+  text: {
     color: COLORS.primary,
-    fontWeight: 'bold',
   },
 
   activeText: {

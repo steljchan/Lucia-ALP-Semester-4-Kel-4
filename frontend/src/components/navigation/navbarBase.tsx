@@ -5,10 +5,8 @@ import Svg, { Path } from 'react-native-svg';
 import { COLORS } from '@/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-// const TAB_WIDTH = SCREEN_WIDTH /4;
 
 export default function NavbarBase({ state, navigation, menuItems }: any) {
-//   const translateX = useRef(new Animated.Value(0)).current;
   const TAB_WIDTH = SCREEN_WIDTH / Math.max(menuItems.length, 1);
   const animatedX = useRef(new Animated.Value(0)).current;
 
@@ -23,7 +21,6 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
     }).start();
     }, [state.index]);
     
-  // buat navbar dengan gelombang yang bergerak mengikuti tab yang aktif
   const activeIndex = state.index;
     const [centerX, setCenterX] = React.useState(0);
 
@@ -52,16 +49,12 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
 
   return (
     <View style={styles.container}>
-      
         <View style={StyleSheet.absoluteFill}>
-           
-                <Svg width={SCREEN_WIDTH} height={150}>
-                    <Path d={d} fill={COLORS.secondary} />
-                </Svg>
-           
+          <Svg width={SCREEN_WIDTH} height={150}>
+              <Path d={d} fill={COLORS.secondary} />
+          </Svg>
         </View>
 
-      {/* Konten Menu */}
       <View style={styles.content}>
         {menuItems.map((route: any, index: number) => {
           const isFocused = state.index === index;
@@ -76,7 +69,7 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
               style={styles.tabItem}
               activeOpacity={1}
             >
-              {/* Ikon Container */}
+
               <View style={[
                 styles.iconContainer, 
                 isFocused && styles.iconActive
@@ -89,13 +82,11 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
                 />
               </View>
 
-              {/* Teks Label */}
               <View style={[styles.infoContainer, { marginTop: isFocused ? 10 : -5}]}>
                 <Text style={[styles.label, { color: COLORS.white, opacity: isFocused ? 1 : 0.7 }]}>
                   {route.label}
                 </Text>
               </View>
-              
             </TouchableOpacity>
           );
         })}
@@ -105,64 +96,62 @@ export default function NavbarBase({ state, navigation, menuItems }: any) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        position: 'absolute',
-        bottom: 0,
-        width: SCREEN_WIDTH,
-        height: 150,
-        backgroundColor: 'transparent',
-    },
+  container: {
+    position: 'absolute',
+    bottom: 0,
+    width: SCREEN_WIDTH,
+    height: 150,
+    backgroundColor: 'transparent',
+  },
 
-    blueFiller: {
-        position: 'absolute',
-        top: 30,
-        left: 0,
-        right: 0,
-        height: 150,
-        backgroundColor: COLORS.secondary,
-    },
+  blueFiller: {
+    position: 'absolute',
+    top: 30,
+    left: 0,
+    right: 0,
+    height: 150,
+    backgroundColor: COLORS.secondary,
+  },
 
-    waveWrapper: {
-        zIndex: 1,
-    },
-    
-    content: {
-        flexDirection: 'row',
-        height: '100%',
-        zIndex: 10,
-    },
+  waveWrapper: {
+    zIndex: 1,
+  },
+  
+  content: {
+    flexDirection: 'row',
+    height: '100%',
+    zIndex: 10,
+  },
 
-    tabItem: {
-        flex: 1,
-        alignItems: 'center',
-      
-    },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
 
-    iconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 35,
-        zIndex: 20,
-    },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 35,
+    zIndex: 20,
+  },
 
-    iconActive: {
-        backgroundColor: COLORS.secondary,
-        marginTop: -10,
-        borderRadius: 25,
-        borderWidth: 4,
-        borderColor: COLORS.background,
-        // elevation: 4,
-    },
+  iconActive: {
+    backgroundColor: COLORS.secondary,
+    marginTop: -10,
+    borderRadius: 25,
+    borderWidth: 4,
+    borderColor: COLORS.background,
+  },
 
-    infoContainer: {
-        alignItems: 'center',
-    },
+  infoContainer: {
+    alignItems: 'center',
+  },
 
-    label: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
+  label: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });

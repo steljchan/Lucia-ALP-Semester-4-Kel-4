@@ -39,7 +39,6 @@ export default function LevelNode({
     >
       <Text style={styles.level}>{level}</Text>
 
-      {/* ⭐ STARS INSIDE */}
       {renderStars()}
     </TouchableOpacity>
   );
@@ -79,6 +78,6 @@ const styles = StyleSheet.create({
   },
 
   starIcon: {
-    marginHorizontal: 1, // 🔥 spacing antar star
+    marginHorizontal: 1, 
   },
 });

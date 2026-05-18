@@ -1,17 +1,13 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {COLORS} from '@/utils/theme';
 
 export default function GameCard({ title, image, onPress }: any) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      
-      {/* IMAGE */}
       <Image source={image} style={styles.image} />
-
-      {/* TITLE AREA */}
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{title}</Text>
       </View>
-
     </TouchableOpacity>
   );
 }
@@ -21,14 +17,14 @@ const styles = StyleSheet.create({
     width: '48%',
     height: 230, 
 
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     borderRadius: 22,
     overflow: 'hidden',
 
     marginBottom: 16,
 
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
@@ -42,17 +38,15 @@ const styles = StyleSheet.create({
 
   titleContainer: {
     height: 40, 
-    
-    justifyContent: 'center', // vertical center
-    alignItems: 'center',     // horizontal center
-
+    justifyContent: 'center', 
+    alignItems: 'center',   
     paddingHorizontal: 10,
   },
 
   title: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1A3B5D',
+    color: COLORS.textMain,
     textAlign: 'center',
   },
 });

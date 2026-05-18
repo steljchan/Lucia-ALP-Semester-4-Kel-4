@@ -11,7 +11,6 @@ type Props = {
   item: Item;
   onPress: (word: string) => void;
 
-  // 🔥 WAJIB untuk garis
   setImagePosition: (word: string, pos: { x: number; y: number }) => void;
 
   disabled?: boolean;
@@ -32,7 +31,6 @@ export default function MatchImage({
       disabled={disabled}
       style={styles.wrapper}
     >
-      {/* 🔴 DOT (ANCHOR LINE) */}
       <View
         style={[
           styles.dot,
@@ -50,7 +48,6 @@ export default function MatchImage({
         }}
               />
 
-      {/* 🔵 CARD */}
       <View
         style={[
           styles.card,
@@ -72,10 +69,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* 🔴 DOT */
   dot: {
     position: 'absolute',
-    left: 17, // keluar ke kiri dari card
+    left: 17,
     top: '50%',
     marginTop: -6,
     width: 12,
@@ -97,7 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF4D4F',
   },
 
-  /* 🔵 CARD */
   card: {
     width: 70,
     height: 70,

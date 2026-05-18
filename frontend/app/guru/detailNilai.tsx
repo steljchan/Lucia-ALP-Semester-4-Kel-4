@@ -1,43 +1,18 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ScrollView
-} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { COLORS } from '@/utils/theme';
-import { Ionicons } from '@expo/vector-icons';
+import { BORDER_RADIUS, COLORS } from '@/utils/theme';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 
 const QUIZ = [
-  {
-    title: 'Quiz 1:',
-    desc: 'Mengenal Mata Uang yang terdapat di Indonesia',
-    score: 90,
-  },
-  {
-    title: 'Quiz 2:',
-    desc: 'Mempelajari Perhitungan Mata Uang Indonesia',
-    score: 100,
-  },
-  {
-    title: 'Quiz 3:',
-    desc: 'Mahir dalam Menghitung Mata Uang Indonesia',
-    score: 80,
-  },
-  {
-    title: 'Final Quiz',
-    desc: '',
-    score: 90,
-  },
+  {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90},
+  {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
+  {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
+  {title: 'Final Quiz', desc: '', score: 90},
 ];
 
 export default function DetailNilai() {
-  const router = useRouter();
   const params = useLocalSearchParams();
-
   const name = params.name || 'Nama Siswa';
   const nis = params.nis || '000000';
   const score = params.score || 0;
@@ -47,19 +22,11 @@ export default function DetailNilai() {
     <View style={styles.container}>
       
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
-        
-        {/* HEADER */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.textMain} />
-          </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Detail Nilai</Text>
+        <DetailHeader
+          title="Detail Nilai"
+        />
 
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* PROFILE */}
         <View style={styles.profile}>
           <Image
             source={require('@/assets/images/maskotMTK.png')}
@@ -74,34 +41,26 @@ export default function DetailNilai() {
           <Text style={styles.nis}>{nis}</Text>
 
           <View style={styles.emailBadge}>
-            <Text style={styles.emailText}>
-              {name}@student.SLBN1.ac.id
-            </Text>
+            <Text style={styles.emailText}>{name}@student.SLBN1.ac.id</Text>
           </View>
         </View>
 
-        {/* CARD NILAI */}
         <View style={styles.card}>
           
-          {/* Topic */}
           <View style={styles.topicRow}>
             <View>
               <Text style={styles.topicTitle}>{mapel}</Text>
-              <Text style={styles.topicDesc}>
-                Cara menghitung mata uang
-              </Text>
+              <Text style={styles.topicDesc}>Cara menghitung mata uang</Text>
             </View>
 
             <View style={styles.scoreRight}>
               <Text style={styles.score}>{score}</Text>
-              <View style={styles.bar} />
+              <View style={styles.bar}/>
             </View>
           </View>
 
-          {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Quiz List */}
           {QUIZ.map((q, i) => (
             <View key={i} style={styles.quizItem}>
               <View style={{ flex: 1 }}>
@@ -111,39 +70,20 @@ export default function DetailNilai() {
 
               <View style={styles.scoreRight}>
                 <Text style={styles.score}>{q.score}</Text>
-                <View style={styles.bar} />
+                <View style={styles.bar}/>
               </View>
             </View>
           ))}
-
         </View>
-
       </ScrollView>
     </View>
   );
 }
 
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    marginBottom: 20,
-  },
-
-  headerTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    color: COLORS.textMain,
   },
 
   profile: {
@@ -154,7 +94,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 100,
     borderWidth: 2,
     borderColor: COLORS.primary,
   },
@@ -187,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.smoothBlue,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.l,
     marginTop: 6,
   },
 
@@ -199,7 +139,7 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
     backgroundColor: COLORS.white,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.m,
     padding: 16,
     borderWidth: 1,
     borderColor: COLORS.secondary,
@@ -249,7 +189,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 5,
     backgroundColor: COLORS.primary,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.l,
     marginTop: 4,
   },
 

@@ -1,6 +1,7 @@
 import {View, Text, TouchableOpacity, StyleSheet, Image, Animated, Modal} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
+import {COLORS} from '@/utils/theme';
 
 import { siapakahAkuLevels } from '../../../../../src/data/siapakahaku';
 import useSiapakahAku from '../../../../../src/hooks/usesiapakahaku';
@@ -21,7 +22,7 @@ export default function GamePlay() {
     usedIndexes,
     select,
     remove,
-    removeLast, // 🔥 FIX
+    removeLast,
     reset,
     check,
     isFull,
@@ -30,7 +31,6 @@ export default function GamePlay() {
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  /* 🔥 IMAGE MAP (TIDAK DIUBAH) */
   const imageMap: any = {
     koala: require('../../../../../assets/images/koala.jpeg'),
     sapi: require('../../../../../assets/images/sapi.jpeg'),
@@ -49,7 +49,6 @@ export default function GamePlay() {
     singa: require('../../../../../assets/images/singa.jpeg'),
   };
 
-  /* 🔥 OPTIONS: JAWABAN + 3 RANDOM */
   const options = useMemo(() => {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     const answerLetters = level.answer.split('');
@@ -65,8 +64,6 @@ export default function GamePlay() {
   const topRow = options.length > 6 ? options.slice(0, 4) : options;
   const bottomRow = options.length > 6 ? options.slice(4) : [];
 
-  /* 🔥 ANIMASI */
-  /* 🔥 ANIMASI */
   const playAnimation = (correct: boolean) => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -81,8 +78,6 @@ export default function GamePlay() {
       }),
     ]).start();
 
-    // ❌ JANGAN ADA router.replace DI SINI
-    // karena sudah ditangani ResultModal
     if (!correct) {
       setTimeout(() => {
         reset();
@@ -146,11 +141,8 @@ export default function GamePlay() {
       <GameHeader title="Siapakah Aku" level={level.id} hearts={3} />
 
       <Text style={styles.title}>Siapakah Aku?</Text>
-
-      {/* IMAGE */}
       <Image source={imageMap[level.image]} style={styles.image} />
 
-      {/* ANSWER */}
       <Animated.View
         style={[
           styles.answerRow,
@@ -167,13 +159,11 @@ export default function GamePlay() {
         ))}
       </Animated.View>
 
-      {/* OPTIONS (AUTO 2 BARIS) */}
       <View style={styles.optionsContainer}>
 
-        {/* 🔝 BARIS ATAS */}
         <View style={styles.row}>
           {topRow.map((l, i) => {
-            const index = i; // 🔥 penting untuk usedIndexes
+            const index = i;
 
             const isUsed = usedIndexes.includes(index);
 
@@ -193,11 +183,10 @@ export default function GamePlay() {
           })}
         </View>
 
-        {/* 🔽 BARIS BAWAH */}
         {bottomRow.length > 0 && (
           <View style={styles.row}>
             {bottomRow.map((l, i) => {
-              const index = i + 4; // 🔥 offset dari baris atas
+              const index = i + 4; 
 
               const isUsed = usedIndexes.includes(index);
 
@@ -220,10 +209,8 @@ export default function GamePlay() {
 
       </View>
 
-      {/* ACTION */}
       <View style={styles.actionRow}>
 
-        {/* 💡 HINT */}
         <TouchableOpacity 
           style={styles.hintBtn}
           onPress={() => setShowHint(true)}
@@ -231,7 +218,6 @@ export default function GamePlay() {
           <Text style={styles.hintIcon}>💡</Text>
         </TouchableOpacity>
 
-        {/* 🧹 DELETE */}
         <TouchableOpacity
           style={styles.deleteBtn}
           onPress={removeLast}
@@ -239,7 +225,6 @@ export default function GamePlay() {
           <Text style={styles.deleteText}>⌫</Text>
         </TouchableOpacity>
 
-        {/* ✅ SUBMIT */}
         <TouchableOpacity
           style={[
             styles.submit,
@@ -313,7 +298,7 @@ export default function GamePlay() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EAF6FF',
+    backgroundColor: COLORS.background,
   },
 
   title: {
@@ -321,7 +306,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     marginTop: 60,
-    color: '#1A3B5D',
+    color: COLORS.textMain,
   },
 
   image: {
@@ -352,26 +337,26 @@ const styles = StyleSheet.create({
   optionBtn: {
     width: 55,
     height: 55,
-    backgroundColor: '#ADDFFD',
+    backgroundColor: COLORS.smoothBlue,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   optionDisabled: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: COLORS.gray,
   },
 
   optionText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A3B5D',
+    color: COLORS.textMain,
   },
 
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 25,
+    marginTop: 4,
     paddingHorizontal: 20,
     gap: 10,
   },
@@ -380,41 +365,41 @@ const styles = StyleSheet.create({
     width: 55,
     height: 55,
     borderRadius: 28,
-    backgroundColor: '#FFD700',
+    backgroundColor: COLORS.yellow,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   hintIcon: {
     fontSize: 22,
-    color: '#fff',
+    color: COLORS.white,
   },
 
   deleteBtn: {
     width: 55,
     height: 55,
     borderRadius: 28,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: COLORS.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   deleteText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 20,
     fontWeight: 'bold',
   },
 
   submit: {
     flex: 1,
-    backgroundColor: '#5CBEFA',
+    backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 24,
     alignItems: 'center',
   },
 
   submitText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
     fontSize: 16,
   },

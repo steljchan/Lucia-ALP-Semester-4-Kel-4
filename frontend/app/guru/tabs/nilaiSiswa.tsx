@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView,
-  TouchableOpacity, Image
-} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, ScrollView,TouchableOpacity, Image} from 'react-native';
 import AppHeader from '../../../src/components/common/guru/appheaderGradient';
-import { COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
-import FilterChips from '@/src/components/common/guru/filter';
+import {BORDER_RADIUS, COLORS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
+import FilterChips from '@/src/components/dashboard/guru/filter';
 
 const DATA = [
-  { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', },
-  { name: 'Lily Hartanto', nis: '230101', score: 80, mapel: 'Bahasa Inggris' },
-  { name: 'Ricky bambang', nis: '230101', score: 100, mapel: 'IPA' },
-  { name: 'Arsya Aulia', nis: '230101', score: 90, mapel: 'Matematika' },
-  { name: 'Budi Budiman', nis: '230101', score: 70, mapel: 'Matematika' },
+  { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar1.jpeg')},
+  { name: 'Lily Hartanto', nis: '230101', score: 80, mapel: 'Bahasa Inggris', image: require('@/assets/images/avatar2.jpeg')},
+  { name: 'Ricky bambang', nis: '230101', score: 100, mapel: 'IPA', image: require('@/assets/images/avatar3.jpeg')},
+  { name: 'Arsya Aulia', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar4.jpeg')},
+  { name: 'Budi Budiman', nis: '230101', score: 70, mapel: 'Matematika', image: require('@/assets/images/avatar5.jpeg')},
 ];
 
 export default function NilaiSiswa() {
@@ -60,18 +57,15 @@ export default function NilaiSiswa() {
           )}
         </View>
 
-        {/* FILTER (SCROLL HORIZONTAL) */}
         <FilterChips
-          data={['Semua', 'Matematika', 'Bahasa Inggris', 'IPA']}
+          data={['Semua', 'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'IPA', 'IPS']}
           selected={selectedMapel}
           onSelect={setSelectedMapel}
         />
 
-        {/* TITLE + CLASS */}
         <View style={styles.titleRow}>
           <Text style={styles.title}>Nama Siswa</Text>
 
-          {/* CLASS BUTTON + DROPDOWN */}
           <View style={{ position: 'relative' }}>
           <TouchableOpacity
             style={styles.classBtn}
@@ -98,12 +92,10 @@ export default function NilaiSiswa() {
                 </TouchableOpacity>
               ))}
             </View>
-
           )}
-        </View>
+          </View>
         </View>
 
-        {/* LIST SISWA */}
         {filteredData.map((item, index) => (
           <TouchableOpacity
             key={index}
@@ -121,7 +113,7 @@ export default function NilaiSiswa() {
             }
           >
             <Image
-              source={require('@/assets/images/lucia.png')}
+              source={item.image}
               style={styles.avatar}
             />
 
@@ -139,7 +131,6 @@ export default function NilaiSiswa() {
             </View>
           </TouchableOpacity>
         ))}
-
       </ScrollView>
     </View>
   );
@@ -159,9 +150,9 @@ const styles = StyleSheet.create({
   semesterBox: {
     backgroundColor: COLORS.primary,
     padding: 12,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
 
   semesterText: {
@@ -186,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.smoothBlue,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
   },
 
   classText: {
@@ -198,16 +189,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.white,
     padding: 12,
-    borderRadius: 15,
+    borderRadius: BORDER_RADIUS.m,
     marginBottom: 12,
     alignItems: 'center',
     elevation: 2,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
 
   avatar: {
     width: 50,
     height: 50,
     marginRight: 10,
+    borderRadius: 25,
   },
 
   name: {
@@ -224,7 +220,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.smoothBlue,
     paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     marginBottom: 5,
   },
 
@@ -263,7 +259,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,  
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.s,
     marginTop: 6,
     elevation: 5,
     borderWidth: 1,

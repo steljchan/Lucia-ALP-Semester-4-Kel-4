@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, Modal, TouchableOpacity, StyleSheet} from 'react-native';
 import { COLORS } from '@/utils/theme';
 
 export default function DeleteUserModal({
@@ -24,12 +18,10 @@ export default function DeleteUserModal({
           </Text>
 
           <View style={styles.actions}>
-            {/* BATAL */}
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>Batal</Text>
             </TouchableOpacity>
 
-            {/* HAPUS */}
             <TouchableOpacity style={styles.deleteBtn} onPress={onConfirm}>
               <Text style={styles.deleteText}>Hapus</Text>
             </TouchableOpacity>
@@ -44,7 +36,7 @@ export default function DeleteUserModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: COLORS.overlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -86,19 +78,19 @@ const styles = StyleSheet.create({
   },
 
   cancelText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
 
   deleteBtn: {
-    backgroundColor: '#EF4444',
+    backgroundColor: COLORS.error,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
 
   deleteText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
 });

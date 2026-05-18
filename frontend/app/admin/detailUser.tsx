@@ -1,98 +1,158 @@
-import React, { useState } from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
+//firebase
+import { db } from '@/src/config/firebase';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+
 export default function DetailUser() {
   const router = useRouter();
   const params = useLocalSearchParams();
-
+  
+  const userId = params.id as string;
   const role = params.role as string;
+
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [openPairs, setOpenPairs] = useState(false);
-
   const [showModal, setShowModal] = useState(false);
-
-  const student = {
-    name: 'Budi Santoso',
-    email: 'budi@mail.com',
-    nis: '12345',
-    kelas: '10A',
-    xp: 1200,
-    totalQuiz: 15,
-    avgScore: 85,
-  };
-
-  const [teacher, setTeacher] = useState({
-    name: 'Pak Andi',
-    email: 'andi@mail.com',
-    nik: '1234567890',
-    waliKelas: '10A',
-    pairs: [
-      { kelas: '10A', subject: 'Matematika' },
-      { kelas: '11B', subject: 'Fisika' },
-    ],
-  });
 
   const classOptions = ['10A', '10B', '11A'];
   const subjectOptions = ['Matematika', 'Fisika', 'Kimia'];
 
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const docRef = doc(db, "users", userId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setUserData(docSnap.data());
+        } else {
+          Alert.alert("Error", "User tidak ditemukan");
+          router.back();
+        }
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Error", "Gagal mengambil detail user");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  
+  const handleAddPair = async (data: any) => {
+    try {
+      const userRef = doc(db, "users", userId);
+      const newPairs = [...(userData.pairs || []), data];
+      
+      await updateDoc(userRef, { pairs: newPairs });
+      setUserData({ ...userData, pairs: newPairs }); // Update tampilan lokal
+      setShowModal(false);
+    } catch (error) {
+      Alert.alert("Error", "Gagal mengupdate kelas & subjek");
+    }
+  };
+
+  
+  const handleDelete = async () => {
+    Alert.alert(
+      "Hapus User",
+      "Apakah Anda yakin ingin menghapus user ini dari database?",
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, "users", userId));
+              router.back();
+            } catch (error) {
+              Alert.alert("Error", "Gagal menghapus user");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.root, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}>
-
-      <AppHeaderSimple
-        title="Detail User"
-        rightText="Edit"
-        onRightPress={() => router.push('/admin/editUser')}
-      />
+      <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+        
+        <AppHeaderSimple
+          title="Detail User"
+          rightText="Edit"
+          onRightPress={() => router.push({
+            pathname: '/admin/editUser',
+            params: { id: userId, role: role } // Kirim ID ke halaman edit
+          })}
+        />
 
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
-          <Row label="Nama" value={role === 'guru' ? teacher.name : student.name} isFirst />
-          <Row label="Email" value={role === 'guru' ? teacher.email : student.email} />
+          <Row label="Nama" value={userData?.name || '-'} isFirst />
+          <Row label="Email" value={userData?.email || '-'} />
 
           {role === 'guru' && (
-            <Row label="NIK" value={teacher.nik} />
+            <Row label="NIK" value={userData?.NIK || '-'} />
           )}
 
-          <Row label="Role" value={role} isLast />
+          <Row label="Role" value={role.toUpperCase()} isLast />
         </View>
 
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-            <Row label="NIS" value={student.nis} isFirst />
-            <Row label="Kelas" value={student.kelas} />
-            <Row label="XP" value={student.xp.toString()} />
-            <Row label="Total Quiz" value={student.totalQuiz.toString()} />
-            <Row label="Rata-rata" value={student.avgScore.toString()} isLast />
+            <Row label="NIS" value={userData?.NIS || '-'} isFirst />
+            <Row label="Kelas" value={userData?.kelas || '-'} />
+            <Row label="XP" value={(userData?.xp || 0).toString()} />
+            <Row label="Hearts" value={(userData?.hearts || 0).toString()} />
+            <Row label="Dibuat" value={userData?.createdAt?.toDate().toLocaleDateString() || '-'} isLast />
           </View>
         )}
 
         {role === 'guru' && (
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
-            <Row label="Wali Kelas" value={teacher.waliKelas} isFirst />
+            <Row label="Wali Kelas" value={userData?.waliKelas || 'Bukan Wali Kelas'} isFirst />
 
             <TouchableOpacity onPress={() => setOpenPairs(!openPairs)}>
               <Row
                 label="Kelas & Subject"
-                value="Lihat Detail"
+                value={openPairs ? "Tutup" : "Lihat Detail"}
                 icon={openPairs ? "chevron-up" : "chevron-down"}/>
             </TouchableOpacity>
 
             {openPairs && (
               <View style={styles.dropdown}>
-                {teacher.pairs.map((item, i) => (
-                  <Text key={i} style={styles.dropdownItem}>
-                    {item.kelas} - {item.subject}
-                  </Text>
-                ))}
+                {userData?.pairs && userData.pairs.length > 0 ? (
+                  userData.pairs.map((item: any, i: number) => (
+                    <Text key={i} style={styles.dropdownItem}>
+                      • {item.kelas} - {item.subject}
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={styles.dropdownItem}>Belum ada kelas yang di-assign.</Text>
+                )}
               </View>
             )}
           </View>
@@ -100,15 +160,12 @@ export default function DetailUser() {
 
         <View style={styles.actions}>
           {role === 'guru' && (
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={() => setShowModal(true)}
-            >
+            <TouchableOpacity style={styles.primaryButton} onPress={() => setShowModal(true)}>
               <Text style={styles.primaryButtonText}>Assign Kelas & Subject</Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.deleteButton}>
+          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
             <Text style={styles.deleteButtonText}>Hapus User</Text>
           </TouchableOpacity>
         </View>
@@ -119,12 +176,7 @@ export default function DetailUser() {
         onClose={() => setShowModal(false)}
         classOptions={classOptions}
         subjectOptions={subjectOptions}
-        onSubmit={(data: any) => {
-          setTeacher({
-            ...teacher,
-            pairs: [...teacher.pairs, data],
-          });
-        }}
+        onSubmit={handleAddPair}
       />
     </View>
   );

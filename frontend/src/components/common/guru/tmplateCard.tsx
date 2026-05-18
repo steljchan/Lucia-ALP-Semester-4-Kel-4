@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { moreSubtitle, subtitle, COLORS } from '@/utils/theme';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {moreSubtitle, subtitle, COLORS, BORDER_RADIUS} from '@/utils/theme';
 import Card from '../card';
-// import { useLocalSearchParams,} from 'expo-router';
 
 interface TemplateCardProps {
   item: {
@@ -17,7 +15,6 @@ interface TemplateCardProps {
   isGridView: boolean;
   onPress: (item: any) => void; 
 }
-
 
 export default function TemplateCard({ item, isGridView, onPress }: TemplateCardProps) {
     return (
@@ -47,32 +44,41 @@ export default function TemplateCard({ item, isGridView, onPress }: TemplateCard
 
 const styles = StyleSheet.create({
   cardBase: {
-    padding: 0, 
-    // overflow: 'hidden',
+    padding: 0,
     marginBottom: 15,
-    backgroundColor: COLORS.white ,
-    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.m,
     elevation: 2,
+    overflow: 'hidden', 
   },
-    cardFull: { 
-        width: '100%' 
-    },
-    
-    cardHalf: { 
-        width: '48%', 
-        aspectRatio: 16 / 14 
-    },
-    imageFull: { 
-        width: '100%', 
-        height: 180, 
-        resizeMode: 'cover' 
-    },
-    imageGrid: { width: '100%', 
-        height: 100, 
-        resizeMode: 'cover' 
-    },
-    cardInfo: { 
-        padding: 10, 
-        justifyContent: 'center' 
-    },
+
+  cardFull: {
+    width: '100%',
+  },
+
+  cardHalf: {
+    width: '48%',
+    aspectRatio: 16 / 14,
+  },
+
+  imageFull: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+    borderTopLeftRadius: BORDER_RADIUS.m,
+    borderTopRightRadius: BORDER_RADIUS.m,
+  },
+
+  imageGrid: {
+    width: '100%',
+    height: 100,
+    resizeMode: 'cover',
+    borderTopLeftRadius: BORDER_RADIUS.m,
+    borderTopRightRadius: BORDER_RADIUS.m,
+  },
+
+  cardInfo: {
+    padding: 10,
+    justifyContent: 'center',
+  },
 });

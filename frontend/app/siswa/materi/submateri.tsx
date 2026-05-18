@@ -1,19 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-  Image
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, ScrollView, TouchableOpacity,  StyleSheet, StatusBar, Image} from 'react-native';
 import { useRouter } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL } from '@/utils/theme';
+import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 
-// Data materi (sama seperti sebelumnya)
 const materials = [
   {
     id: '1',
@@ -69,37 +59,40 @@ export default function SubMateri() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
      
-       <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
-            <View style={styles.headerRow}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="chevron-back" size={28} color={COLORS.textMain}/>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Materi Pembelajaran</Text>
-                <View style={{ width: 40 }} />
-            </View>
-        </LinearGradient>
+      <DetailHeader
+        title="Materi Pembelajaran"
+        subtitle="Matematika"
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
         <View style={styles.heroSection}>
-            <Image source={require('@/assets/images/maskotMTK.png')} style={styles.heroImage}/>
-            <Text style={styles.subjectTitle}>Matematika</Text>
+          <View style={styles.heroWrapper}>
+            <Image
+              source={require('@/assets/images/materi/Matematika.png')}
+              style={styles.heroImage}
+            />
+            <Image
+              source={require('../../../assets/images/ViboBuku.png')}
+              style={styles.robot}
+            />
+          </View>
         </View>
         
         {materials.map((item) => (
-            <TouchableOpacity
-                key={item.id}
-                style={styles.card}
-                activeOpacity={0.7}
-                onPress={() => router.push({pathname: '/siswa/materi/detailMateri'})}>
+          <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              activeOpacity={0.7}
+              onPress={() => router.push({pathname: '/siswa/materi/detailMateri'})}>
 
-                <Image source={{ uri: item.image }} style={styles.cardImage} />
+              <Image source={{ uri: item.image }} style={styles.cardImage} />
 
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDescription}>{item.description}</Text>
-                </View>
-            </TouchableOpacity>
-            ))}
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
+                <Text style={styles.cardDescription}>{item.description}</Text>
+              </View>
+          </TouchableOpacity>
+          ))}
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
     </View>
@@ -112,71 +105,52 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-
-  backButton: {
-    padding: 8,
-  },
-
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textMain,
-    textAlign: 'center',
-  },
-
   scrollContainer: {
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.md,
   },
 
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.textMain,
-    marginBottom: SPACING.md,
-  },
-
   heroSection: {
     alignItems: 'center',
-    marginTop: 0,
     marginBottom: 20,
-  }, 
-  
-  heroImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 20,
   },
-  
+
+  heroWrapper: {
+    position: 'relative',
+    width: 240,
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  heroImage: {
+    width: 135,
+    height: 135,
+    borderRadius: 100,
+  },
+
+  robot: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    resizeMode: 'contain',
+    bottom: 0,
+    right: 0,
+  },
+
   subjectTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.textMain,
     textAlign: 'center',
+    marginTop: -10,
   },
 
   card: {
     flexDirection: 'row',
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     marginBottom: 12,
     alignItems: 'center',
   },
@@ -184,7 +158,7 @@ const styles = StyleSheet.create({
   cardImage: {
     width: 119,
     height: 87,
-    borderRadius: 10,
+    borderRadius: BORDER_RADIUS.s,
     marginRight: 12,
   },
   
@@ -204,5 +178,4 @@ const styles = StyleSheet.create({
     color: COLORS.textSub,
     marginBottom: SPACING.sm,
   },
-
 });

@@ -18,16 +18,15 @@ const Card = ({ children, style }: CardProps) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.white,
-    borderRadius: 30, 
+    borderRadius: BORDER_RADIUS.l, 
     padding: SPACING.lg,
-    // Efek Shadow & Border 
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     borderWidth: 1,
-    borderColor: '#EAF6FF',
+    borderColor: COLORS.gray,
   },
 });
 

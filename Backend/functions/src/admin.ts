@@ -21,7 +21,7 @@ export const adminCreateUser = onCall(async (request) => {
       tinkat: tingkat || "-",
       xp: 0,
       hearts: 3,
-      profilePicture: "https://via.placeholder.com/150",
+      profilePicture: "https://i.pinimg.com/736x/96/e2/a7/96e2a7d987ce19f693d39f131cda092a.jpg",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 

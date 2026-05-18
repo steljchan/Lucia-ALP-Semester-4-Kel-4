@@ -56,7 +56,7 @@ export default function TokoScreen() {
       Alert.alert('Maaf', 'Paket terbatas hanya bisa dibeli 1 kali.');
       return;
     }
-    // Set data paket terbatas secara manual untuk modal
+
     setSelectedItem({
       name: 'PAKET COIN DAN HATI',
       coin: 500,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 16,
     marginLeft: 8, 
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: COLORS.textMain,
     textAlign: 'center',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     alignItems: 'center',
     marginBottom: SPACING.lg,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     paddingVertical: 14,
     borderRadius: 14,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   packageAmountHeart: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.red,
+    color: COLORS.error,
     marginBottom: 4,
   },
 

@@ -8,44 +8,15 @@ import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
-// FIREBASE IMPORTS
 import { auth, db } from "../../../src/config/firebase";
 import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const REPORT_DATA = [
-  {
-    id: '1',
-    title: "Bahasa Inggris",
-    score: 96,
-    grade: "A+",
-    image: require('@/assets/images/materi/Inggris.png'),
-    imageName: 'Inggris',
-  },
-  {
-    id: '2',
-    title: "Matematika",
-    score: 96,
-    grade: "A+",
-    image: require('@/assets/images/materi/Matematika.png'),
-    imageName: 'Matematika',
-  },
-  {
-    id: '3',
-    title: "IPA",
-    score: 96,
-    grade: "A+",
-    image: require('@/assets/images/materi/IPA.png'),
-    imageName: 'IPA',
-  },
-  {
-    id: '4',
-    title: "Indonesia",
-    score: 96,
-    grade: "A+",
-    image: require('@/assets/images/materi/Indonesia.png'),
-    imageName: 'Indonesia',
-  },
+  {id: '1', title: "Bahasa Inggris", score: 96, grade: "A+", image: require('@/assets/images/materi/Inggris.png'), imageName: 'Inggris'},
+  {id: '2', title: "Matematika", score: 96, grade: "A+", image: require('@/assets/images/materi/Matematika.png'), imageName: 'Matematika'},
+  {id: '3', title: "IPA", score: 96, grade: "A+", image: require('@/assets/images/materi/IPA.png'), imageName: 'IPA'},
+  {id: '4', title: "Indonesia", score: 96, grade: "A+", image: require('@/assets/images/materi/Indonesia.png'), imageName: 'Indonesia'},
 ];
 
 interface ReportCardProps {
@@ -162,7 +133,6 @@ export default function ProfilSiswa() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
         
-        {/* AVATAR & INFO */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrapper}>
             <Image
@@ -190,7 +160,6 @@ export default function ProfilSiswa() {
           </View>
         </View>
 
-        {/* STATS */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Ionicons name="star" size={24} color={COLORS.textMain} />
@@ -256,7 +225,6 @@ export default function ProfilSiswa() {
             />
           ))}
         </View>
-
       </ScrollView>
     </View>
   );
@@ -330,11 +298,18 @@ const styles = StyleSheet.create({
     flex: 1, 
     height: 1, 
     backgroundColor: COLORS.secondary },
-    reportTitle: { marginHorizontal: 15, fontSize: 16, fontWeight: 'bold', color: COLORS.primary },
-    reportGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
+    
+  reportTitle: { 
+    marginHorizontal: 15, 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: COLORS.primary 
+  },
+
+  reportGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
 
   reportCardWrapper: {
@@ -347,9 +322,9 @@ const styles = StyleSheet.create({
 
   reportIcon: { 
     width: 60, 
-    height: 60, 
-    resizeMode: 'contain', 
-    borderRadius: 15,
+    height: 60,
+    resizeMode: 'cover',
+    borderRadius: 30,
   },
 
   topContent: {
@@ -400,7 +375,7 @@ const styles = StyleSheet.create({
     borderRadius: 10 },
 
   detailText: { 
-    color: 'white', 
+    color: COLORS.white, 
     fontSize: 10, 
     fontWeight: 'bold' },
 });

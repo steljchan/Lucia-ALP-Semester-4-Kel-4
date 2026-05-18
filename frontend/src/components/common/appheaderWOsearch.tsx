@@ -1,39 +1,52 @@
+import { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import SearchBar from '@/src/components/common/searchbar';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
-export default function AppHeaderWOsearch() {
+export default function AppHeader() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
 
   return (
-    <View style={styles.container}>
-      {/* LOGO */}
-      <Image
-        source={require('../../../assets/images/lucia.png')}
-        style={styles.logo}
-      />
-
-      {/* SHOP BUTTON */}
-      <TouchableOpacity 
+    <LinearGradient
+      colors={['#FFFFFF', '#C4E8FF']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1.5 }}
+      style={styles.container}
+    >
+      
+      <View style={styles.topRow}>
+        <Image
+          source={require('@/assets/images/lucia.png')}
+          style={styles.logo}
+        />
+        
+        <TouchableOpacity 
         style={styles.shopBtn}
-        onPress={() => router.push('/siswa/toko')}
-      >
-        <Ionicons name="storefront-outline" size={20} color="#fff" />
-      </TouchableOpacity>
-    </View>
+        onPress={() => router.push('/siswa/toko')}>
+          <Ionicons name="storefront-outline" size={20} color={COLORS.white} />
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 40, 
-    paddingBottom: 10,
-    backgroundColor: 'transparent', 
+    marginBottom: 10,
   },
 
   logo: {
@@ -47,7 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.secondary,
     width: 44,
     height: 44,
-    borderRadius: 22, // Full bulat
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },

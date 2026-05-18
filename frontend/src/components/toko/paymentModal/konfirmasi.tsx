@@ -47,55 +47,54 @@ export default function StepKonfirmasi({ selectedItem, selectedMethod, onBack, o
 }
 
 const styles = StyleSheet.create({ 
-    header: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: 20 
-    },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 20 
+  },
 
-    infoRow: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        marginVertical: 6 
-    },
+  infoRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginVertical: 6 
+  },
 
-    methodName: { 
-        flex: 1, 
-        marginLeft: 10, 
-        fontWeight: '600' 
-    },
+  methodName: { 
+    flex: 1, 
+    marginLeft: 10, 
+    fontWeight: '600' 
+  },
 
-    cardItem: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: '#F8F9FA', 
-        padding: 12, 
-        borderRadius: 12, 
-        marginBottom: 8, 
-        borderWidth: 1, 
-        borderColor: '#EEE' 
-    },
+  cardItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.smoothBlue, 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 8, 
+    borderWidth: 1, 
+    borderColor: COLORS.primary
+  },
 
-    methodIcon: { 
-        width: 40, 
-        height: 25 
-    },
+  methodIcon: { 
+    width: 40, 
+    height: 25 
+  },
+  
+  label: { 
+    color: COLORS.darkGray, 
+    fontSize: 14 
+  },
 
-   
-    label: { 
-        color: COLORS.darkGray, 
-        fontSize: 14 
-    },
+  value: { 
+    fontWeight: 'bold' ,
+    color: COLORS.textMain,
+  },
 
-    value: { 
-        fontWeight: 'bold' ,
-        color: COLORS.textMain,
-    },
-
-    lineDivider: { 
-        height: 1, 
-        backgroundColor: '#EEE', 
-        marginVertical: 12 
-    },
+  lineDivider: { 
+    height: 1, 
+    backgroundColor: COLORS.smoothBlue, 
+    marginVertical: 12 
+  },
 });
