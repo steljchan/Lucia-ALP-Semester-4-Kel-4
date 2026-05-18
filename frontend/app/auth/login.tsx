@@ -1,20 +1,8 @@
 import React, {useState} from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  Image, 
-  KeyboardAvoidingView, 
-  Platform,
-  ScrollView 
-} from 'react-native';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform,ScrollView } from 'react-native';
 import { COLORS, MARGIN_HORIZONTAL, BTN, TEXT} from '../../utils/theme';
 import Card from '../../src/components/common/card';
 import { useRouter } from 'expo-router';
-
-//database
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../src/config/firebase";
 import { login } from "../../src/services/authservices";
@@ -33,7 +21,6 @@ export default function LoginScreen() {
       const uid = userCredential.user.uid;
       console.log("2. Login Auth Berhasil! UID:", uid);
 
-      // Ambil data dari Firestore
       const userDoc = await getDoc(doc(db, "users", uid));
 
       if (userDoc.exists()) {
@@ -66,10 +53,8 @@ export default function LoginScreen() {
           <Image 
             source={require('../../assets/images/lucia.png')} 
             style={styles.logo}
-            // resizeMode="contain"
           />
         </View>
-
         
         <Card style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
           <Text style={TEXT.bigTitle}>Masuk</Text>
@@ -119,6 +104,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: COLORS.background 
   },
+  
   topSection: { 
     alignItems: 'center', 
     marginTop: 60, 

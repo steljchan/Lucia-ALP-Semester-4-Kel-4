@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-// Pastikan COLORS sudah memiliki primary yang sesuai (biru muda)
 import { COLORS, BTN, containerHeader, scrollContent } from '@/utils/theme';
 
 export default function ReceiptScreen() {
@@ -13,24 +12,20 @@ export default function ReceiptScreen() {
   const total = harga + pajak;
 
   return (
-    <View style={[containerHeader, { backgroundColor: '#F0F8FF' }]}>
+    <View style={[containerHeader, { backgroundColor: COLORS.background }]}>
       <ScrollView contentContainerStyle={[scrollContent, { paddingBottom: 40 }]}>
-        
         <View style={styles.receiptContainer}>
           
-          {/* Ikon Centang dengan Efek Glow */}
           <View style={styles.glowCircle}>
             <View style={styles.outerCircle}>
               <View style={styles.innerCircle}>
-                <Ionicons name="checkmark" size={35} color="#64B5F6" />
+                <Ionicons name="checkmark" size={35} color= {COLORS.primary} />
               </View>
             </View>
           </View>
 
-          {/* Kartu Struk */}
           <View style={styles.card}>
             <Text style={styles.statusTitle}>Pembayaran Berhasil</Text>
-
             
             <View style={styles.section}>
               <View style={styles.row}>
@@ -67,7 +62,6 @@ export default function ReceiptScreen() {
               ))}
             </View>
 
-            {/* Total Pembayaran (Kotak Biru Muda) */}
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total Pembayaran</Text>
               <Text style={styles.totalValue}>Rp{total.toLocaleString('id-ID')}</Text>
@@ -81,7 +75,6 @@ export default function ReceiptScreen() {
         >
           <Text style={BTN.primary.text}>Kembali</Text>
         </TouchableOpacity>
-
       </ScrollView>
     </View>
   );
@@ -93,6 +86,7 @@ const styles = StyleSheet.create({
     marginTop: 80, 
     paddingHorizontal: 20 
   },
+
   glowCircle: {
     width: 110, height: 110,
     borderRadius: 55,
@@ -100,19 +94,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     zIndex: 5, marginBottom: -55
   },
+
   outerCircle: {
     width: 85, height: 85,
     borderRadius: 42.5,
     backgroundColor: 'rgba(100, 181, 246, 0.4)',
     justifyContent: 'center', alignItems: 'center',
   },
+
   innerCircle: {
     width: 60, height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     justifyContent: 'center', alignItems: 'center',
     elevation: 3,
   },
+
   card: {
     backgroundColor: COLORS.white, 
     width: '100%', 
@@ -121,8 +118,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     paddingBottom: 10,
     borderWidth: 1,
-    borderColor: '#E3F2FD',
+    borderColor: COLORS.smoothBlue,
   },
+
   statusTitle: { 
     fontSize: 20, 
     fontWeight: 'bold', 
@@ -130,22 +128,29 @@ const styles = StyleSheet.create({
     color: COLORS.textMain, 
     marginBottom: 30 
   },
-  section: { marginVertical: 5 },
+
+  section: {
+    marginVertical: 5
+  },
+
   row: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     marginBottom: 15 
   },
+
   label: { 
     color: COLORS.textMain, 
     fontSize: 14, 
     fontWeight: '700' 
   },
+
   value: { 
-    color: '#64B5F6', 
+    color: COLORS.primary, 
     fontSize: 14, 
     fontWeight: '800' 
   },
+
   valueDetail: { 
     color: COLORS.textMain, 
     fontSize: 13, 
@@ -153,6 +158,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     textAlign: 'right' 
   },
+
   dashedLineContainer: {
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -160,6 +166,7 @@ const styles = StyleSheet.create({
     marginHorizontal: -20,
     position: 'relative'
   },
+
   dashedLine: {
     flex: 1, 
     height: 1, 
@@ -167,29 +174,42 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: '#BBDEFB',
   },
+
   cutoutLeft: { 
     width: 24, height: 24, 
     borderRadius: 12, 
-    backgroundColor: '#F0F8FF', 
+    backgroundColor: COLORS.background, 
     marginLeft: -12 
   },
+
   cutoutRight: { 
     width: 24, height: 24, 
     borderRadius: 12, 
-    backgroundColor: '#F0F8FF',
+    backgroundColor: COLORS.background,
     marginRight: -12 
   },
+
   totalContainer: {
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center',
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: COLORS.white, 
     paddingVertical: 20,
     paddingHorizontal: 5,
     borderTopWidth: 1,
-    borderTopColor: '#E3F2FD',
+    borderTopColor: COLORS.smoothBlue,
     marginTop: 10
   },
-  totalLabel: { fontSize: 16, fontWeight: 'bold', color: COLORS.textMain },
-  totalValue: { fontSize: 18, fontWeight: 'bold', color: '#64B5F6' }
+
+  totalLabel: {
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: COLORS.textMain
+  },
+
+  totalValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary
+  }
 });

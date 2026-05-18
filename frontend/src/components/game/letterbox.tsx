@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {COLORS} from '@/utils/theme';
 
 export type StatusType =
   | 'default'
@@ -42,53 +43,47 @@ export default function LetterBox({
   );
 }
 
-/* 🔥 STYLE MAP (TYPE SAFE) */
 const statusStyles: Record<StatusType, ViewStyle> = {
   default: {
-    borderColor: '#5CBEFA',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
   },
   idle: {
-    borderColor: '#5CBEFA',
-    backgroundColor: '#FFFFFF',
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.white,
   },
   correct: {
-    borderColor: '#4CAF50',
+    borderColor: COLORS.success,
     backgroundColor: '#C8E6C9',
   },
   wrong: {
-    borderColor: '#FF4D4F',
+    borderColor: COLORS.error,
     backgroundColor: '#FFCDD2',
   },
   used: {
     borderColor: '#ACB4C1',
     backgroundColor: '#E5E7EB',
-    opacity: 0.6, // 🔥 bikin lebih jelas “disabled”
+    opacity: 0.6, 
   },
 };
 
 const textStyles: Record<StatusType, TextStyle> = {
-  default: { color: '#1A3B5D' },
-  idle: { color: '#1A3B5D' },
+  default: { color: COLORS.textMain },
+  idle: { color: COLORS.textMain },
   correct: { color: '#2E7D32' },
   wrong: { color: '#C62828' },
   used: { color: '#9CA3AF' },
 };
 
-/* 🎨 BASE STYLE */
 const styles = StyleSheet.create({
   box: {
     width: 48,
     height: 48,
     borderRadius: 12,
     borderWidth: 2,
-
     justifyContent: 'center',
     alignItems: 'center',
-
     marginHorizontal: 5,
-
-    // ✨ sedikit shadow biar “clickable”
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 4,

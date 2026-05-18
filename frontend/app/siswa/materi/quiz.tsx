@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 import { useRef } from 'react';
 
 export default function QuizScreen() {
@@ -22,25 +22,30 @@ export default function QuizScreen() {
   const questions = [
     {
       questionText: 'Tentukan bentuk kalimatnya!',
-      number: 100000,
+      image: 'seratus',
       options: ['Seratus Ribu', 'Satu Nol Nol Nol Nol Nol', 'Sepuluh Ribu', 'Seribu'],
       correctAnswer: 'Seratus Ribu',
     },
     {
       questionText: 'Tentukan bentuk kalimatnya!',
-      number: 5000,
+      image: 'limapuluh',
       options: ['Lima Ribu', 'Lima Puluh Ribu', 'Lima Ratus', 'Lima Juta'],
-      correctAnswer: 'Lima Ribu',
+      correctAnswer: 'Lima Puluh Ribu',
     }
   ];
 
-  const totalQuestions = questionData.totalQuestions;
+  const imageMap: any = {
+    seratus: require('@/assets/images/materi/seratus.jpg'),
+    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
+  };
+
+  const questionData = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
   const currentQuestionNumber = currentQuestionIndex + 1;
   const progress = currentQuestionNumber / totalQuestions;
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  // Timer countdown
   useEffect(() => {
     let interval: number;
     if (timerActive && timeLeft > 0) {
@@ -66,7 +71,7 @@ export default function QuizScreen() {
 
   const finalizeAnswer = (selectedOption: string | null, isSkippedByTimer = false) => {
     const current = questions[currentQuestionIndex];
-    const alreadyAnswered = answersRef.current.some(a => a.number === current.number);
+    const alreadyAnswered = answersRef.current.some(a => a.questionIndex === currentQuestionIndex);
     if (alreadyAnswered) return;
 
     let isCorrect = false;
@@ -82,7 +87,8 @@ export default function QuizScreen() {
     }
 
     const answerData = {
-      number: current.number,
+      questionIndex: currentQuestionIndex,
+      image: current.image,
       question: current.questionText,
       options: current.options,
       userAnswer: selectedOption,
@@ -130,20 +136,18 @@ export default function QuizScreen() {
   };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 30);
-    const secs = seconds % 30;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <LinearGradient colors={[COLORS.white, '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
-        <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Quiz</Text>
-        </View>
-        <Text style={styles.subtitle}>Algebra : The Basics, Calculation and Usage</Text>
-      </LinearGradient>
+      <DetailHeader
+        title="Quiz"
+        subtitle="Algebra : The Basics, Calculation and Usage"
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.topContainer}>
@@ -155,7 +159,7 @@ export default function QuizScreen() {
             </Text>
           </View>
           <View style={styles.rightSection}>
-            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 20) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
+            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 30) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
               {() => <Text style={{ fontSize: 12, fontWeight: '600' }}>{formatTime(timeLeft)}</Text>}
             </AnimatedCircularProgress>
           </View>
@@ -167,8 +171,11 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        <View style={styles.numberContainer}>
-          <Text style={styles.bigNumber}>{questionData.number.toLocaleString()}</Text>
+        <View style={styles.imageQuestionContainer}>
+          <Image
+            source={imageMap[questionData.image]}
+            style={styles.questionImage}
+          />
         </View>
 
         <Text style={styles.questionText}>{questionData.questionText}</Text>
@@ -233,40 +240,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: COLORS.background 
   },
-  
-  header: { 
-    paddingHorizontal: 20, 
-    paddingTop: 60, 
-    paddingBottom: 20, 
-    shadowColor: COLORS.primary, 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.1, 
-    shadowRadius: 8, 
-    elevation: 5 
-  },
     
-  headerRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginBottom: 8 
-  },
-
-  headerTitle: { 
-    fontSize: 20, 
-    fontWeight: '600', 
-    color: COLORS.textMain, 
-    textAlign: 'center' 
-  },
-
-  subtitle: { 
-    fontSize: 14,
-    color: COLORS.textMain, 
-    textAlign: 'center', 
-    fontWeight: '500', 
-    opacity: 0.8 
-  },
-
   scrollContent: { 
     paddingHorizontal: SPACING.md, 
     paddingTop: SPACING.lg, 
@@ -318,29 +292,31 @@ const styles = StyleSheet.create({
     borderRadius: 4 
   },
 
-  numberContainer: { 
-    backgroundColor: COLORS.white, 
-    borderRadius: BORDER_RADIUS.s, 
-    paddingVertical: SPACING.xl, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginBottom: SPACING.lg, 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 2 }, 
-    shadowOpacity: 0.05, 
-    shadowRadius: 4, 
-    elevation: 2 
+  imageQuestionContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.s,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
-  bigNumber: { 
-    fontSize: 48, 
-    fontWeight: 'bold', 
-    color: COLORS.textMain, 
-    letterSpacing: 2 
+  questionImage: {
+    width: '100%',
+    height: 100,
+    resizeMode: 'contain',
   },
 
   questionText: { 
-    fontSize: 20, 
+    fontSize: 18, 
     fontWeight: '600', 
     color: COLORS.textMain, 
     textAlign: 'center', 

@@ -4,7 +4,7 @@ import StepPilihMetode from './pilihMetode';
 import StepKonfirmasi from './konfirmasi';
 import StepStatus from './status';
 import { router } from 'expo-router';
-
+import {COLORS } from '@/utils/theme';
 
 const logoOvo = require('@/assets/images/pembayaran/ovo.png');
 const logoGopay = require('@/assets/images/pembayaran/gopay.png');
@@ -29,14 +29,12 @@ export default function PaymentModal({ isVisible, onClose, selectedItem }: any) 
   };
 
   const handlePay = () => {
-    setCurrentStep(3); // Memproses
+    setCurrentStep(3); 
     
     setTimeout(() => {
-        setCurrentStep(4); // Tampilan Centang Saja
-        
-        // Tunggu 1.5 detik agar animasi centang terlihat, lalu navigasi
+        setCurrentStep(4); 
         setTimeout(() => {
-        onClose(); // Tutup modal dulu
+        onClose();
         router.push({
             pathname: '/siswa/toko/receipt',
             params: { 
@@ -60,7 +58,6 @@ export default function PaymentModal({ isVisible, onClose, selectedItem }: any) 
       onRequestClose={handleClose}
     >
       <Pressable style={styles.overlay} onPress={handleClose}>
-        {/* Pressable kedua tanpa onPress agar klik di dalam modal tidak menutup modal */}
         <Pressable style={styles.modalContainer}>
           
           {currentStep === 1 && (
@@ -102,11 +99,12 @@ export default function PaymentModal({ isVisible, onClose, selectedItem }: any) 
 const styles = StyleSheet.create({
   overlay: { 
     flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.4)', 
+    backgroundColor: COLORS.overlay, 
     justifyContent: 'flex-end' 
   },
+
   modalContainer: { 
-    backgroundColor: 'white', 
+    backgroundColor: COLORS.white, 
     borderTopLeftRadius: 30, 
     borderTopRightRadius: 30, 
     padding: 20, 

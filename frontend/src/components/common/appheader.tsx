@@ -19,24 +19,18 @@ export default function AppHeader() {
     >
       
       <View style={styles.topRow}>
-        
-        
         <Image
           source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
-
         
         <TouchableOpacity 
         style={styles.shopBtn}
         onPress={() => router.push('/siswa/toko')}>
-          <Ionicons name="storefront-outline" size={20} color="#fff" />
-          
+          <Ionicons name="storefront-outline" size={20} color={COLORS.white} />
         </TouchableOpacity>
-
       </View>
 
-      
        <SearchBar
         value={search}
         onChangeText={setSearch}
@@ -47,16 +41,15 @@ export default function AppHeader() {
         source={require('../../../assets/images/ViboBuku.png')}
         style={styles.robot}
       />
-          </LinearGradient>
-        );
-      }
+    </LinearGradient>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 45, // biar gradient keliatan
-
+    paddingTop: 50,
+    paddingBottom: 45,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
   },
@@ -65,7 +58,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     marginBottom: 10,
   },
 
@@ -80,19 +72,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     bottom: 5, 
-
     width: 45,  
     height: 65,
   },
 
-  // SHOP BUTTON
   shopBtn: {
     backgroundColor: COLORS.secondary,
-
     width: 44,
     height: 44,
     borderRadius: 50,
-
     justifyContent: 'center',
     alignItems: 'center',
   },

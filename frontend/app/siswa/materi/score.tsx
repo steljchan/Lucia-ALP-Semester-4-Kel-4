@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 
 export default function ScoreScreen() {
   const router = useRouter();
@@ -35,24 +35,22 @@ export default function ScoreScreen() {
       if (option === correctAnswer) return COLORS.success;
       return COLORS.error;
     }
-    if (option === correctAnswer) return '#22C55E';
+    if (option === correctAnswer) return COLORS.success;
     return COLORS.primary;
+  };
+
+  const imageMap: any = {
+    seratus: require('@/assets/images/materi/seratus.jpg'),
+    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
   };
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <LinearGradient colors={[COLORS.white, '#ADDFFD']} style={styles.header}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color={COLORS.textMain} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Score</Text>
-          <TouchableOpacity onPress={() => router.push('/siswa/tabs/leaderboard')} style={styles.iconButton}>
-            <Ionicons name="podium-outline" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+      <DetailHeader
+        title="Score"
+        subtitle="Hasil Quiz Kamu"
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.mascotWrapper}>
@@ -74,18 +72,21 @@ export default function ScoreScreen() {
                 <Text style={styles.statNumber}>{totalNum}</Text>
                 <Text style={styles.statLabel}>Total Soal</Text>
               </View>
+
               <View style={styles.verticalDivider} />
               <View style={styles.statBox}>
                 <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.success} />
                 <Text style={[styles.statNumber, { color: COLORS.success }]}>{correctNum}</Text>
                 <Text style={styles.statLabel}>Benar</Text>
               </View>
+
               <View style={styles.verticalDivider} />
               <View style={styles.statBox}>
                 <Ionicons name="close-circle-outline" size={28} color={COLORS.error} />
                 <Text style={[styles.statNumber, { color: COLORS.error }]}>{wrongNum}</Text>
                 <Text style={styles.statLabel}>Salah</Text>
               </View>
+
               <View style={styles.verticalDivider} />
               <View style={styles.statBox}>
                 <Ionicons name="hourglass-outline" size={28} color={COLORS.yellow} />
@@ -114,7 +115,12 @@ export default function ScoreScreen() {
                   )}
                 </View>
 
-                <Text style={styles.questionText}>{item.number} dibaca sebagai:</Text>
+                <Text style={styles.questionText}>{item.question}</Text>
+                <Image
+                  source={imageMap[item.image]}
+                  style={styles.questionImage}
+                  resizeMode="contain"
+                />
 
                 {item.options.map((option: string, i: number) => {
                   const isCorrectAnswer = option === item.correctAnswer;
@@ -122,9 +128,8 @@ export default function ScoreScreen() {
                   const isUserCorrect = isUserAnswer && item.isCorrect;
                   const isUserWrong = isUserAnswer && !item.isCorrect;
 
-                  // Background dan border dinamis
                   let optionBg = COLORS.white;
-                  let borderColor = '#E5E7EB'; // default abu-abu
+                  let borderColor = '#E5E7EB'; 
 
                   if (isUserCorrect) {
                     optionBg = '#D8FAE5';
@@ -187,38 +192,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-
-  header: {
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.textMain,
-  },
-
-  iconButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    padding: 8,
-    borderRadius: BORDER_RADIUS.s,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
 
   content: {
@@ -367,6 +340,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
+  },
+
+  questionImage: {
+    width: '100%',
+    height: 180,
+    marginBottom: 14,
   },
 
   option: {

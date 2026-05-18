@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, StatusBar} from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons'; 
 import * as WebBrowser from 'expo-web-browser';
 import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
+import DetailHeader from '@/src/components/common/guru/detailHeader';
 
 interface MateriFile {
   id: string;
@@ -55,18 +54,12 @@ export default function DetailMateri() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-  
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
-        <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Materi</Text>
-            <View style={{ width: 40 }} />
-        </View>
-        <Text style={styles.subtitle}>Cara Menulis Bilangan</Text>
-      </LinearGradient>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white}/>
+
+      <DetailHeader
+        title="Materi"
+        subtitle="Cara Menulis Bilangan"
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageGrid}>
@@ -97,44 +90,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-
-  
-  backButton: {
-    padding: 8,
-  },
-
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.textMain,
-    textAlign: 'center',
-  },
-
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textMain,
-    textAlign: 'center',
-    fontWeight: '500',
-    opacity: 0.8,
   },
 
   scrollContent: {
@@ -205,7 +160,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 10,
     right: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: COLORS.overlay,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -215,7 +170,7 @@ const styles = StyleSheet.create({
   },
 
   pdfText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 12,
     fontWeight: 'bold',
   },

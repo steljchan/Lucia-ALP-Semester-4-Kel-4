@@ -1,6 +1,7 @@
 import {View, Text, StyleSheet, TouchableOpacity, Animated,} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState, useMemo } from 'react';
+import {COLORS} from '@/utils/theme';
 import Svg, { Line } from 'react-native-svg';
 
 import { mencocokkanLevels } from '../../../../../src/data/mencocokkan';
@@ -50,9 +51,6 @@ export default function MatchingGame() {
 
   const [isNavigating, setIsNavigating] = useState(false);
 
-  /* =========================
-     🔥 CONNECT LOGIC
-  ========================= */
   const handleSelectImage = (imageWord: string) => {
     if (!selectedWord) return;
 
@@ -67,9 +65,6 @@ export default function MatchingGame() {
     selectImage(imageWord);
   };
 
-  /* =========================
-     🔥 ANIMATION
-  ========================= */
   const playAnimation = (correct: boolean) => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -144,7 +139,6 @@ export default function MatchingGame() {
       <Text style={styles.title}>Pilih Pasangannya</Text>
 
       <View style={styles.mapContainer}>
-        {/* 🔥 GARIS */}
         <Svg style={[StyleSheet.absoluteFill, {top: -20}]}>
           {connections.map((c, i) => {
             const from = wordPositions[c.word];
@@ -164,9 +158,9 @@ export default function MatchingGame() {
                 stroke={
                   submitted
                     ? status === 'correct'
-                      ? '#4CAF50'
-                      : '#FF4D4F'
-                    : '#5CBEFA'
+                      ? COLORS.success
+                      : COLORS.error
+                    : COLORS.primary
                 }
                 strokeWidth={4}
                 strokeLinecap="round"
@@ -175,14 +169,13 @@ export default function MatchingGame() {
           })}
         </Svg>
 
-        {/* 🔥 CARD */}
         <Animated.View
           style={[
             styles.row,
             { transform: [{ scale: scaleAnim }] },
           ]}
         >
-          {/* WORD */}
+
           <View style={styles.column}>
             {shuffledWords.map((p: any) => (
               <MatchWord
@@ -195,7 +188,6 @@ export default function MatchingGame() {
             ))}
           </View>
 
-          {/* IMAGE */}
           <View style={[styles.column, { marginTop: -12 }]}>
             {shuffledImages.map((p: any) => (
               <MatchImage
@@ -210,7 +202,6 @@ export default function MatchingGame() {
         </Animated.View>
       </View>
 
-      {/* BUTTON */}
       <View style={styles.actionRow}>
         <TouchableOpacity 
           style={styles.hintBtn}
@@ -297,7 +288,7 @@ export default function MatchingGame() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#EAF6FF',
+    backgroundColor: COLORS.background,
   },
 
   title: {
@@ -306,28 +297,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 40,
     marginBottom: 20,
-    color: '#1A3B5D',
+    color: COLORS.textMain,
   },
 
   backBtn: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: COLORS.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   correct: {
     textAlign: 'center',
-    color: '#4CAF50',
+    color: COLORS.success,
     marginTop: 15,
     fontWeight: '700',
   },
 
   wrong: {
     textAlign: 'center',
-    color: '#FF4D4F',
+    color: COLORS.error,
     marginTop: 15,
     fontWeight: '700',
   },
@@ -335,7 +326,7 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     justifyContent: 'flex-start',
-    paddingTop: 10, // 🔥 naikkan semua
+    paddingTop: 10, 
   },
 
   row: {
@@ -347,7 +338,7 @@ const styles = StyleSheet.create({
 
   column: {
     width: 140,
-    gap: 5, // 🔥 lebih rapih
+    gap: 5, 
   },
 
   actionRow: {
@@ -355,48 +346,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     gap: 10,
-    marginBottom: 40, // 🔥 naik dari bawah
+    marginBottom: 40,
   },
 
   hintBtn: {
     width: 55,
     height: 55,
     borderRadius: 28,
-    backgroundColor: '#FFD700',
+    backgroundColor: COLORS.yellow,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   hintIcon: {
     fontSize: 22,
-    color: '#fff',
+    color: COLORS.white,
   },
 
   deleteBtn: {
     width: 55,
     height: 55,
     borderRadius: 28,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: COLORS.error,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   deleteText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 20,
     fontWeight: 'bold',
   },
 
   submit: {
     flex: 1,
-    backgroundColor: '#5CBEFA',
+    backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 24,
     alignItems: 'center',
 },
 
   submitText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
     fontSize: 16,
   },

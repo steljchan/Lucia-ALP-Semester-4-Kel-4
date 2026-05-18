@@ -49,7 +49,7 @@ export default function LeaderboardSiswa() {
     if (!user) {
       return (
         <View style={[styles.podiumItem, { opacity: 0.3 }]}>
-          <View style={[styles.step, { height, backgroundColor: '#E0E0E0' }]} />
+          <View style={[styles.step, { height, backgroundColor: COLORS.smoothBlue}]} />
         </View>
       );
     }
@@ -90,41 +90,30 @@ export default function LeaderboardSiswa() {
   return (
     <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
       <AppHeaderWOsearch />
-
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
-        
-        {/* 3 terartas */}
         <View style={styles.podiumContainer}>
           {renderPodiumItem(topThree[1], 2, 110, COLORS.secondary)}
           {renderPodiumItem(topThree[0], 1, 150, COLORS.primary)}
           {renderPodiumItem(topThree[2], 3, 90, COLORS.secondary)}
         </View>
+      <View>
+    </View>
 
-        <View>
-
-        </View>
-
-        {/* list rank */}
         <Card style={styles.listCard}>
           {others.map((item, index) => { 
             const isMe = item.id === CURRENT_USER_UID;
             return (
               <View key={item.id} style={[styles.rankRow, isMe && styles.highlightRow]}>
                 <View style={[styles.rankNumberCircle, isMe && {backgroundColor: COLORS.primary}]}>
-                  <Text style={[styles.rankNumberText, isMe && {color: 'white'}]}>
-                    {index + 4} 
-                  </Text>
+                  <Text style={[styles.rankNumberText, isMe && {color: 'white'}]}>{index + 4}</Text>
                 </View>
                 
                 <Image 
                   source={{ uri: item.profilePicture || 'https://via.placeholder.com/150' }} 
                   style={styles.rankAvatar} 
                 />
-                
-                <Text style={[styles.rankName, isMe && {color: COLORS.primary}]}>
-                    {item.name}
-                </Text>
-                
+            
+                <Text style={[styles.rankName, isMe && {color: COLORS.primary}]}>{item.name}</Text>
                 <Text style={[styles.rankXP, isMe && {fontSize: 16}]}>{item.xp} XP</Text>
               </View>
             );
@@ -167,7 +156,7 @@ const styles = StyleSheet.create({
     width: 65, 
     height: 65, 
     borderRadius: 32.5, 
-    borderColor: 'white', 
+    borderColor: COLORS.white, 
     borderWidth: 2 
   },
 
@@ -194,7 +183,7 @@ const styles = StyleSheet.create({
   },
 
   xpBadge: { 
-    backgroundColor: '#D1EFFF', 
+    backgroundColor: COLORS.smoothBlue, 
     paddingHorizontal: 10, 
     paddingVertical: 2, 
     borderRadius: 10, 
@@ -219,7 +208,7 @@ const styles = StyleSheet.create({
   stepNumber: { 
     fontSize: 42, 
     fontWeight: 'bold', 
-    color: 'white', 
+    color: COLORS.white, 
     opacity: 0.9 
   },
   
@@ -228,9 +217,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: 'white',
-    borderWidth: 1.5,
-    borderColor: '#BDE4FF',
+    backgroundColor: COLORS.white,
+    borderWidth: 2,
+    borderColor: COLORS.smoothBlue,
   },
 
   rankRow: { 
@@ -238,16 +227,16 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     paddingVertical: 14, 
     borderBottomWidth: 1, 
-    borderBottomColor: '#F5F5F5' 
+    borderBottomColor: COLORS.smoothBlue
   },
   
   highlightRow: {
-    backgroundColor: '#F0F9FF',
+    backgroundColor: COLORS.smoothBlue,
     borderRadius: 15,
     paddingHorizontal: 10,
     marginHorizontal: -5,
     borderWidth: 1,
-    borderColor: '#39B3FF'
+    borderColor: COLORS.primary
   },
 
   rankNumberCircle: { 
