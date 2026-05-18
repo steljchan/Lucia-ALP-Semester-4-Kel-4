@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, KeyboardAvoidingView, Platform, ScrollView, GestureResponderEvent} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
@@ -11,28 +11,59 @@ import { initializeApp, deleteApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 // firebase
-import { db, firebaseConfig } from "../../src/config/firebase"; // sesuaikan path config kamu
-import { collection, addDoc, serverTimestamp, doc, setDoc} from "firebase/firestore";
+import { db, firebaseConfig } from "../../src/config/firebase";
+import { collection, getDocs, query, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
+import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function AddUser() {
   const router = useRouter();
+
+  const [pairs, setPairs] = useState<any[]>([]);
+  const [showModal, setShowModal] = useState(false);
   
-  // State Umum
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'guru' | 'siswa'>('siswa');
   const [password, setPassword] = useState('');
-  const [sendEmail, setSendEmail] = useState(true);
 
-  // State Khusus Siswa
+  
+  const [allClasses, setAllClasses] = useState<any[]>([]);
+  const [allSubjects, setAllSubjects] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+ 
   const [nis, setNis] = useState('');
   const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
   const [kelas, setKelas] = useState('');
 
-  // State Khusus Guru
+  
   const [nik, setNik] = useState('');
-  const [mapel, setMapel] = useState('');
+  const [mapel, setMapel] = useState(''); 
   const [isWalas, setIsWalas] = useState(false);
+
+  
+  useEffect(() => {
+  const fetchMasterData = async () => {
+    try {
+      
+      const classSnap = await getDocs(collection(db, "class"));
+      setAllClasses(classSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })));
+     
+      const subjectSnap = await getDocs(collection(db, "subject"));
+      setAllSubjects(subjectSnap.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,    
+        tinkat: doc.data().tinkat 
+      })));
+    } catch (error) {
+      console.error("Gagal ambil data master:", error);
+    }
+  };
+  fetchMasterData();
+}, []);
 
   const handleSubmit = async () => {
     if (!name || !email || !password) {
@@ -74,6 +105,7 @@ export default function AddUser() {
         userData.NIK = nik;
         userData.mapel = mapel;
         userData.isWalas = isWalas;
+        userData.pairs = pairs;
       }
 
       await setDoc(doc(db, "users", newUid), userData);
@@ -129,7 +161,7 @@ export default function AddUser() {
               </TouchableOpacity>
             </View>
 
-            {/* FORM DINAMIS SISWA */}
+            
             {role === 'siswa' && (
               <View>
                 <Text style={styles.label}>NIS</Text>
@@ -137,32 +169,79 @@ export default function AddUser() {
                 
                 <Text style={styles.label}>Tingkat</Text>
                 <View style={styles.roleContainer}>
-                  <TouchableOpacity style={[styles.roleButton, tingkat === 'SMP' && styles.roleActive]} onPress={() => setTingkat('SMP')}>
-                    <Text style={[styles.roleText, tingkat === 'SMP' && { color: COLORS.white }]}>SMP</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={[styles.roleButton, tingkat === 'SMA' && styles.roleActive]} onPress={() => setTingkat('SMA')}>
-                    <Text style={[styles.roleText, tingkat === 'SMA' && { color: COLORS.white }]}>SMA</Text>
-                  </TouchableOpacity>
+                  {['SMP', 'SMA'].map((t: any) => (
+                    <TouchableOpacity 
+                      key={t} 
+                      style={[styles.roleButton, tingkat === t && styles.roleActive]} 
+                      onPress={() => { setTingkat(t); setKelas(''); }} // Reset kelas jika tingkat ganti
+                    >
+                      <Text style={[styles.roleText, tingkat === t && { color: COLORS.white }]}>{t}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
 
                 <Text style={styles.label}>Kelas</Text>
-                <TextInput placeholder="Contoh: 10A / 9B" value={kelas} onChangeText={setKelas} style={styles.input} />
+                <TouchableOpacity 
+                  style={styles.input} 
+                  onPress={() => setShowDropdown(!showDropdown)}
+                >
+                  <Text style={{ color: kelas ? COLORS.textMain : COLORS.darkGray }}>
+                    {kelas || "Pilih Kelas"}
+                  </Text>
+                </TouchableOpacity>
+
+                {showDropdown && (
+                  <View style={styles.dropdownBox}>
+                    {allClasses
+                      .filter(c => c.tingkat === tingkat)
+                      .map((c, i) => (
+                        <TouchableOpacity 
+                          key={i} 
+                          style={styles.dropdownItem} 
+                          onPress={() => { setKelas(c.kelas); setShowDropdown(false); }}
+                        >
+                          <Text>{c.kelas}</Text>
+                        </TouchableOpacity>
+                      ))}
+                  </View>
+                )}
               </View>
             )}
 
-            {/* FORM DINAMIS GURU */}
+            
             {role === 'guru' && (
               <View>
                 <Text style={styles.label}>NIK</Text>
                 <TextInput placeholder="Masukkan NIK" value={nik} onChangeText={setNik} keyboardType="numeric" style={styles.input} />
                 
-                <Text style={styles.label}>Mata Pelajaran</Text>
-                <TextInput placeholder="Contoh: Matematika" value={mapel} onChangeText={setMapel} style={styles.input} />
-
                 <View style={styles.switchRow}>
                   <Text style={styles.switchText}>Apakah Wali Kelas?</Text>
                   <Switch value={isWalas} onValueChange={setIsWalas} />
                 </View>
+
+                <Text style={styles.label}>Assign Kelas & Subject</Text>
+                {pairs.map((p, i) => (
+                  <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 10, backgroundColor: '#F3F4F6', borderRadius: 8, marginBottom: 5 }}>
+                    <Text style={{ fontSize: 12 }}>{p.kelas} - {p.subject} ({p.tingkat})</Text>
+                    <TouchableOpacity onPress={() => setPairs(pairs.filter((_, idx) => idx !== i))}>
+                      <Ionicons name="close-circle" size={18} color={COLORS.error} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                
+                <TouchableOpacity 
+                  style={[styles.roleButton, { borderStyle: 'dashed', marginTop: 5 }]} 
+                  onPress={() => setShowModal(true)}
+                >
+                  <Ionicons name="add-circle-outline" size={18} color={COLORS.primary} />
+                  <Text style={styles.roleText}>Tambah Pair</Text>
+                </TouchableOpacity>
+
+                <AssignPairModal
+                  visible={showModal}
+                  onClose={() => setShowModal(false)}
+                  onSubmit={(data: any) => setPairs([...pairs, data])}
+                />
               </View>
             )}
 
@@ -188,6 +267,31 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    marginRight: 8,
+  },
+  chipActive: {
+    backgroundColor: COLORS.primary,
+  },
+
+  dropdownBox: {
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: 10,
+    marginTop: -10,
+    marginBottom: 14,
+    backgroundColor: '#F9FAFB'
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF2F7'
   },
 
   card: {

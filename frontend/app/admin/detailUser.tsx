@@ -22,10 +22,6 @@ export default function DetailUser() {
   const [openPairs, setOpenPairs] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const classOptions = ['10A', '10B', '11A'];
-  const subjectOptions = ['Matematika', 'Fisika', 'Kimia'];
-
-  
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -49,25 +45,23 @@ export default function DetailUser() {
     fetchUser();
   }, [userId]);
 
-  
   const handleAddPair = async (data: any) => {
     try {
       const userRef = doc(db, "users", userId);
       const newPairs = [...(userData.pairs || []), data];
       
       await updateDoc(userRef, { pairs: newPairs });
-      setUserData({ ...userData, pairs: newPairs }); // Update tampilan lokal
+      setUserData({ ...userData, pairs: newPairs }); 
       setShowModal(false);
     } catch (error) {
       Alert.alert("Error", "Gagal mengupdate kelas & subjek");
     }
   };
 
-  
   const handleDelete = async () => {
     Alert.alert(
       "Hapus User",
-      "Apakah Anda yakin ingin menghapus user ini dari database?",
+      "Apakah Anda yakin ingin menghapus user ini?",
       [
         { text: "Batal", style: "cancel" },
         { 
@@ -103,7 +97,7 @@ export default function DetailUser() {
           rightText="Edit"
           onRightPress={() => router.push({
             pathname: '/admin/editUser',
-            params: { id: userId, role: role } // Kirim ID ke halaman edit
+            params: { ...userData, id: userId } // Mengirimkan data terbaru
           })}
         />
 
@@ -111,18 +105,20 @@ export default function DetailUser() {
           <Text style={styles.section}>Personal</Text>
           <Row label="Nama" value={userData?.name || '-'} isFirst />
           <Row label="Email" value={userData?.email || '-'} />
-
-          {role === 'guru' && (
-            <Row label="NIK" value={userData?.NIK || '-'} />
+          <Row label="Role" value={role.toUpperCase()} />
+          
+          {role === 'guru' ? (
+            <Row label="NIK" value={userData?.NIK || '-'} isLast />
+          ) : (
+            <Row label="NIS" value={userData?.NIS || '-'} isLast />
           )}
-
-          <Row label="Role" value={role.toUpperCase()} isLast />
         </View>
 
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-            <Row label="NIS" value={userData?.NIS || '-'} isFirst />
+            
+            <Row label="Tingkat" value={userData?.tingkat || userData?.tinkat || '-'} isFirst />
             <Row label="Kelas" value={userData?.kelas || '-'} />
             <Row label="XP" value={(userData?.xp || 0).toString()} />
             <Row label="Hearts" value={(userData?.hearts || 0).toString()} />
@@ -139,7 +135,9 @@ export default function DetailUser() {
               <Row
                 label="Kelas & Subject"
                 value={openPairs ? "Tutup" : "Lihat Detail"}
-                icon={openPairs ? "chevron-up" : "chevron-down"}/>
+                icon={openPairs ? "chevron-up" : "chevron-down"} 
+                isLast={!openPairs}
+              />
             </TouchableOpacity>
 
             {openPairs && (
@@ -147,7 +145,7 @@ export default function DetailUser() {
                 {userData?.pairs && userData.pairs.length > 0 ? (
                   userData.pairs.map((item: any, i: number) => (
                     <Text key={i} style={styles.dropdownItem}>
-                      • {item.kelas} - {item.subject}
+                      • {item.kelas} - {item.subject} ({item.tingkat})
                     </Text>
                   ))
                 ) : (
@@ -174,8 +172,6 @@ export default function DetailUser() {
       <AssignPairModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        classOptions={classOptions}
-        subjectOptions={subjectOptions}
         onSubmit={handleAddPair}
       />
     </View>

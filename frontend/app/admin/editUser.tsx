@@ -8,7 +8,7 @@ import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 //firebase
 import { db } from '@/src/config/firebase'; 
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore';
 import { Alert, ActivityIndicator } from 'react-native';
 
 export default function EditUser() {
@@ -25,7 +25,7 @@ export default function EditUser() {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [nis, setNis] = useState('');
-  const [nik, setNik] = useState(''); // Tambahkan NIK untuk guru
+  const [nik, setNik] = useState(''); 
   const [kelas, setKelas] = useState('');
   const [waliKelas, setWaliKelas] = useState('None');
   const [pairs, setPairs] = useState<any[]>([]);
@@ -35,10 +35,10 @@ export default function EditUser() {
   const [showWali, setShowWali] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const classOptions = ['10A', '10B', '11A'];
-  const subjectOptions = ['Matematika', 'Fisika', 'Kimia'];
-
-  // 1. Fetch data terbaru dari Firestore saat halaman dibuka
+  const [allClasses, setAllClasses] = useState<any[]>([]);
+  const [tingkatSiswa, setTingkatSiswa] = useState('SMP');
+  
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -69,6 +69,22 @@ export default function EditUser() {
     fetchUserData();
   }, [userId]);
 
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "class"));
+        const list = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setAllClasses(list);
+      } catch (error) {
+        console.error("Gagal ambil daftar kelas:", error);
+      }
+    };
+    
+    fetchClasses();
+  }, []);
   
   const handleSave = async () => {
     setSaving(true);
@@ -135,9 +151,9 @@ export default function EditUser() {
             <TouchableOpacity onPress={() => setShowClass(!showClass)}>
               <Row label="Kelas" value={kelas || 'Pilih Kelas'} icon={showClass ? 'chevron-up' : 'chevron-down'}/>
             </TouchableOpacity>
-            {showClass && classOptions.map((c) => (
-              <TouchableOpacity key={c} onPress={() => { setKelas(c); setShowClass(false); }}>
-                <Text style={styles.dropdownItem}>{c}</Text>
+            {showClass && allClasses.map((c) => (
+              <TouchableOpacity key={c.id} onPress={() => { setKelas(c.kelas); setShowClass(false); }}>
+                <Text style={styles.dropdownItem}>{c.kelas}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -150,7 +166,7 @@ export default function EditUser() {
             <TouchableOpacity onPress={() => setShowWali(!showWali)}>
               <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
             </TouchableOpacity>
-            {showWali && ['None', ...classOptions].map((c) => (
+            {showWali && ['None', ...allClasses.map((c) => c.kelas)].map((c) => (
               <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
                 <Text style={styles.dropdownItem}>{c}</Text>
               </TouchableOpacity>
@@ -184,8 +200,7 @@ export default function EditUser() {
       <AssignPairModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        classOptions={classOptions}
-        subjectOptions={subjectOptions}
+        // tingkatData={TINGKAT_DATA}
         onSubmit={(data: any) => setPairs([...pairs, data])}
       />
     </View>
