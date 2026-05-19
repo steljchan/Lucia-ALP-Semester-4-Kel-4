@@ -1,20 +1,42 @@
 import React from 'react';
-import {View, Text, Modal, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { COLORS } from '@/utils/theme';
+import { useRouter } from 'expo-router';
+
+// firebase
+import { db } from '@/src/config/firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 export default function DeleteUserModal({
   visible,
   onClose,
-  onConfirm,
+  userId, 
+  onConfirm, 
 }: any) {
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    if (!userId) return;
+
+    try {
+      await deleteDoc(doc(db, "users", userId));
+      Alert.alert("Berhasil", "User telah dihapus.");
+      
+      onClose(); 
+      if (onConfirm) onConfirm(); 
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Gagal menghapus user");
+    }
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-
           <Text style={styles.title}>Hapus User</Text>
           <Text style={styles.text}>
-            Apakah kamu yakin ingin menghapus user ini?
+            Apakah kamu yakin ingin menghapus user ini? Data yang dihapus tidak dapat dikembalikan.
           </Text>
 
           <View style={styles.actions}>
@@ -22,11 +44,10 @@ export default function DeleteUserModal({
               <Text style={styles.cancelText}>Batal</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.deleteBtn} onPress={onConfirm}>
+            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
               <Text style={styles.deleteText}>Hapus</Text>
             </TouchableOpacity>
           </View>
-
         </View>
       </View>
     </Modal>
@@ -59,7 +80,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: 13,
-    color: '#6B7280',
+    color: COLORS.textMain,
     marginBottom: 20,
   },
 

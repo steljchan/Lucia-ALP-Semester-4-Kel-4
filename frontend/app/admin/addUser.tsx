@@ -41,6 +41,19 @@ export default function AddUser() {
   const [mapel, setMapel] = useState(''); 
   const [isWalas, setIsWalas] = useState(false);
 
+  const resetForm = () => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setRole('siswa');
+    setNis('');
+    setNik('');
+    setKelas('');
+    setPairs([]);
+    setIsWalas(false);
+    setMapel('');
+  };
+
   
   useEffect(() => {
   const fetchMasterData = async () => {
@@ -114,7 +127,7 @@ export default function AddUser() {
       await deleteApp(secondaryApp);
 
       Alert.alert('Berhasil!', `User ${name} sudah terdaftar di Auth & Database.`);
-      router.back();
+      resetForm();
 
     } catch (error: any) {
       console.error(error);
