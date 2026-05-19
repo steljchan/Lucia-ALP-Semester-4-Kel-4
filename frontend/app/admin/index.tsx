@@ -165,9 +165,9 @@ export default function AdminPanel() {
       
       <DeleteUserModal
         visible={showDeleteModal}
+        userId={selectedUser}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => {
-          console.log('Hapus ID:', selectedUser);
           setShowDeleteModal(false);
         }}
       />
