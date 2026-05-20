@@ -1,9 +1,16 @@
-import { View, FlatList} from 'react-native';
+import { View, FlatList, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet } from 'react-native';
+
 import GameCard from '../../../src/components/game/gameCard';
-import { COLORS, containerHeader, scrollContent} from '@/utils/theme';
+// import SearchBar from '../../../src/components/common/searchbar';
+
+import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
+import AppHeaderWOsearch from '../../../src/components/common/appheader';
 import AppHeader from '../../../src/components/common/appheader';
+
 
 export default function GameMenu() {
   const router = useRouter();
@@ -11,29 +18,29 @@ export default function GameMenu() {
   const games = [
     {
       title: 'Mencocokkan Kata',
-      image: require('../../../assets/images/mencocokkanKata.png'),
+      image: require('../../../assets/images/games/mencocokkanKata.png'),
       route: '/siswa/game/mencocokkan',
     },
     {
       title: 'Siapakah Aku?',
-      image: require('../../../assets/images/siapakahAku.png'),
+      image: require('../../../assets/images/games/siapakahAku.png'),
       route: '/siswa/game/siapakahaku',
     },
 
     {
-      title: 'Angka Berapakah Aku?',
-      image: { uri: 'https://cdn-icons-png.flaticon.com/512/4341/4341139.png' },
-      route: '',
+      title: 'Berapakah Aku?',
+      image: require('../../../assets/images/games/berapakahAku.png'),
+      route: '/siswa/game/berapakahaku',
     },
     {
       title: 'Bahasa Isyarat',
-      image: { uri: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png' },
-      route: '',
+      image: require('../../../assets/images/games/bahasaIsyarat.png'),
+      route: '/siswa/game/bahasaisyarat',
     },
     {
-      title: 'Puzzle Kata',
-      image: { uri: 'https://cdn-icons-png.flaticon.com/512/3062/3062634.png' },
-      route: '',
+      title: 'Berapakah Jumlah Kami?',
+      image: require('../../../assets/images/games/berapakahJumlahKami.png'),
+      route: '/siswa/game/berapakahJumlahKami',
     },
     {
       title: 'Tebak Gambar',
@@ -43,7 +50,7 @@ export default function GameMenu() {
   ];
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
         <AppHeader/>
         <FlatList
@@ -53,6 +60,16 @@ export default function GameMenu() {
           contentContainerStyle={[scrollContent, styles.list]} 
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
+          
+         
+          // ListHeaderComponent={
+          //   <>
+          //     <AppHeader/>
+          //     <View style={{ marginBottom: 10 }}>
+          //        <SearchBar/>
+          //     </View>
+          //   </>
+          // }
 
           renderItem={({ item }) => (
             <GameCard
@@ -63,16 +80,45 @@ export default function GameMenu() {
           )}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#EAF6FF',
   },
-  
+
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+
+  logo: {
+    width: 120,
+    height: 45,
+    resizeMode: 'contain',
+  },
+
+  shopBtn: {
+    backgroundColor: '#5CBEFA',
+    width: 42,
+    height: 42,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   list: {
     paddingTop: 20,
   },
