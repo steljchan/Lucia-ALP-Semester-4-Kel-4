@@ -97,7 +97,7 @@ export default function DetailUser() {
           rightText="Edit"
           onRightPress={() => router.push({
             pathname: '/admin/editUser',
-            params: { ...userData, id: userId } // Mengirimkan data terbaru
+            params: { ...userData, id: userId } 
           })}
         />
 

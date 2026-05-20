@@ -81,13 +81,13 @@ export default function SplashScreen() {
     <View style={styles.container}>
       <Animated.View style={[styles.wrapper, { opacity: fadeOutAnim }]}>
         
-        {/* TAMBAHKAN INI: GENANGAN AIR */}
+        
         <Animated.View style={[
           styles.puddle, 
           { transform: [{ scale: puddleScale }] }
         ]} />
 
-        {/* LOGO TEKS (tetap seperti kodemu) */}
+       
         <Animated.View style={[styles.textContainer, { 
           opacity: textOpacity,
           transform: [{ translateX: textTranslateX }] 
@@ -99,7 +99,7 @@ export default function SplashScreen() {
           />
         </Animated.View>
 
-        {/* LOGO MASKOT (tetap seperti kodemu) */}
+        
         <Animated.View style={{ 
           transform: [
             { scale: mascotScale },
@@ -132,11 +132,11 @@ const styles = StyleSheet.create({
   mascot: {
     width: 160,
     height: 160,
-    zIndex: 2, // Memastikan logo di atas teks
+    zIndex: 2, 
   },
   textContainer: {
     position: 'absolute',
-    zIndex: 1, // Memastikan teks di bawah logo
+    zIndex: 1, 
     marginLeft: 25, 
   },
   textImage: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: COLORS.smoothBlue, // Warna biru genangan
-    zIndex: 0, // Berada di paling bawah
+    backgroundColor: COLORS.smoothBlue, 
+    zIndex: 0,
   },
 });

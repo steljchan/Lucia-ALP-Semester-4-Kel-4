@@ -41,7 +41,6 @@ export default function LeaderboardSiswa() {
           setLoading(false);
         });
 
-        // Cleanup leaderboard listener di dalam
         return () => unsubLeaderboard();
       }
     });
