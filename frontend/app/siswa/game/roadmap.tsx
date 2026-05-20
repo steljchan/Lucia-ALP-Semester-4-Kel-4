@@ -1,12 +1,17 @@
-import {View, Text, StyleSheet, ScrollView, Dimensions} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import {COLORS } from '@/utils/theme';
 
 import Svg, { Path } from 'react-native-svg';
 
-import LevelNode from '../../../src/components/game/levelnode';
-import GameHeader from '../../../src/components/game/gameHeader';
+import LevelNode from '../../../src/components/game/common/levelnode';
+import GameHeader from '../../../src/components/game/common/gameHeader';
 
 const { width } = Dimensions.get('window');
 
@@ -20,27 +25,19 @@ interface RoadmapProps {
   levels: Level[];
   currentLevel: number;
   routePrefix: string;
-  spacingY?: number;
-  amplitude?: number;
 }
 
-export default function Roadmap(props: RoadmapProps) {
-  const {
-    title,
-    levels,
-    currentLevel,
-    routePrefix,
-    spacingY = 110,
-    amplitude = 50,
-  } = props;
-
+export default function Roadmap({
+  title,
+  levels,
+  currentLevel,
+  routePrefix,
+}: RoadmapProps) {
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [ready, setReady] = useState(false);
 
   const LEVEL_COUNT = levels.length;
-
-  const mapHeight = 120 + LEVEL_COUNT * spacingY;
 
   useEffect(() => {
     setTimeout(() => {
@@ -52,37 +49,38 @@ export default function Roadmap(props: RoadmapProps) {
     setTimeout(() => setReady(true), 100);
   }, []);
 
-  const getOffsetX = (index: number) => {
-    return Math.sin(index * 0.8) * amplitude;
-  };
-
   const getNodePosition = (index: number) => {
-    const centerX = width / 2;
+    const spacingY = 100;
+    const centerX = width * 0.5;
+
+    const offsets = [
+      0, 30, -40, 35, -35,
+      40, -30, 35, -25, 30,
+      -20, 25, -15, 20, 0,
+    ];
+
     const reversedIndex = LEVEL_COUNT - 1 - index;
 
     return {
-      x: centerX + getOffsetX(index),
+      x: centerX + (offsets[index] || 0),
       y: 120 + reversedIndex * spacingY,
     };
   };
 
   const generatePath = () => {
     const points = levels.map((_, i) => getNodePosition(i));
+
     if (points.length < 2) return '';
 
-    let d = `M ${points[0].x} ${points[0].y}`;
+    let d = `M ${points[0].x} ${points[0].y + 40}`;
 
     for (let i = 1; i < points.length; i++) {
       const prev = points[i - 1];
       const curr = points[i];
 
-      const midY = (prev.y + curr.y) / 2;
+      const controlX = (prev.x + curr.x) / 2;
 
-      d += `
-        C ${prev.x} ${midY},
-          ${curr.x} ${midY},
-          ${curr.x} ${curr.y}
-      `;
+      d += ` Q ${controlX} ${prev.y}, ${curr.x} ${curr.y}`;
     }
 
     return d;
@@ -97,25 +95,20 @@ export default function Roadmap(props: RoadmapProps) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.mapContainer, { height: mapHeight }]}>
-          <Svg width="100%" height={mapHeight} style={styles.road}>
+        <View style={styles.mapContainer}>
+
+          {/* ROAD */}
+          <Svg width="100%" height={1700} style={styles.road}>
             <Path
               d={generatePath()}
-              stroke={COLORS.primary}
+              stroke="#5CBEFA"
               strokeWidth="14"
-              fill="none"
-              strokeLinecap="round"
-            />
-            
-            <Path
-              d={generatePath()}
-              stroke="#A7D8FF"
-              strokeWidth="6"
               fill="none"
               strokeLinecap="round"
             />
           </Svg>
 
+          {/* NODES */}
           {ready &&
             levels.map((item, index) => {
               const pos = getNodePosition(index);
@@ -139,6 +132,7 @@ export default function Roadmap(props: RoadmapProps) {
                     }
                   />
 
+                  {/* START */}
                   {item.id === 1 && (
                     <View style={styles.startMarker}>
                       <Text style={{ fontSize: 20 }}>🚩</Text>
@@ -156,14 +150,16 @@ export default function Roadmap(props: RoadmapProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#EAF6FF',
   },
 
   scroll: {
     paddingBottom: 60,
   },
 
-  mapContainer: {},
+  mapContainer: {
+    height: 120 + 15 * 100,
+  },
 
   road: {
     position: 'absolute',
@@ -173,7 +169,10 @@ const styles = StyleSheet.create({
 
   nodeAbsolute: {
     position: 'absolute',
-    transform: [{ translateX: -28 }, { translateY: -28 }],
+    transform: [
+      { translateX: -28 },
+      { translateY: -28 },
+    ],
   },
 
   startMarker: {

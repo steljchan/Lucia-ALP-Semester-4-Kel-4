@@ -1,21 +1,55 @@
-import {View, Text, TouchableOpacity, StyleSheet, Image, Animated, Modal} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
-import {COLORS} from '@/utils/theme';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Animated,
+} from 'react-native';
+
+import {
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
+
+import {
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import {
+  saveGameProgress,
+}
+from '../../../../../src/services/gameProgress';
 
 import { siapakahAkuLevels } from '../../../../../src/data/siapakahaku';
+
+import { siapakahAkuImages } from '../../../../../src/constants/siapakahAku';
+
 import useSiapakahAku from '../../../../../src/hooks/usesiapakahaku';
-import LetterBox from '../../../../../src/components/game/letterbox';
-import GameHeader from '../../../../../src/components/game/gameHeader';
-import HintModal from '../../../../../src/components/game/hintModal';
-import ResultModal from '../../../../../src/components/game/resultModal';
+
+import LetterBox from '../../../../../src/components/game/siapakahAku/LetterBox';
+
+import GameLayout from '../../../../../src/components/game/layout/GameLayout';
+
+import HintModal from '../../../../../src/components/game/common/hintModal';
+
+import ResultModal from '../../../../../src/components/game/common/resultModal';
 
 export default function GamePlay() {
+
   const { id } = useLocalSearchParams();
+
   const router = useRouter();
 
   const levelIndex = Number(id) - 1;
+
   const level = siapakahAkuLevels[levelIndex];
+
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  const question = level.questions[questionIndex];
 
   const {
     selected,
@@ -27,50 +61,46 @@ export default function GamePlay() {
     check,
     isFull,
     status,
-  } = useSiapakahAku(level.answer);
+  } = useSiapakahAku(question.answer);
 
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const imageMap: any = {
-    koala: require('../../../../../assets/images/koala.jpeg'),
-    sapi: require('../../../../../assets/images/sapi.jpeg'),
-    kucing: require('../../../../../assets/images/kucing.jpeg'),
-    ayam: require('../../../../../assets/images/ayam.jpeg'),
-    gajah: require('../../../../../assets/images/gajah.jpeg'),
-    kuda: require('../../../../../assets/images/kuda.jpeg'),
-    zebra: require('../../../../../assets/images/zebra.jpeg'),
-    panda: require('../../../../../assets/images/panda.jpeg'),
-    monyet: require('../../../../../assets/images/monyet.jpeg'),
-    burung: require('../../../../../assets/images/burung.jpeg'),
-    ikan: require('../../../../../assets/images/ikan.jpeg'),
-    harimau: require('../../../../../assets/images/harimau.jpeg'),
-    kambing: require('../../../../../assets/images/kambing.jpeg'),
-    kelinci: require('../../../../../assets/images/kelinci.jpeg'),
-    singa: require('../../../../../assets/images/singa.jpeg'),
-  };
+  const scaleAnim = useRef(
+    new Animated.Value(1)
+  ).current;
 
   const options = useMemo(() => {
+
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    const answerLetters = level.answer.split('');
+
+    const answerLetters = question.answer.split('');
 
     const extra = alphabet
       .filter((l) => !answerLetters.includes(l))
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
-    return [...answerLetters, ...extra].sort(() => Math.random() - 0.5);
-  }, [level.id]);
+    return [...answerLetters, ...extra]
+      .sort(() => Math.random() - 0.5);
 
-  const topRow = options.length > 6 ? options.slice(0, 4) : options;
-  const bottomRow = options.length > 6 ? options.slice(4) : [];
+  }, [question]);
+
+  const splitIndex =
+  options.length <= 5
+    ? options.length
+    : Math.floor(options.length / 2);
+
+  const topRow = options.slice(0, splitIndex);
+
+  const bottomRow = options.slice(splitIndex);
 
   const playAnimation = (correct: boolean) => {
+
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 1.15,
         duration: 150,
         useNativeDriver: true,
       }),
+
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: 150,
@@ -84,242 +114,428 @@ export default function GamePlay() {
       }, 900);
     }
   };
-  const [showResult, setShowResult] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [earnedStars, setEarnedStars] = useState(0);
-  const [xp, setXp] = useState(0);
-  const [coin, setCoin] = useState(0);
-
-  const stars = selected.join('') === level.answer ? 3 : 2;
-
-  const onSubmit = () => {
-    if (!isFull) return;
-
-    const result = check();
-
-    if (result) {
-      const finalStars = stars;
-
-      playAnimation(true);
-
-      setEarnedStars(finalStars);
-      setXp(50 + finalStars * 75);
-      setCoin(3 + finalStars * 2);
-
-      setTimeout(() => {
-        setShowResult(true);
-      }, 400);
-
-    } else {
-      playAnimation(false);
-    }
-  };
 
   const [showHint, setShowHint] = useState(false);
+
   const [hintStep, setHintStep] = useState(0);
+
+  const [showResult, setShowResult] = useState(false);
+
+  const [earnedStars, setEarnedStars] = useState(0);
+
+  const [xp, setXp] = useState(0);
+
+  const [coin, setCoin] = useState(0);
+
+  const stars =
+    selected.join('') === question.answer
+      ? 3
+      : 2;
+
   const hintText = useMemo(() => {
-  const answer = level.answer;
+
+    const answer = question.answer;
+
     switch (hintStep) {
+
       case 0:
         return `Huruf pertama: ${answer[0]}`;
+
       case 1:
         return `Huruf terakhir: ${answer[answer.length - 1]}`;
+
       case 2:
         return `Jumlah huruf: ${answer.length}`;
-      default:
-        return `Semangat! Kamu pasti bisa 😄`;
-    }
-  }, [hintStep, level.answer]);
-  const onPressHint = () => {
-    setShowHint(true);
-  };
 
+      default:
+        return `Semangat 😄`;
+    }
+
+  }, [hintStep, question.answer]);
+
+  const onSubmit = () => {
+
+  /*
+    =========================
+    VALIDATION
+    =========================
+  */
+
+  if (!isFull)
+    return;
+
+  /*
+    =========================
+    CHECK ANSWER
+    =========================
+  */
+
+  const result =
+    check();
+
+  /*
+    =========================
+    ANIMATION
+    =========================
+  */
+
+  if (result) {
+
+    playAnimation(true);
+
+  } else {
+
+    playAnimation(false);
+  }
+
+  /*
+    =========================
+    NEXT QUESTION
+    =========================
+  */
+
+  if (
+    questionIndex <
+    level.questions.length - 1
+  ) {
+
+    setTimeout(() => {
+
+      setQuestionIndex(
+        (prev) => prev + 1
+      );
+
+      reset();
+
+    }, 700);
+
+  }
+
+  /*
+    =========================
+    FINISH LEVEL
+    =========================
+  */
+
+  else {
+
+    /*
+      =========================
+      REWARD
+      =========================
+    */
+
+    const finalStars =
+      result ? 3 : 1;
+
+    const earnedXp =
+      result ? 150 : 50;
+
+    const earnedCoin =
+      result ? 8 : 2;
+
+    /*
+      =========================
+      SAVE STATE
+      =========================
+    */
+
+    setEarnedStars(
+      finalStars
+    );
+
+    setXp(
+      earnedXp
+    );
+
+    setCoin(
+      earnedCoin
+    );
+
+    /*
+      =========================
+      SAVE FIREBASE
+      =========================
+    */
+
+    setTimeout(async () => {
+
+      try {
+
+        await saveGameProgress({
+
+          /*
+            GAME ID
+          */
+
+          gameId:
+            'siapakahaku',
+
+          /*
+            LEVEL
+          */
+
+          levelId:
+            level.id,
+
+          /*
+            REWARD
+          */
+
+          stars:
+            finalStars,
+
+          xp:
+            earnedXp,
+
+          coin:
+            earnedCoin,
+        });
+
+        /*
+          SHOW RESULT
+        */
+
+        setShowResult(true);
+
+      } catch (error) {
+
+        console.log(
+          'ERROR SAVE GAME:',
+          error
+        );
+      }
+
+    }, 700);
+  }
+};
 
   return (
-    <View style={styles.container}>
+    <>
+      <GameLayout
+        title="Siapakah Aku"
+        level={level.id}
+        actions={[
+          {
+            icon: '💡',
+            color: '#FFD700',
+            onPress: () => setShowHint(true),
+          },
 
-      <GameHeader title="Siapakah Aku" level={level.id} hearts={3} />
+          {
+            icon: '⌫',
+            color: '#FF6B6B',
+            onPress: removeLast,
+          },
 
-      <Text style={styles.title}>Siapakah Aku?</Text>
-      <Image source={imageMap[level.image]} style={styles.image} />
-
-      <Animated.View
-        style={[
-          styles.answerRow,
-          { transform: [{ scale: scaleAnim }] },
+          {
+            text: 'Jawab',
+            color: '#5CBEFA',
+            onPress: onSubmit,
+            disabled: !isFull,
+            flex: 1,
+          },
         ]}
       >
-        {level.answer.split('').map((_, i) => (
-          <TouchableOpacity key={i} onPress={() => remove(i)}>
-            <LetterBox
-              letter={selected[i]}
-              status={status}
-            />
-          </TouchableOpacity>
-        ))}
-      </Animated.View>
 
-      <View style={styles.optionsContainer}>
+        <Text style={styles.title}>
+          Siapakah Aku?
+        </Text>
 
-        <View style={styles.row}>
-          {topRow.map((l, i) => {
-            const index = i;
+        <Image
+          source={
+            siapakahAkuImages[
+              question.image as keyof typeof siapakahAkuImages
+            ]
+          }
+          style={styles.image}
+        />
 
-            const isUsed = usedIndexes.includes(index);
-
-            return (
+        <Animated.View
+          style={[
+            styles.answerRow,
+            {
+              transform: [
+                { scale: scaleAnim },
+              ],
+            },
+          ]}
+        >
+          {question.answer
+            .split('')
+            .map((_, i) => (
               <TouchableOpacity
-                key={index}
-                style={[
-                  styles.optionBtn,
-                  isUsed && styles.optionDisabled,
-                ]}
-                onPress={() => select(l, index)}
-                disabled={isUsed}
+                key={i}
+                onPress={() => remove(i)}
               >
-                <Text style={styles.optionText}>{l}</Text>
+                <LetterBox
+                  letter={selected[i]}
+                  status={status}
+                />
               </TouchableOpacity>
-            );
-          })}
-        </View>
+            ))}
+        </Animated.View>
 
-        {bottomRow.length > 0 && (
+        <View style={styles.optionsContainer}>
+
           <View style={styles.row}>
-            {bottomRow.map((l, i) => {
-              const index = i + 4; 
+            {topRow.map((l, i) => {
 
-              const isUsed = usedIndexes.includes(index);
+              const index = i;
+
+              const isUsed =
+                usedIndexes.includes(index);
 
               return (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.optionBtn,
-                    isUsed && styles.optionDisabled,
+                    isUsed &&
+                      styles.optionDisabled,
                   ]}
-                  onPress={() => select(l, index)}
+                  onPress={() =>
+                    select(l, index)
+                  }
                   disabled={isUsed}
                 >
-                  <Text style={styles.optionText}>{l}</Text>
+                  <Text style={styles.optionText}>
+                    {l}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-        )}
 
-      </View>
+          {bottomRow.length > 0 && (
+            <View style={styles.row}>
+              {bottomRow.map((l, i) => {
 
-      <View style={styles.actionRow}>
+                const index = i + 4;
 
-        <TouchableOpacity 
-          style={styles.hintBtn}
-          onPress={() => setShowHint(true)}
-        >
-          <Text style={styles.hintIcon}>💡</Text>
-        </TouchableOpacity>
+                const isUsed =
+                  usedIndexes.includes(index);
 
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={removeLast}
-        >
-          <Text style={styles.deleteText}>⌫</Text>
-        </TouchableOpacity>
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.optionBtn,
+                      isUsed &&
+                        styles.optionDisabled,
+                    ]}
+                    onPress={() =>
+                      select(l, index)
+                    }
+                    disabled={isUsed}
+                  >
+                    <Text style={styles.optionText}>
+                      {l}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
 
-        <TouchableOpacity
-          style={[
-            styles.submit,
-            { opacity: isFull ? 1 : 0.5 },
-          ]}
-          disabled={!isFull}
-          onPress={onSubmit}
-        >
-          <Text style={styles.submitText}>Jawab</Text>
-        </TouchableOpacity>
+        </View>
 
-      </View>
+      </GameLayout>
+
       <HintModal
         visible={showHint}
         hintText={hintText}
         onClose={() => {
+
           setShowHint(false);
 
           setHintStep((prev) => {
-            if (prev < 2) return prev + 1;
+
+            if (prev < 2) {
+              return prev + 1;
+            }
+
             return prev;
           });
         }}
       />
 
       <ResultModal
-        visible={showResult && !isNavigating}
+        visible={showResult}
         gameTitle="Siapakah Aku?"
         stars={earnedStars}
         xp={xp}
         coin={coin}
 
         onRetry={() => {
+
           setShowResult(false);
 
           reset();
 
-          setTimeout(() => {
-            setIsNavigating(false);
-          }, 100);
+          setQuestionIndex(0);
         }}
 
         onNext={() => {
-          setIsNavigating(true);
-          setShowResult(false);
 
-          requestAnimationFrame(() => {
-            const next = levelIndex + 2;
+          const next = levelIndex + 2;
 
-            if (next <= siapakahAkuLevels.length) {
-              router.replace(`/siswa/game/siapakahaku/level/${next}`);
-            } else {
-              router.back();
-            }
-          });
+          if (
+            next <= siapakahAkuLevels.length
+          ) {
+
+            router.replace(
+              `/siswa/game/siapakahaku/level/${next}`
+            );
+
+          } else {
+
+            router.back();
+
+          }
         }}
 
         onLeaderboard={() => {
-          setIsNavigating(true);
-          setShowResult(false);
-
-          requestAnimationFrame(() => {
-            router.push('/siswa/tabs/leaderboard');
-          });
+          router.push(
+            '/siswa/tabs/leaderboard'
+          );
         }}
       />
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
 
   title: {
     textAlign: 'center',
+
     fontSize: 24,
+
     fontWeight: '700',
-    marginTop: 60,
-    color: COLORS.textMain,
+
+    marginTop: 40,
+
+    color: '#1A3B5D',
   },
 
   image: {
     width: 220,
+
     height: 220,
+
     alignSelf: 'center',
+
     marginVertical: 20,
+
     resizeMode: 'contain',
   },
 
   answerRow: {
     flexDirection: 'row',
+
     justifyContent: 'center',
+
     marginBottom: 25,
   },
 
@@ -329,78 +545,37 @@ const styles = StyleSheet.create({
 
   row: {
     flexDirection: 'row',
+
     justifyContent: 'center',
+
     gap: 10,
+
     marginBottom: 10,
   },
 
   optionBtn: {
     width: 55,
+
     height: 55,
-    backgroundColor: COLORS.smoothBlue,
+
+    backgroundColor: '#ADDFFD',
+
     borderRadius: 12,
+
     justifyContent: 'center',
+
     alignItems: 'center',
   },
 
   optionDisabled: {
-    backgroundColor: COLORS.gray,
+    backgroundColor: '#E5E7EB',
   },
 
   optionText: {
     fontSize: 20,
+
     fontWeight: '700',
-    color: COLORS.textMain,
-  },
 
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-
-  hintBtn: {
-    width: 55,
-    height: 55,
-    borderRadius: 28,
-    backgroundColor: COLORS.yellow,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  hintIcon: {
-    fontSize: 22,
-    color: COLORS.white,
-  },
-
-  deleteBtn: {
-    width: 55,
-    height: 55,
-    borderRadius: 28,
-    backgroundColor: COLORS.error,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  deleteText: {
-    color: COLORS.white,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-
-  submit: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 24,
-    alignItems: 'center',
-  },
-
-  submitText: {
-    color: COLORS.white,
-    fontWeight: '700',
-    fontSize: 16,
+    color: '#1A3B5D',
   },
 });

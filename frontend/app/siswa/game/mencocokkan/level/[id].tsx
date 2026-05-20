@@ -1,394 +1,1178 @@
-import {View, Text, StyleSheet, TouchableOpacity, Animated,} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState, useMemo } from 'react';
-import {COLORS} from '@/utils/theme';
-import Svg, { Line } from 'react-native-svg';
+import React from 'react';
 
-import { mencocokkanLevels } from '../../../../../src/data/mencocokkan';
-import useMencocokkan from '../../../../../src/hooks/useMencocokkan';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from 'react-native';
 
-import MatchWord from '../../../../../src/components/game/matchword';
-import MatchImage from '../../../../../src/components/game/matchimage';
-import GameHeader from '../../../../../src/components/game/gameHeader';
-import HintModal from '../../../../../src/components/game/hintModal';
-import ResultModal from '../../../../../src/components/game/resultModal';
+import {
+  useLocalSearchParams,
+  useRouter,
+} from 'expo-router';
+
+import {
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import Svg, {
+  Line,
+  Circle,
+} from 'react-native-svg';
+
+import {
+  mencocokkanLevels,
+} from '../../../../../src/data/mencocokkan';
+
+import useMencocokkan
+from '../../../../../src/hooks/useMencocokkan';
+
+import MatchWord
+from '../../../../../src/components/game/mencocokkan/matchword';
+
+import MatchImage
+from '../../../../../src/components/game/mencocokkan/matchimage';
+
+import GameLayout
+from '../../../../../src/components/game/layout/GameLayout';
+
+import HintModal
+from '../../../../../src/components/game/common/hintModal';
+
+import ResultModal
+from '../../../../../src/components/game/common/resultModal';
+
+const {
+  width,
+  height,
+} = Dimensions.get(
+  'window'
+);
 
 export default function MatchingGame() {
-  const { id } = useLocalSearchParams();
-  const router = useRouter();
 
-  const levelIndex = Number(id) - 1;
-  const level = mencocokkanLevels[levelIndex];
+  const { id } =
+    useLocalSearchParams();
+
+  const router =
+    useRouter();
+
+  const levelIndex =
+    Number(id) - 1;
+
+  const level =
+    mencocokkanLevels[
+      levelIndex
+    ];
 
   const {
-    selectedWord,
-    selectWord,
-    selectImage,
-    resultMap,
-    reset,
-    checkAll,
     wordPositions,
     imagePositions,
+
     setWordPosition,
     setImagePosition,
+
     shuffledWords,
     shuffledImages,
-  } = useMencocokkan(level.pairs);
 
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+    reset,
+  } = useMencocokkan(
+    level.pairs
+  );
 
-  const [connections, setConnections] = useState<
-    { word: string; image: string }[]
-  >([]);
+  /*
+    =========================
+    STATES
+    =========================
+  */
 
-  const [submitted, setSubmitted] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [
+    connections,
+    setConnections,
+  ] = useState<any[]>(
+    []
+  );
 
-  const [earnedStars, setEarnedStars] = useState(0);
-  const [xp, setXp] = useState(0);
-  const [coin, setCoin] = useState(0);
+  const [
+    activeLine,
+    setActiveLine,
+  ] = useState<any>(
+    null
+  );
 
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [
+    submitted,
+    setSubmitted,
+  ] = useState(
+    false
+  );
 
-  const handleSelectImage = (imageWord: string) => {
-    if (!selectedWord) return;
+  const [
+    showHint,
+    setShowHint,
+  ] = useState(
+    false
+  );
 
-    setConnections((prev) => {
-      const filtered = prev.filter(
-        (c) => c.word !== selectedWord && c.image !== imageWord
+  const [
+    showResult,
+    setShowResult,
+  ] = useState(
+    false
+  );
+
+  const [
+    earnedStars,
+    setEarnedStars,
+  ] = useState(0);
+
+  const [
+    xp,
+    setXp,
+  ] = useState(0);
+
+  const [
+    coin,
+    setCoin,
+  ] = useState(0);
+
+  /*
+    =========================
+    RESULT MAP
+    =========================
+  */
+
+  const [
+    resultMap,
+    setResultMap,
+  ] = useState<any>(
+    {}
+  );
+
+  /*
+    =========================
+    ANIMATION
+    =========================
+  */
+
+  const scaleAnim =
+    useRef(
+      new Animated.Value(
+        1
+      )
+    ).current;
+
+  /*
+    =========================
+    HINT
+    =========================
+  */
+
+  const hintText =
+    useMemo(() => {
+
+      return 'Tarik garis dari kata ke gambar yang benar ✨';
+
+    }, []);
+
+  /*
+    =========================
+    START CONNECTION
+    =========================
+  */
+
+  const startConnection =
+    (
+      word: string
+    ) => {
+
+      const from =
+        wordPositions[
+          word
+        ];
+
+      if (!from)
+        return;
+
+      setActiveLine({
+        word,
+
+        startX:
+          from.x,
+
+        startY:
+          from.y,
+
+        endX:
+          from.x,
+
+        endY:
+          from.y,
+      });
+    };
+
+  /*
+    =========================
+    FIND CLOSEST IMAGE
+    =========================
+  */
+
+  const findClosestImage =
+    (
+      x: number,
+      y: number
+    ) => {
+
+      let closest:
+        | string
+        | null =
+        null;
+
+      let minDistance =
+        Infinity;
+
+      Object.entries(
+        imagePositions
+      ).forEach(
+        (
+          [
+            key,
+            pos,
+          ]: any
+        ) => {
+
+          const distance =
+            Math.sqrt(
+              Math.pow(
+                x -
+                  pos.x,
+                2
+              ) +
+              Math.pow(
+                y -
+                  pos.y,
+                2
+              )
+            );
+
+          /*
+            SNAP RANGE
+          */
+
+          if (
+            distance <
+              100 &&
+            distance <
+              minDistance
+          ) {
+
+            minDistance =
+              distance;
+
+            closest =
+              key;
+          }
+        }
       );
 
-      return [...filtered, { word: selectedWord, image: imageWord }];
-    });
+      return closest;
+    };
 
-    selectImage(imageWord);
-  };
+  /*
+    =========================
+    PAN RESPONDER
+    =========================
+  */
 
-  const playAnimation = (correct: boolean) => {
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 1.1,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const panResponder =
+    useRef(
+      PanResponder.create({
 
-    if (!correct) {
+        onStartShouldSetPanResponder:
+          () => true,
+
+        onMoveShouldSetPanResponder:
+          () =>
+            !!true,
+
+        onMoveShouldSetPanResponderCapture:
+          () =>
+            !!true,
+
+        /*
+          =====================
+          MOVE
+          =====================
+        */
+
+        onPanResponderMove:
+          (
+            evt
+          ) => {
+
+            if (
+              !activeLine
+            )
+              return;
+
+            const moveX =
+              evt
+                .nativeEvent
+                .pageX;
+
+            const moveY =
+              evt
+                .nativeEvent
+                .pageY;
+
+            /*
+              SNAP
+            */
+
+            const closestImage =
+              findClosestImage(
+                moveX,
+                moveY
+              );
+
+            if (
+              closestImage
+            ) {
+
+              const target =
+                imagePositions[
+                  closestImage
+                ];
+              console.log(moveX, moveY);
+              setActiveLine(
+                (
+                  prev: any
+                ) => ({
+                  ...prev,
+
+                  endX:
+                    target.x,
+
+                  endY:
+                    target.y,
+                })
+              );
+
+            } else {
+
+              setActiveLine(
+                (
+                  prev: any
+                ) => ({
+                  ...prev,
+
+                  endX:
+                    moveX,
+
+                  endY:
+                    moveY,
+                })
+              );
+            }
+          },
+
+        /*
+          =====================
+          RELEASE
+          =====================
+        */
+
+        onPanResponderRelease:
+          (
+            evt
+          ) => {
+
+            if (
+              !activeLine
+            )
+              return;
+
+            const releaseX =
+              evt
+                .nativeEvent
+                .pageX;
+
+            const releaseY =
+              evt
+                .nativeEvent
+                .pageY;
+
+            const matchedImage =
+              findClosestImage(
+                releaseX,
+                releaseY
+              );
+
+            /*
+              SAVE
+            */
+
+            if (
+              matchedImage
+            ) {
+
+              setConnections(
+                (
+                  prev
+                ) => {
+
+                  /*
+                    HAPUS DUPLIKAT
+                  */
+
+                  const filtered =
+                    prev.filter(
+                      (
+                        c
+                      ) =>
+                        c.word !==
+                          activeLine.word &&
+                        c.image !==
+                          matchedImage
+                    );
+
+                  return [
+                    ...filtered,
+
+                    {
+                      word:
+                        activeLine.word,
+
+                      image:
+                        matchedImage,
+                    },
+                  ];
+                }
+              );
+            }
+
+            /*
+              RESET
+            */
+
+            setActiveLine(
+              null
+            );
+          },
+
+        onPanResponderTerminate:
+          () => {
+
+            setActiveLine(
+              null
+            );
+          },
+      })
+    ).current;
+
+  /*
+    =========================
+    SUBMIT
+    =========================
+  */
+
+  const onSubmit =
+    () => {
+
+      let correct = 0;
+
+      const results:
+        any = {};
+
+      connections.forEach(
+        (
+          c
+        ) => {
+
+          /*
+            🔥 BENAR
+          */
+
+          if (
+            c.word ===
+            c.image
+          ) {
+
+            results[
+              c.word
+            ] =
+              'correct';
+
+            correct++;
+
+          } else {
+
+            results[
+              c.word
+            ] =
+              'wrong';
+          }
+        }
+      );
+
+      setResultMap(
+        results
+      );
+
+      setSubmitted(
+        true
+      );
+
+      Animated.sequence([
+        Animated.timing(
+          scaleAnim,
+          {
+            toValue:
+              1.04,
+
+            duration: 120,
+
+            useNativeDriver:
+              true,
+          }
+        ),
+
+        Animated.timing(
+          scaleAnim,
+          {
+            toValue:
+              1,
+
+            duration: 120,
+
+            useNativeDriver:
+              true,
+          }
+        ),
+      ]).start();
+
+      const allCorrect =
+        correct ===
+        level.pairs.length;
+
+      if (
+        allCorrect
+      ) {
+
+        setEarnedStars(
+          3
+        );
+
+        setXp(150);
+
+        setCoin(10);
+
+      } else {
+
+        setEarnedStars(
+          1
+        );
+
+        setXp(50);
+
+        setCoin(2);
+      }
+
       setTimeout(() => {
-        reset();
-        setConnections([]);
-        setSubmitted(false);
-      }, 800);
-    }
-  };
 
-  const onSubmit = () => {
-    const result = checkAll();
+        setShowResult(
+          true
+        );
 
-    setSubmitted(true);
-    setIsCorrect(result);
+      }, 500);
+    };
 
-    playAnimation(result);
+  /*
+    =========================
+    NEXT LEVEL
+    =========================
+  */
 
-    if (result) {
-      const finalStars = 3;
+  const goNextLevel =
+    () => {
 
-      setEarnedStars(finalStars);
-      setXp(50 + finalStars * 25);
-      setCoin(5 + finalStars * 5);
-    } else {
-      setEarnedStars(1);
-      setXp(10);
-      setCoin(2);
-    }
+      const next =
+        levelIndex +
+        2;
 
-    setTimeout(() => {
-      setShowResult(true);
-    }, 500);
-  };
+      if (
+        next <=
+        mencocokkanLevels.length
+      ) {
 
-  const [showHint, setShowHint] = useState(false);
-  const [hintStep, setHintStep] = useState(0);
-  const hintText = useMemo(() => {
-    const pair = level.pairs[hintStep];
+        router.replace(
+          `/siswa/game/mencocokkan/level/${next}`
+        );
 
-    if (!pair) return 'Coba lagi ya 😄';
+      } else {
 
-    switch (hintStep) {
-      case 0:
-        return `Cocokkan "${pair.word}" dengan gambar yang benar`;
-      case 1:
-        return `Perhatikan kata yang ada di sebelah kiri 👀`;
-      case 2:
-        return `Hint: Perhatikan ciri khas gambar`;
-      default:
-        return 'Semangat! Kamu pasti bisa 💪';
-    }
-  }, [hintStep, level.pairs]);
+        router.back();
+      }
+    };
 
   return (
-    <View style={styles.container}>
-      <GameHeader title="Mencocokkan" level={level.id} hearts={3} />
+    <>
 
-      <Text style={styles.title}>Pilih Pasangannya</Text>
+      <GameLayout
+        title="Mencocokkan"
 
-      <View style={styles.mapContainer}>
-        <Svg style={[StyleSheet.absoluteFill, {top: -20}]}>
-          {connections.map((c, i) => {
-            const from = wordPositions[c.word];
-            const to = imagePositions[c.image];
+        level={
+          level.id
+        }
 
-            if (!from || !to) return null;
+        actions={[
+          {
+            icon: '💡',
 
-            const status = resultMap[c.word];
+            color:
+              '#FFD700',
 
-            return (
-              <Line
-                key={i}
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
-                stroke={
+            onPress:
+              () =>
+                setShowHint(
+                  true
+                ),
+          },
+
+          {
+            icon: '↺',
+
+            color:
+              '#FF6B6B',
+
+            onPress:
+              () => {
+
+                reset();
+
+                setConnections(
+                  []
+                );
+
+                setSubmitted(
+                  false
+                );
+
+                setResultMap(
+                  {}
+                );
+
+                setActiveLine(
+                  null
+                );
+              },
+          },
+
+          {
+            text: 'Jawab',
+
+            color:
+              '#5CBEFA',
+
+            onPress:
+              onSubmit,
+
+            flex: 1,
+          },
+        ]}
+      >
+
+        {/* TITLE */}
+        <Text
+          style={
+            styles.title
+          }
+        >
+          Pilih Pasangannya
+        </Text>
+
+        {/* GAME */}
+        <View
+          style={
+            styles.mapContainer
+          }
+
+          {...panResponder.panHandlers}
+        >
+
+          {/* SVG */}
+          <Svg
+            pointerEvents="none"
+
+            width={width}
+            height={height}
+
+            style={[
+              StyleSheet.absoluteFillObject,
+
+              {
+                zIndex:
+                  9999,
+
+                elevation:
+                  9999,
+              },
+            ]}
+          >
+
+            {/* CONNECTIONS */}
+            {connections.map(
+              (
+                c,
+                i
+              ) => {
+
+                const from =
+                  wordPositions[
+                    c.word
+                  ];
+
+                const to =
+                  imagePositions[
+                    c.image
+                  ];
+
+                if (
+                  !from ||
+                  !to
+                )
+                  return null;
+
+                const status =
+                  resultMap[
+                    c.word
+                  ];
+
+                const color =
                   submitted
-                    ? status === 'correct'
-                      ? COLORS.success
-                      : COLORS.error
-                    : COLORS.primary
-                }
-                strokeWidth={4}
-                strokeLinecap="round"
-              />
-            );
-          })}
-        </Svg>
+                    ? status ===
+                      'correct'
+                      ? '#22C55E'
+                      : '#EF4444'
+                    : '#5CBEFA';
 
-        <Animated.View
-          style={[
-            styles.row,
-            { transform: [{ scale: scaleAnim }] },
-          ]}
-        >
+                return (
 
-          <View style={styles.column}>
-            {shuffledWords.map((p: any) => (
-              <MatchWord
-                key={p.word}
-                word={p.word}
-                onPress={selectWord}
-                setWordPosition={setWordPosition}
-                status={submitted ? resultMap[p.word] : undefined}
-              />
-            ))}
-          </View>
+                  <React.Fragment
+                    key={i}
+                  >
 
-          <View style={[styles.column, { marginTop: -12 }]}>
-            {shuffledImages.map((p: any) => (
-              <MatchImage
-                key={p.word}
-                item={p}
-                onPress={handleSelectImage}
-                setImagePosition={setImagePosition}
-                status={submitted ? resultMap[p.word] : undefined}
-              />
-            ))}
-          </View>
-        </Animated.View>
-      </View>
+                    {/* GLOW */}
+                    <Line
+                      x1={
+                        from.x
+                      }
 
-      <View style={styles.actionRow}>
-        <TouchableOpacity 
-          style={styles.hintBtn}
-          onPress={() => setShowHint(true)}
-        >
-          <Text style={styles.hintIcon}>💡</Text>
-        </TouchableOpacity>
+                      y1={
+                        from.y
+                      }
 
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={() => {
-            reset();
-            setConnections([]);
-            setSubmitted(false);
-          }}
-        >
-          <Text style={styles.deleteText}>↺</Text>
-        </TouchableOpacity>
+                      x2={
+                        to.x
+                      }
 
-        <TouchableOpacity style={styles.submit} onPress={onSubmit}>
-          <Text style={styles.submitText}>Jawab</Text>
-        </TouchableOpacity>
-      </View>
+                      y2={
+                        to.y
+                      }
+
+                      stroke={
+                        color
+                      }
+
+                      strokeWidth={
+                        18
+                      }
+
+                      strokeOpacity={
+                        0.22
+                      }
+
+                      strokeLinecap="round"
+                    />
+
+                    {/* MAIN */}
+                    <Line
+                      x1={
+                        from.x
+                      }
+
+                      y1={
+                        from.y
+                      }
+
+                      x2={
+                        to.x
+                      }
+
+                      y2={
+                        to.y
+                      }
+
+                      stroke={
+                        color
+                      }
+
+                      strokeWidth={
+                        8
+                      }
+
+                      strokeOpacity={
+                        1
+                      }
+
+                      strokeLinecap="round"
+
+                      strokeLinejoin="round"
+                    />
+
+                  </React.Fragment>
+                );
+              }
+            )}
+
+            {/* ACTIVE LINE */}
+            {activeLine && (
+
+              <>
+
+                {/* GLOW */}
+                <Line
+                  x1={
+                    activeLine.startX
+                  }
+
+                  y1={
+                    activeLine.startY
+                  }
+
+                  x2={
+                    activeLine.endX
+                  }
+
+                  y2={
+                    activeLine.endY
+                  }
+
+                  stroke="#5CBEFA"
+
+                  strokeWidth={
+                    22
+                  }
+
+                  strokeOpacity={
+                    0.25
+                  }
+
+                  strokeLinecap="round"
+                />
+
+                {/* MAIN */}
+                <Line
+                  x1={
+                    activeLine.startX
+                  }
+
+                  y1={
+                    activeLine.startY
+                  }
+
+                  x2={
+                    activeLine.endX
+                  }
+
+                  y2={
+                    activeLine.endY
+                  }
+
+                  stroke="#5CBEFA"
+
+                  strokeWidth={
+                    8
+                  }
+
+                  strokeOpacity={
+                    1
+                  }
+
+                  strokeLinecap="round"
+
+                  strokeLinejoin="round"
+                />
+
+                {/* DOT */}
+                <Circle
+                  cx={
+                    activeLine.endX
+                  }
+
+                  cy={
+                    activeLine.endY
+                  }
+
+                  r={10}
+
+                  fill="#5CBEFA"
+                />
+
+              </>
+            )}
+
+          </Svg>
+
+          {/* CONTENT */}
+          <Animated.View
+            style={[
+              styles.row,
+              {
+                transform: [
+                  {
+                    scale:
+                      scaleAnim,
+                  },
+                ],
+              },
+            ]}
+          >
+
+            {/* WORDS */}
+            <View
+              style={
+                styles.column
+              }
+            >
+
+              {shuffledWords.map(
+                (
+                  p: any
+                ) => (
+
+                  <MatchWord
+                    key={
+                      p.word
+                    }
+
+                    word={
+                      p.word
+                    }
+
+                    onDragStart={
+                      startConnection
+                    }
+
+                    setWordPosition={
+                      setWordPosition
+                    }
+
+                    active={
+                      activeLine?.word ===
+                      p.word
+                    }
+
+                    status={
+                      submitted
+                        ? resultMap[
+                            p.word
+                          ]
+                        : undefined
+                    }
+                  />
+                )
+              )}
+
+            </View>
+
+            {/* IMAGES */}
+            <View
+              style={
+                styles.column
+              }
+            >
+
+              {shuffledImages.map(
+                (
+                  p: any
+                ) => (
+
+                  <MatchImage
+                    key={
+                      p.word
+                    }
+
+                    word={
+                      p.word
+                    }
+
+                    image={
+                      p.image
+                    }
+
+                    setImagePosition={
+                      setImagePosition
+                    }
+
+                    active={
+                      activeLine?.word ===
+                      p.word
+                    }
+
+                    status={
+                      submitted
+                        ? resultMap[
+                            p.word
+                          ]
+                        : undefined
+                    }
+                  />
+                )
+              )}
+
+            </View>
+
+          </Animated.View>
+
+        </View>
+
+      </GameLayout>
+
+      {/* HINT */}
       <HintModal
-        visible={showHint}
-        hintText={hintText}
-        onClose={() => {
-          setShowHint(false);
+        visible={
+          showHint
+        }
 
-          setHintStep((prev) => {
-            if (prev < 2) return prev + 1;
-            return prev;
-          });
-        }}
+        hintText={
+          hintText
+        }
+
+        onClose={() =>
+          setShowHint(
+            false
+          )
+        }
       />
+
+      {/* RESULT */}
       <ResultModal
-        visible={showResult && !isNavigating}
+        visible={
+          showResult
+        }
+
         gameTitle="Mencocokkan"
-        stars={earnedStars}
+
+        stars={
+          earnedStars
+        }
+
         xp={xp}
+
         coin={coin}
 
         onRetry={() => {
-          setShowResult(false);
+
+          setShowResult(
+            false
+          );
 
           reset();
-          setConnections([]);
-          setSubmitted(false);
 
-          setTimeout(() => {
-            setIsNavigating(false);
-          }, 100);
+          setConnections(
+            []
+          );
+
+          setSubmitted(
+            false
+          );
+
+          setResultMap(
+            {}
+          );
+
+          setActiveLine(
+            null
+          );
         }}
 
         onNext={() => {
-          setIsNavigating(true);
-          setShowResult(false);
 
-          requestAnimationFrame(() => {
-            const next = levelIndex + 2;
+          setShowResult(
+            false
+          );
 
-            if (next <= mencocokkanLevels.length) {
-              router.replace(`/siswa/game/mencocokkan/level/${next}`);
-            } else {
-              router.back();
-            }
-          });
+          goNextLevel();
         }}
 
         onLeaderboard={() => {
-          setIsNavigating(true);
-          setShowResult(false);
 
-          requestAnimationFrame(() => {
-            router.push('/siswa/tabs/leaderboard');
-          });
+          setShowResult(
+            false
+          );
+
+          router.push(
+            '/siswa/tabs/leaderboard'
+          );
         }}
       />
-    </View>
+
+    </>
   );
 }
 
+const styles =
+  StyleSheet.create({
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+    title: {
+      textAlign:
+        'center',
 
-  title: {
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 40,
-    marginBottom: 20,
-    color: COLORS.textMain,
-  },
+      fontSize: 22,
 
-  backBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.error,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+      fontWeight:
+        '700',
 
-  correct: {
-    textAlign: 'center',
-    color: COLORS.success,
-    marginTop: 15,
-    fontWeight: '700',
-  },
+      color:
+        '#1A3B5D',
 
-  wrong: {
-    textAlign: 'center',
-    color: COLORS.error,
-    marginTop: 15,
-    fontWeight: '700',
-  },
+      marginTop: 8,
 
-  mapContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: 10, 
-  },
+      marginBottom: 26,
+    },
 
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 40,
-    marginTop: 10,
-  },
+    mapContainer: {
+      flex: 1,
 
-  column: {
-    width: 140,
-    gap: 5, 
-  },
+      minHeight: 650,
 
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    gap: 10,
-    marginBottom: 40,
-  },
+      justifyContent:
+        'flex-start',
 
-  hintBtn: {
-    width: 55,
-    height: 55,
-    borderRadius: 28,
-    backgroundColor: COLORS.yellow,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+      overflow:
+        'visible',
+    },
 
-  hintIcon: {
-    fontSize: 22,
-    color: COLORS.white,
-  },
+    row: {
+      flexDirection:
+        'row',
 
-  deleteBtn: {
-    width: 55,
-    height: 55,
-    borderRadius: 28,
-    backgroundColor: COLORS.error,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+      justifyContent:
+        'center',
 
-  deleteText: {
-    color: COLORS.white,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
+      alignItems:
+        'flex-start',
 
-  submit: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 24,
-    alignItems: 'center',
-},
+      gap: 30,
+    },
 
-  submitText: {
-    color: COLORS.white,
-    fontWeight: '700',
-    fontSize: 16,
-  },
-});
+    column: {
+      width: 145,
+    },
+  });
