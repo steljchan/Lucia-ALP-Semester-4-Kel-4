@@ -25,19 +25,27 @@ interface RoadmapProps {
   levels: Level[];
   currentLevel: number;
   routePrefix: string;
+  spacingY?: number;
+  amplitude?: number;
 }
 
-export default function Roadmap({
-  title,
-  levels,
-  currentLevel,
-  routePrefix,
-}: RoadmapProps) {
+export default function Roadmap(props: RoadmapProps) {
+  const {
+    title,
+    levels,
+    currentLevel,
+    routePrefix,
+    spacingY = 110,
+    amplitude = 50,
+  } = props;
+
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [ready, setReady] = useState(false);
 
   const LEVEL_COUNT = levels.length;
+
+  const mapHeight = 120 + LEVEL_COUNT * spacingY;
 
   useEffect(() => {
     setTimeout(() => {
@@ -49,38 +57,39 @@ export default function Roadmap({
     setTimeout(() => setReady(true), 100);
   }, []);
 
+  // 🔥 Zigzag otomatis (no hardcode)
+  const getOffsetX = (index: number) => {
+    return Math.sin(index * 0.8) * amplitude;
+  };
+
   const getNodePosition = (index: number) => {
-    const spacingY = 100;
-    const centerX = width * 0.5;
-
-    const offsets = [
-      0, 30, -40, 35, -35,
-      40, -30, 35, -25, 30,
-      -20, 25, -15, 20, 0,
-    ];
-
+    const centerX = width / 2;
     const reversedIndex = LEVEL_COUNT - 1 - index;
 
     return {
-      x: centerX + (offsets[index] || 0),
+      x: centerX + getOffsetX(index),
       y: 120 + reversedIndex * spacingY,
     };
   };
 
+  // 🔥 Path smooth (Cubic Bezier)
   const generatePath = () => {
     const points = levels.map((_, i) => getNodePosition(i));
-
     if (points.length < 2) return '';
 
-    let d = `M ${points[0].x} ${points[0].y + 40}`;
+    let d = `M ${points[0].x} ${points[0].y}`;
 
     for (let i = 1; i < points.length; i++) {
       const prev = points[i - 1];
       const curr = points[i];
 
-      const controlX = (prev.x + curr.x) / 2;
+      const midY = (prev.y + curr.y) / 2;
 
-      d += ` Q ${controlX} ${prev.y}, ${curr.x} ${curr.y}`;
+      d += `
+        C ${prev.x} ${midY},
+          ${curr.x} ${midY},
+          ${curr.x} ${curr.y}
+      `;
     }
 
     return d;
@@ -95,14 +104,23 @@ export default function Roadmap({
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mapContainer}>
-
+        <View style={[styles.mapContainer, { height: mapHeight }]}>
           {/* ROAD */}
-          <Svg width="100%" height={1700} style={styles.road}>
+          <Svg width="100%" height={mapHeight} style={styles.road}>
+            {/* Main line */}
             <Path
               d={generatePath()}
               stroke="#5CBEFA"
               strokeWidth="14"
+              fill="none"
+              strokeLinecap="round"
+            />
+
+            {/* Highlight (biar lebih hidup) */}
+            <Path
+              d={generatePath()}
+              stroke="#A7D8FF"
+              strokeWidth="6"
               fill="none"
               strokeLinecap="round"
             />
@@ -132,7 +150,7 @@ export default function Roadmap({
                     }
                   />
 
-                  {/* START */}
+                  {/* START FLAG */}
                   {item.id === 1 && (
                     <View style={styles.startMarker}>
                       <Text style={{ fontSize: 20 }}>🚩</Text>
@@ -157,9 +175,7 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
 
-  mapContainer: {
-    height: 120 + 15 * 100,
-  },
+  mapContainer: {},
 
   road: {
     position: 'absolute',
@@ -169,10 +185,7 @@ const styles = StyleSheet.create({
 
   nodeAbsolute: {
     position: 'absolute',
-    transform: [
-      { translateX: -28 },
-      { translateY: -28 },
-    ],
+    transform: [{ translateX: -28 }, { translateY: -28 }],
   },
 
   startMarker: {

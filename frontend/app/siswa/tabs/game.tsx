@@ -38,9 +38,9 @@ export default function GameMenu() {
       route: '/siswa/game/bahasaisyarat',
     },
     {
-      title: 'Berapakah Aku?',
-      image: require('../../../assets/images/games/berapakahAku.png'),
-      route: '/siswa/game/berapakahaku',
+      title: 'Berapakah Jumlah Kami?',
+      image: require('../../../assets/images/games/berapakahJumlahKami.png'),
+      route: '/siswa/game/berapakahJumlahKami',
     },
     {
       title: 'Tebak Gambar',
