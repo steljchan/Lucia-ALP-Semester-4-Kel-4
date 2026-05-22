@@ -38,7 +38,7 @@ export default function LoginScreen() {
       }
     } catch (error: any) {
       console.log("ERROR LOGIN:", error.code, error.message);
-      alert("Login Gagal: " + error.message);
+      alert("Login Gagal, pastikan email dan password");
     }
   };
 
