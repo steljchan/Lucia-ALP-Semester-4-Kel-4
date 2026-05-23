@@ -1,69 +1,129 @@
-import React, { useState } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, StatusBar} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons} from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS, MARGIN_HORIZONTAL, title,  scrollContent, container, containerHeader } from '@/utils/theme';
+import { COLORS, SPACING, BORDER_RADIUS, scrollContent, containerHeader } from '@/utils/theme';
 import PaymentModal from '@/src/components/toko/paymentModal';
+import { ShopItem } from "@/src/types/shop";
+import { getShopItems, checkLimitedPurchase } from "@/src/services/shopService";
+import { getCurrentUserData } from "@/src/services/userService";
+import { auth } from "@/src/config/firebase";
+import { onAuthStateChanged } from 'firebase/auth';
+import { User } from "@/src/types/user";
 
 export default function TokoScreen() {
-  const [coinBalance, setCoinBalance] = useState(1200);
-  const [heartBalance, setHeartBalance] = useState(5);
+  const [coinBalance, setCoinBalance] = useState(0);
+  const [heartBalance, setHeartBalance] = useState(0);
   const [isLimitedPurchased, setIsLimitedPurchased] = useState(false);
-
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
+  const [userData, setUserData] = useState<User | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const coinPackages = [
-  {
-    id: 1,
-    name: 'Paket Koin Kecil',
-    coin: 100,
-    price: 10000,
-  },
-  {
-    id: 2,
-    name: 'Paket Koin Besar',
-    coin: 500,
-    price: 45000,
-  },
-];
-  
-  const heartPackages = [
-  {
-    id: 1,
-    name: 'Paket Hati Kecil',
-    heart: 10,
-    price: 5000,
-    isUnlimited: false,
-  },
-  {
-    id: 2,
-    name: 'Hati Tak Terbatas',
-    heart: 50,
-    price: 20000,
-    isUnlimited: false,
-  },
-];
+  const activeItems = shopItems.filter(
+    item => item.active
+  );
 
-  const handlePurchase = (item: any, type: 'coin' | 'heart') => {
-    setSelectedItem({ ...item, type });
+  const coinPackages = activeItems.filter(
+    item => item.type === "coin"
+  );
+
+  const heartPackages = activeItems.filter(
+    item => item.type === "heart"
+  );
+
+  const limitedPackage = activeItems.find(
+    item => item.type === "limited"
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        async (user) => {
+
+          try {
+            if (!user) {
+              router.replace("/auth/login");
+              return;
+            }
+            if (mounted) {
+              await loadData();
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      );
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+
+  }, []);
+
+  const loadData = async () => {
+
+    try {
+
+      const user =
+        await getCurrentUserData();
+
+      setCoinBalance(
+        user.coin || 0
+      );
+
+      setHeartBalance(
+        user.heart || 0
+      );
+
+      const items: ShopItem[] = await getShopItems();
+
+      setShopItems(items);
+      setUserData(user);
+
+      const limitedItem = items.find(
+        (item) => item.type === "limited"
+      );
+
+      if (
+        limitedItem &&
+        auth.currentUser
+      ) {
+
+        const purchased =
+          await checkLimitedPurchase(
+
+            auth.currentUser.uid,
+
+            limitedItem.id
+          );
+
+        setIsLimitedPurchased(
+          purchased
+        );
+      }
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  };
+
+  const handlePurchase = (
+    item: ShopItem
+  ) => {
+    setSelectedItem(item);
     setModalVisible(true);
   };
 
   const handleLimitedPurchase = () => {
-    if (isLimitedPurchased) {
-      Alert.alert('Maaf', 'Paket terbatas hanya bisa dibeli 1 kali.');
-      return;
-    }
-
-    setSelectedItem({
-      name: 'PAKET COIN DAN HATI',
-      coin: 500,
-      heart: 30,
-      price: 15000,
-      type: 'limited'
-    });
+    if (!limitedPackage) return;
+    setSelectedItem(limitedPackage);
     setModalVisible(true);
   };
 
@@ -95,83 +155,125 @@ export default function TokoScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 20, paddingBottom: 20 }]}>
         
-        <View style={styles.limitedCard}>
-          <Text style={styles.limitedTitle}>PAKET TERBATAS</Text>
-          <Text style={styles.limitedSubtitle}>PAKET COIN DAN HATI</Text>
-          
-          <View style={styles.limitedRewardsRow}>
-            <View style={styles.rewardCard}>
-                <Text style={{ fontSize: 24 }}>🪙</Text>
-                <Text style={styles.rewardLabel}>KOIN</Text>
-                <Text style={styles.rewardText}>x500</Text>
-            </View>
+        {limitedPackage && (
+            <View style={styles.limitedCard}>
+              <Text style={styles.limitedTitle}>PAKET TERBATAS</Text>
 
-            <View style={styles.rewardCard}>
-                <Text style={{ fontSize: 24 }}>❤️</Text>
-                <Text style={styles.rewardLabel}>HATI</Text>
-                <Text style={styles.rewardText}>x30</Text>
-            </View>
-          </View>
-          
-          <TouchableOpacity
-            style={[styles.buyButton, isLimitedPurchased && styles.disabledButton]}
-            onPress={handleLimitedPurchase}
-            disabled={isLimitedPurchased}
-          >
-           <Text style={styles.buyButtonText}>
-            {isLimitedPurchased
-              ? 'TERBELI'
-              : `Rp ${Number(15000).toLocaleString('id-ID')}`}
-          </Text>
-          </TouchableOpacity>
-          <Text style={styles.limitedNote}>Hanya boleh 1 kali pembelian</Text>
-        </View>
+              <Text style={styles.limitedSubtitle}>
+                {limitedPackage.name}
+              </Text>
 
-        <View style={styles.sectionDivider}>
+              <View style={styles.limitedRewardsRow}>
+                <View style={styles.rewardCard}>
+                  <Text style={{ fontSize: 24 }}>🪙</Text>
+                  <Text style={styles.rewardLabel}>KOIN</Text>
+                  <Text style={styles.rewardText}>
+                    x{limitedPackage.coin ?? 0}
+                  </Text>
+                </View>
+
+                <View style={styles.rewardCard}>
+                  <Text style={{ fontSize: 24 }}>❤️</Text>
+                  <Text style={styles.rewardLabel}>HATI</Text>
+                  <Text style={styles.rewardText}>
+                    x{limitedPackage.heart ?? 0}
+                  </Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.buyButton,
+                  isLimitedPurchased && styles.disabledButton
+                ]}
+                onPress={handleLimitedPurchase}
+                disabled={isLimitedPurchased}
+              >
+                <Text style={styles.buyButtonText}>
+                  {isLimitedPurchased
+                    ? "TERBELI"
+                    : `Rp ${Number(
+                        limitedPackage.price
+                      ).toLocaleString("id-ID")}`}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={styles.limitedNote}>
+                Hanya boleh 1 kali pembelian
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.sectionDivider}>
             <View style={styles.line} />
             <Text style={styles.sectionText}>KOIN</Text>
             <View style={styles.line} />
-        </View>
-        
-        {coinPackages.map(pkg => (
-          <View key={pkg.id} style={styles.packageCard}>
-            <Text style={styles.packageIcon}>🪙</Text>        
-            <Text style={styles.packageName}>{pkg.name.toUpperCase()}</Text>
-            <View style={styles.packageRight}>
-              <Text style={styles.packageAmountCoin}>x{pkg.coin}</Text>
-              <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'coin')}>
-                <Text style={styles.smallBuyText}> Rp {Number(pkg.price ?? 0).toLocaleString('id-ID')}</Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        ))}
 
-        <View style={styles.sectionDivider}>
-            <View style={styles.line} />
-            <Text style={styles.sectionText}>Hati</Text>
-            <View style={styles.line} />
-        </View>
-        
-        {heartPackages.map(pkg => (
-          <View key={pkg.id} style={styles.packageCard}>
-            <Text style={styles.packageIcon}>❤️</Text>
-            <Text style={styles.packageName}>{pkg.name.toUpperCase()}</Text>
-            <View style={styles.packageRight}>
-                <Text style={styles.packageAmountHeart}>{pkg.isUnlimited ? '∞' : `x${pkg.heart}`}</Text>
-                <TouchableOpacity style={styles.smallBuyButton} onPress={() => handlePurchase(pkg, 'heart')}>
-                <Text style={styles.smallBuyText}>Rp {Number(pkg.price ?? 0).toLocaleString('id-ID')}</Text>
+          {coinPackages.map((pkg) => (
+            <View key={pkg.id} style={styles.packageCard}>
+              <Text style={styles.packageIcon}>🪙</Text>
+
+              <Text style={styles.packageName}>
+                {pkg.name.toUpperCase()}
+              </Text>
+
+              <View style={styles.packageRight}>
+                <Text style={styles.packageAmountCoin}>
+                  x{pkg.coin}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.smallBuyButton}
+                  onPress={() => handlePurchase(pkg)}
+                >
+                  <Text style={styles.smallBuyText}>
+                    Rp {Number(pkg.price).toLocaleString("id-ID")}
+                  </Text>
                 </TouchableOpacity>
+              </View>
             </View>
+          ))}
+
+          <View style={styles.sectionDivider}>
+            <View style={styles.line} />
+            <Text style={styles.sectionText}>HATI</Text>
+            <View style={styles.line} />
           </View>
-        ))}
-        
+
+          {heartPackages.map((pkg) => (
+            <View key={pkg.id} style={styles.packageCard}>
+              <Text style={styles.packageIcon}>❤️</Text>
+
+              <Text style={styles.packageName}>
+                {pkg.name.toUpperCase()}
+              </Text>
+
+              <View style={styles.packageRight}>
+                <Text style={styles.packageAmountHeart}>
+                  x{pkg.heart}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.smallBuyButton}
+                  onPress={() => handlePurchase(pkg)}
+                >
+                  <Text style={styles.smallBuyText}>
+                    Rp {Number(pkg.price).toLocaleString("id-ID")}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
         <View/>
       </ScrollView>
 
       <PaymentModal 
         isVisible={modalVisible}
         selectedItem={selectedItem}
+        userData={userData}
         onClose={() => setModalVisible(false)}
+        onSuccess={loadData}
       />
     </View >
   );

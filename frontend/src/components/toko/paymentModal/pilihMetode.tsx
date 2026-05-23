@@ -1,21 +1,47 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, title } from '@/utils/theme';
+import { ShopItem } from "@/src/types/shop";
+
+type PaymentMethod = {
+  id: string;
+  name: string;
+  source: ImageSourcePropType;
+};
 
 interface StepPilihMetodeProps {
-  selectedItem: any;
-  paymentMethods: any[];
-  onSelect: (method: any) => void;
+  selectedItem: ShopItem | null;
+  paymentMethods: PaymentMethod[];
+  onSelect: (method: PaymentMethod) => void;
   onClose: () => void;
 }
 
-export default function StepPilihMetode({ 
-  selectedItem, 
-  paymentMethods, 
-  onSelect, 
-  onClose 
+export default function StepPilihMetode({
+  selectedItem,
+  paymentMethods,
+  onSelect,
+  onClose
 }: StepPilihMetodeProps) {
+
+  if (!selectedItem) return null;
+
+  const getDetailText = () => {
+    if (selectedItem.type === "coin") {
+      return `${selectedItem.coin} 🪙`;
+    }
+
+    if (selectedItem.type === "heart") {
+      return `${selectedItem.heart} ❤️`;
+    }
+
+    if (selectedItem.type === "limited") {
+      return `${selectedItem.coin} 🪙 + ${selectedItem.heart} ❤️`;
+    }
+
+    return "-";
+  };
+
   return (
     <View>
       <View style={styles.header}>
@@ -32,7 +58,7 @@ export default function StepPilihMetode({
         />
         <View style={{ flex: 1 }}>
           <Text style={styles.amountText}>
-            {selectedItem.coin ? `${selectedItem.coin} 🪙` : `${selectedItem.heart} ❤️`}
+            {getDetailText()}
           </Text>
           <Text style={styles.appLabel}>Lucia: Learning App</Text>
         </View>
@@ -44,7 +70,7 @@ export default function StepPilihMetode({
         </View>
       </View>
       
-      {paymentMethods && paymentMethods.map((method) => (
+      {paymentMethods.map((method) => (
         <TouchableOpacity 
           key={method.id} 
           style={styles.cardItem} 
