@@ -12,8 +12,9 @@ import {setGlobalOptions} from "firebase-functions";
 // import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 if (admin.apps.length === 0) admin.initializeApp();
+setGlobalOptions({maxInstances: 10});
 export {adminCreateUser} from "./admin";
-
+export { purchaseItem } from "./purchaseItem";
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
@@ -27,7 +28,7 @@ export {adminCreateUser} from "./admin";
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({maxInstances: 10});
+
 
 // export const helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", {structuredData: true});
