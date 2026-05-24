@@ -8,67 +8,60 @@ import LogoutModal from '@/src/components/common/logout';
 import { useRouter } from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
 
+//firebase
 import { auth, db } from "../../../src/config/firebase";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, collection, query, where } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
-const MATERI = [
-  {
-    id: '1',
-    title: 'Mengenal Mata Uang',
-    subtitle: 'Materi dasar tentang uang',
-    date: '12 Mei 2026',
-    subject: 'Matematika',
-    image: require('../../../assets/images/lucia.png'),
-    files: [
-      { id: 'f1', type: 'image', url: 'https://picsum.photos/id/30/400/200' },
-      { id: 'f2', type: 'image', url: 'https://picsum.photos/id/31/400/200' },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Perhitungan Uang',
-    subtitle: 'Belajar menghitung uang',
-    date: '10 Mei 2026',
-    subject: 'Matematika',
-    image: require('../../../assets/images/lucia.png'),
-    files: [
-      { id: 'f3', type: 'pdf', pages: ['https://picsum.photos/id/32/400/200'] },
-    ],
-  },
-  {
-    id: '3',
-    title: 'Greetings',
-    subtitle: 'Ungkapan sapaan dalam Bahasa Inggris',
-    date: '15 Mei 2026',
-    subject: 'Bahasa Inggris',
-    image: require('../../../assets/images/lucia.png'),
-    files: [
-      { id: 'f4', type: 'image', url: 'https://picsum.photos/id/33/400/200' },
-    ],
-  },
-];
 
 export default function ProfilGuru() {
   const [image, setImage] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null); 
   const [showLogout, setShowLogout] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
+
+  const [materiFirebase, setMateriFirebase] = useState<any[]>([]);
+
   const router = useRouter();
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
-      const unsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+      const unsubscribeUser = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
           setUserData(data);
-          if (data.profilePicture) setImage(data.fotoProfile);
+          if (data.profilePicture) setImage(data.profilePicture);
         }
       });
-      return () => unsubscribe();
+
+      const materiQuery = query(
+        collection(db, "material"),
+        where("teacherId", "==", user.uid)
+      );
+
+      const unsubscribeMateri = onSnapshot(materiQuery, (snapshot) => {
+        const listMateri = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          date: doc.data().createdAt?.toDate().toLocaleDateString('id-ID', {
+            day: 'numeric', month: 'long', year: 'numeric'
+          }) || 'Baru saja'
+        }));
+        setMateriFirebase(listMateri);
+      });
+
+      return () => {
+        unsubscribeUser();
+        unsubscribeMateri();
+      };
     }
   }, []);
+
+  const filteredMateri = materiFirebase.filter(item => 
+    selectedSubject === 'Semua' ? true : item.subjectId === selectedSubject
+  );
+
+
 
   const handleUpload = async (uri: string) => {
     const user = auth.currentUser;
@@ -109,24 +102,15 @@ export default function ProfilGuru() {
     }
   };
 
-  const filteredMateri = MATERI.filter(item => 
-    selectedSubject === 'Semua' ? true : item.subject === selectedSubject
-  );
-
-  const handleMateriPress = (materi: typeof MATERI[0]) => {
+  const handleMateriPress = (materi: any) => {
     router.push({
       pathname: '/guru/detailMateri',
       params: {
-        id: materi.id,
-        title: materi.title,
-        subtitle: materi.subtitle,
-        subject: materi.subject,
-        date: materi.date,
-        files: JSON.stringify(materi.files),
+        materialId: materi.id, 
       },
     });
   };
-
+  
   const filterOptions = ['Semua', 'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'IPA', 'IPS'];
 
   return (
@@ -184,30 +168,37 @@ export default function ProfilGuru() {
         />
 
         <View style={styles.materiList}>
-          {filteredMateri.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.7}
-              onPress={() => handleMateriPress(item)}
-              style={styles.materiCard}
-            >
-              <View style={styles.cardLeftAccent} />
-              <View style={styles.materiRow}>
-                <View style={styles.iconWrapper}>
-                  <Image source={item.image} style={styles.materiImage} />
+          {filteredMateri.length > 0 ? (
+            filteredMateri.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.7}
+                onPress={() => handleMateriPress(item)}
+                style={styles.materiCard}
+              >
+                <View style={styles.cardLeftAccent} />
+                <View style={styles.materiRow}>
+                  <View style={styles.iconWrapper}>
+                    {/* Pakai icon dokumen jika tidak ada image materi */}
+                    <Ionicons name="document-text" size={24} color={COLORS.primary} />
+                  </View>
+                  <View style={styles.materiContent}>
+                    <Text style={styles.materiTitle}>{item.title}</Text>
+                    <Text style={styles.materiSubtitle} numberOfLines={1}>{item.description}</Text>
+                    <Text style={styles.materiSubject}>{item.subjectId} - {item.classId}</Text>
+                  </View>
+                  <View style={styles.dateBadge}>
+                    <Ionicons name="calendar-outline" size={12} color={COLORS.primary} />
+                    <Text style={styles.materiDate}>{item.date}</Text>
+                  </View>
                 </View>
-                <View style={styles.materiContent}>
-                  <Text style={styles.materiTitle}>{item.title}</Text>
-                  <Text style={styles.materiSubtitle}>{item.subtitle}</Text>
-                  <Text style={styles.materiSubject}>{item.subject}</Text>
-                </View>
-                <View style={styles.dateBadge}>
-                  <Ionicons name="calendar-outline" size={12} color={COLORS.primary} />
-                  <Text style={styles.materiDate}>{item.date}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
+              Belum ada materi yang diupload.
+            </Text>
+          )}
         </View>
       </ScrollView>
     </View>
