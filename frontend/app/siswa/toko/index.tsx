@@ -20,7 +20,6 @@ export default function TokoScreen() {
   const [userData, setUserData] = useState<User | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
-  const [loading, setLoading] = useState(true);
 
   const activeItems = shopItems.filter(
     item => item.active
