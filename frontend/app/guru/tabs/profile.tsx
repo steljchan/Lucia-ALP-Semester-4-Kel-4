@@ -61,8 +61,6 @@ export default function ProfilGuru() {
     selectedSubject === 'Semua' ? true : item.subjectId === selectedSubject
   );
 
-
-
   const handleUpload = async (uri: string) => {
     const user = auth.currentUser;
     if (!user) return;
