@@ -1,90 +1,103 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, ActivityIndicator, StatusBar} from 'react-native';
-import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, BORDER_RADIUS, BTN } from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
+import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 
-interface MateriFile {
-  id: string;
-  type: 'image' | 'pdf';
-  pages?: string[]; 
-}
+//fireabase
+import { db } from '@/src/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-const defaultMateriFiles: MateriFile[] = [
-  {
-    id: '1',
-    type: 'pdf',
-    pages: [
-      'https://picsum.photos/id/30/400/200',
-      'https://picsum.photos/id/31/400/200',
-      'https://picsum.photos/id/32/400/200'
-    ]
-  },
-];
+//pdf
+// import Pdf from 'react-native-pdf';
 
 export default function DetailMateri() {
   const router = useRouter();
-  const [files, setFiles] = useState<MateriFile[]>([]);
+  const { materialId } = useLocalSearchParams(); 
+
+  const [materialData, setMaterialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const openPdf = async (url: string) => {
-    await WebBrowser.openBrowserAsync(url);
+  const goToKuis = () => {
+    router.push({
+      pathname: '/quiz', 
+      params: { id: materialId as string },
+    });
   };
 
   useEffect(() => {
-   const loadFiles = async () => {
+    const fetchFullData = async () => {
+      if (!materialId) return;
       try {
-        setTimeout(() => {
-          setFiles(defaultMateriFiles);
-          setLoading(false);
-        }, 1000);
+        const docRef = doc(db, "material", materialId as string);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setMaterialData(docSnap.data());
+        }
       } catch (error) {
-        setFiles(defaultMateriFiles);
+        console.error("Error fetching detail:", error);
+      } finally {
         setLoading(false);
       }
     };
+    fetchFullData();
+  }, [materialId]);
 
-    loadFiles();
-  }, []);
-
-  const handleKuisPress = () => {
-    router.push('./quiz');
+  const goToEdit = () => {
+    router.push({
+      pathname: '/guru/editMateri',
+      params: { id: materialId as string },
+    });
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
+  }
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white}/>
-
       <DetailHeader
-        title="Materi"
-        subtitle="Cara Menulis Bilangan"
+        title="Detail Materi"
+        subtitle={materialData?.title || "Detail"}
+        onEdit={goToEdit}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.imageGrid}>
-          {loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader}/>
-          ) : (
-            files.map((item) => (
-              <View key={item.id}>
-                {item.pages?.map((page, index) => (
-                  <View key={index} style={styles.imageCard}>
-                    <Image source={{ uri: page }} style={styles.image} />
-                  </View>
-                ))}
-              </View>
-            ))
-          )}
+
+        <Text style={styles.sectionTitle}>Isi Materi</Text>
+        
+        <PdfDetailMateri materialId={materialId as string} />
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoLabel}>Deskripsi Umum</Text>
+          <Text style={styles.infoText}>{materialData?.description || "Tidak ada deskripsi"}</Text>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="book-outline" size={16} color={COLORS.primary} />
+            <Text style={styles.infoDetail}>Mata Pelajaran: {materialData?.subjectId}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Ionicons name="people-outline" size={16} color={COLORS.primary} />
+            <Text style={styles.infoDetail}>Kelas: {materialData?.classId}</Text>
+          </View>
         </View>
 
-        <TouchableOpacity style={styles.kuisButton} onPress={handleKuisPress}>
-          <Text style={styles.kuisButtonText}>Kuis</Text>
+        <TouchableOpacity 
+          style={BTN.primary.box} 
+          onPress={goToKuis}
+          activeOpacity={0.8}
+        >
+          <Text style={BTN.primary.text}>Mulai Kuis</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   root: {
@@ -93,85 +106,70 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.md,
+    padding: SPACING.md,
+    paddingBottom: 40,
   },
 
-  card: {
-    paddingBottom: SPACING.lg,
+  infoContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.m,
+    padding: SPACING.md,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
   },
 
-  materiLabel: {
+  infoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.textMain,
+    marginBottom: 4,
+  },
+
+  infoText: {
     fontSize: 14,
     color: COLORS.textSub,
-    fontWeight: '600',
-    marginBottom: SPACING.xs,
-    letterSpacing: 0.5,
+    marginBottom: 12,
+    lineHeight: 20,
   },
 
-  imageGrid: {
-    flexDirection: 'column',
-    gap: SPACING.md,
-    marginVertical: SPACING.md,
-  },
-
-  loader: {
-    marginVertical: SPACING.xl,
-  },
-
-  imageCard: {
-    width: '100%',
-    backgroundColor: COLORS.smoothBlue,
-    borderRadius: BORDER_RADIUS.m,
-    overflow: 'hidden',
+  infoRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.sm,
+    gap: 8,
+    marginTop: 8,
   },
 
-  image: {
+  infoDetail: {
+    fontSize: 13,
+    color: COLORS.textMain,
+  },
+
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textMain,
+    marginBottom: 12,
+  },
+
+  filesGrid: {
+    flexDirection: 'column',
+    gap: 12,
+  },
+
+  imagePreview: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
   },
 
-  kuisButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xl,
-    borderRadius: BORDER_RADIUS.m,
-    alignItems: 'center',
-    marginTop: SPACING.xl,
-    marginBottom: SPACING.sm,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  
-  kuisButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.8,
+  loader: {
+    marginVertical: 40,
   },
 
-  pdfOverlay: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: COLORS.overlay,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-
-  pdfText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: 'bold',
+  emptyText: {
+    textAlign: 'center',
+    color: COLORS.textSub,
+    marginTop: 20,
   },
 });

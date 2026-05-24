@@ -31,12 +31,13 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 90,
+    height: 95,
     resizeMode: 'contain',
+    borderRadius:8,
   },
   text: {
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 10,
     fontWeight: '600',
     fontSize: 14,
   },

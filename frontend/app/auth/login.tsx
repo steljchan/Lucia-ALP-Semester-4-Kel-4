@@ -38,7 +38,30 @@ export default function LoginScreen() {
       }
     } catch (error: any) {
       console.log("ERROR LOGIN:", error.code, error.message);
-      alert("Login Gagal: " + error.message);
+
+      let errorMessage = "Terjadi kesalahan saat login. Silakan coba lagi.";
+
+      switch (error.code) {
+        case 'auth/network-request-failed':
+          errorMessage = "Koneksi internet tidak stabil. Pastikan jaringan Anda aktif dan coba lagi.";
+          break;
+        case 'auth/invalid-email':
+          errorMessage = "Format email tidak valid.";
+          break;
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          errorMessage = "Email atau password yang Anda masukkan salah.";
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = "Terlalu banyak percobaan login. Akun Anda ditangguhkan sementara, silakan coba lagi nanti.";
+          break;
+        case 'auth/user-disabled':
+          errorMessage = "Akun Anda telah dinonaktifkan oleh admin.";
+          break;
+        default:
+          errorMessage = "Login gagal. Periksa kembali email dan password Anda.";
+      }
     }
   };
 

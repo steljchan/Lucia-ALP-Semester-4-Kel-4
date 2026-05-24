@@ -1,105 +1,88 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
+import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
+
+//fireabase
+import { db } from '@/src/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
+//pdf
+// import Pdf from 'react-native-pdf';
 
 export default function DetailMateriGuru() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const { id, title, subtitle, subject, kelas, date, files: filesParam } = params;
+  const { materialId } = useLocalSearchParams(); 
 
-  const [files, setFiles] = useState<any[]>([]);
+  const [materialData, setMaterialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (filesParam) {
+    const fetchFullData = async () => {
+      if (!materialId) return;
       try {
-        const parsed = JSON.parse(filesParam as string);
-        setFiles(parsed);
-      } catch (e) {
-        setFiles([]);
+        const docRef = doc(db, "material", materialId as string);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setMaterialData(docSnap.data());
+        }
+      } catch (error) {
+        console.error("Error fetching detail:", error);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
-  }, [filesParam]);
+    };
+    fetchFullData();
+  }, [materialId]);
 
   const goToEdit = () => {
     router.push({
       pathname: '/guru/editMateri',
-      params: {
-        id: id as string,
-        title: title as string,
-        subtitle: subtitle as string,
-        subject: subject as string,
-        kelas: kelas as string,
-        date: date as string,
-        files: filesParam as string,
-      },
+      params: { id: materialId as string },
     });
   };
 
-  const renderFile = (file: any, index: number) => {
-    if (file.type === 'image' && file.url) {
-      return (
-        <View key={index} style={styles.fileCard}>
-          <Image source={{ uri: file.url }} style={styles.imagePreview} />
-        </View>
-      );
-    } else if (file.type === 'pdf') {
-      return (
-        <View key={index} style={styles.fileCard}>
-          <View style={styles.pdfPreview}>
-            <Ionicons name="document-text" size={48} color={COLORS.primary} />
-            <Text style={styles.pdfText}>PDF ({file.pages?.length || 0} halaman)</Text>
-          </View>
-        </View>
-      );
-    }
-    return null;
-  };
+  if (loading) {
+    return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
+  }
 
   return (
     <View style={styles.root}>
       <DetailHeader
-        title="Materi"
-        subtitle={title as string}
+        title="Detail Materi"
+        subtitle={materialData?.title || "Detail"}
         onEdit={goToEdit}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+
+        <Text style={styles.sectionTitle}>Isi Materi</Text>
+        
+        <PdfDetailMateri materialId={materialId as string} />
+
         <View style={styles.infoContainer}>
-          <Text style={styles.infoLabel}>Deskripsi</Text>
-          <Text style={styles.infoText}>{subtitle as string}</Text>
+          <Text style={styles.infoLabel}>Deskripsi Umum</Text>
+          <Text style={styles.infoText}>{materialData?.description || "Tidak ada deskripsi"}</Text>
+          
           <View style={styles.infoRow}>
             <Ionicons name="book-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.infoDetail}>Mata Pelajaran: {subject as string}</Text>
+            <Text style={styles.infoDetail}>Mata Pelajaran: {materialData?.subjectId}</Text>
           </View>
+          
           <View style={styles.infoRow}>
             <Ionicons name="people-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.infoDetail}>Kelas: {kelas as string || 'Kelas 7'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="calendar-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.infoDetail}>Tanggal Upload: {date as string}</Text>
+            <Text style={styles.infoDetail}>Kelas: {materialData?.classId}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>File Materi</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={styles.loader} />
-        ) : files.length > 0 ? (
-          <View style={styles.filesGrid}>
-            {files.map((file, idx) => renderFile(file, idx))}
-          </View>
-        ) : (
-          <Text style={styles.emptyText}>Belum ada file materi</Text>
-        )}
       </ScrollView>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   root: {
@@ -159,32 +142,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  fileCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.s,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.smoothBlue,
-    marginBottom: 12,
-  },
-
   imagePreview: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
-  },
-
-  pdfPreview: {
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 150,
-  },
-
-  pdfText: {
-    fontSize: 14,
-    color: COLORS.textSub,
-    marginTop: 8,
   },
 
   loader: {

@@ -1,52 +1,88 @@
-import {View, Text, StyleSheet, FlatList} from 'react-native';
-import {useRouter} from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import AppHeader from '../../../src/components/common/appheader';
 import LastSeenCard from '../../../src/components/dashboard/siswa/lastseencard';
 import SubjectCard from '../../../src/components/dashboard/siswa/subjectcard';
-import {scrollContent, COLORS} from '@/utils/theme';
+import { scrollContent, COLORS } from '@/utils/theme';
+
+// Firestore
+import { db, auth } from '@/src/config/firebase'; 
+import { collection, getDocs, getDoc, doc, query, where } from 'firebase/firestore';
 
 export default function DashboardSiswa() {
-
   const router = useRouter();
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const subjects = [
-    { id: '1', title: "Matematika", image: require('@/assets/images/materi/Matematika.png')},
-    { id: '2', title: "PKN", image: require('@/assets/images/materi/PKN.png') },
-    { id: '3', title: "Bahasa Indonesia", image: require('@/assets/images/materi/Indonesia.png') },
-    { id: '4', title: "IPA", image: require('@/assets/images/materi/IPA.png') },
-    { id: '5', title: "Bahasa Inggris", image: require('@/assets/images/materi/Inggris.png')},
-    { id: '6', title: "IPS", image: require('@/assets/images/materi/IPS.png')},
-  ];
+  useEffect(() => {
+    const fetchUserAndSubjects = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) return;
+        
+        const userTingkat = userDoc.data().tinkat; 
+
+       
+        const q = query(
+          collection(db, "subject"), 
+          where("tinkat", "==", userTingkat)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        setSubjects(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndSubjects();
+  }, []);
 
   return (
     <View style={styles.container}>
       <AppHeader />
 
-      <FlatList
-        data={subjects}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.grid}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={scrollContent}
-
-        ListHeaderComponent={
-          <>
-            <Text style={styles.sectionTitle}>Terakhir Dilihat</Text>
-            <LastSeenCard />
-
-            <Text style={styles.sectionTitle}>Mata Pelajaran</Text>
-          </>
-        }
-
-        renderItem={({ item }) => (
-          <SubjectCard
-            title={item.title}
-            image={item.image}
-            onPress={() => router.push('/siswa/materi/submateri')}
-          />
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
+      ) : (
+        <FlatList
+          data={subjects}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={scrollContent}
+          ListHeaderComponent={
+            <>
+              <Text style={styles.sectionTitle}>Terakhir Dilihat</Text>
+              <LastSeenCard />
+              <Text style={styles.sectionTitle}>Mata Pelajaran</Text>
+            </>
+          }
+          renderItem={({ item }) => (
+            <SubjectCard
+              title={item.name} 
+              image={{ uri: item.imageUrl }} 
+              onPress={() => router.push({
+                pathname: '/siswa/materi/submateri',
+                params: { subjectId: item.id, subjectName: item.name }
+              })}
+            />
+          )}
+        />
+      )}
     </View>
   );
 }

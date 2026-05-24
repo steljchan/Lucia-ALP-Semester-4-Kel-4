@@ -1,59 +1,97 @@
-import React from 'react';
-import {View, Text, ScrollView, TouchableOpacity,  StyleSheet, StatusBar, Image} from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {ActivityIndicator, View, Text, ScrollView, TouchableOpacity,  StyleSheet, StatusBar, Image} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 
-const materials = [
-  {
-    id: '1',
-    title: 'Belajar Menghitung Satuan',
-    description: 'Berat, Jarak dan Waktu',
-    pagesDone: 7,
-    pagesTotal: 10,
-    percent: 70,
-    image: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178',
-  },
-  {
-    id: '2',
-    title: 'Perbandingan',
-    description: 'Lebih besar dan kecil',
-    pagesDone: 7,
-    pagesTotal: 10,
-    percent: 40,
-    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb',
-  },
-  {
-    id: '3',
-    title: 'Penjumlahan',
-    description: 'Satuan, Puluhan, Ratusan',
-    pagesDone: 10,
-    pagesTotal: 10,
-    percent: 100,
-    image: 'https://images.unsplash.com/photo-1635372722656-389f87a941b7',
-  },
-  {
-    id: '4',
-    title: 'Pengurangan',
-    description: 'Satuan, Puluhan, Ratusan',
-    pagesDone: 3,
-    pagesTotal: 10,
-    percent: 30,
-    image: 'https://images.unsplash.com/photo-1581091870622-1e7e0a1c9f2a',
-  },
-  {
-    id: '5',
-    title: 'Perkalian',
-    description: '3 x 4 = 12\nSatuan, Puluhan, Ratusan',
-    pagesDone: 10,
-    pagesTotal: 10,
-    percent: 100,
-    image: 'https://images.unsplash.com/photo-1596495578289-4a4c5a5c2d0b',
-  },
-];
+//firebase
+import { auth, db } from "../../../src/config/firebase";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore";
 
 export default function SubMateri() {
   const router = useRouter();
+  const { subjectId, subjectName } = useLocalSearchParams();
+
+  const [materials, setMaterials] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subjectData, setSubjectData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!subjectName || !subjectId) return;
+
+      try {
+        setLoading(true);
+
+        const subjectDoc = await getDoc(doc(db, "subject", subjectId as string));
+        if (subjectDoc.exists()) {
+          setSubjectData(subjectDoc.data());
+        }
+
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (!user) {
+          console.log("User tidak login");
+          setLoading(false);
+          return;
+        }
+
+        const userDocSnap = await getDoc(doc(db, "users", user.uid));
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const classDocId = userData.classId;
+
+          if (!classDocId) {
+            console.error("User ini tidak memiliki field classId di Firestore");
+            setLoading(false);
+            return;
+          }
+
+          const classDocSnap = await getDoc(doc(db, "class", classDocId));
+          
+          if (classDocSnap.exists()) {
+            const classData = classDocSnap.data();
+            
+            const className = classData.kelas || classData.nama; 
+
+            if (!className) {
+              console.error("Dokumen kelas ditemukan, tapi field 'name' kosong/undefined");
+              setLoading(false);
+              return;
+            }
+
+            console.log("Mencari materi untuk kelas:", className);
+
+            const q = query(
+              collection(db, "material"),
+              where("subjectId", "==", subjectName),
+              where("classId", "==", className) 
+            );
+
+            const querySnapshot = await getDocs(q);
+            const fetchedData = querySnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+
+            setMaterials(fetchedData);
+          } else {
+            console.error("ID Kelas " + classDocId + " tidak terdaftar di koleksi 'class'");
+          }
+        }
+      } catch (error) {
+        console.error("Error detail:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [subjectId, subjectName]);
+
 
   return (
     <View style={styles.root}>
@@ -61,14 +99,18 @@ export default function SubMateri() {
      
       <DetailHeader
         title="Materi Pembelajaran"
-        subtitle="Matematika"
+        subtitle={subjectName as string || "Materi"}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
         <View style={styles.heroSection}>
           <View style={styles.heroWrapper}>
             <Image
-              source={require('@/assets/images/materi/Matematika.png')}
+              source={
+                subjectData?.imageUrl 
+                  ? { uri: subjectData.imageUrl } 
+                  : require('@/assets/images/materi/Matematika.png') 
+              }
               style={styles.heroImage}
             />
             <Image
@@ -78,21 +120,38 @@ export default function SubMateri() {
           </View>
         </View>
         
-        {materials.map((item) => (
-          <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              activeOpacity={0.7}
-              onPress={() => router.push({pathname: '/siswa/materi/detailMateri'})}>
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+        ) : materials.length === 0 ? (
+          <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
+            Belum ada materi untuk mata pelajaran ini.
+          </Text>
+        ) : (
+          materials.map((item) => (
+            <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                activeOpacity={0.7}
+                onPress={() => router.push({
+                  pathname: '/siswa/materi/detailMateri',
+                  params: { materialId: item.id }
+                })}>
 
-              <Image source={{ uri: item.image }} style={styles.cardImage} />
+                <Image 
+                  source={{ uri: item.fileUrl || 'https://via.placeholder.com/150' }} 
+                  style={styles.cardImage} 
+                />
 
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDescription}>{item.description}</Text>
-              </View>
-          </TouchableOpacity>
-          ))}
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  
+                  <Text style={styles.cardDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                </View>
+            </TouchableOpacity>
+          ))
+        )}
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
     </View>
