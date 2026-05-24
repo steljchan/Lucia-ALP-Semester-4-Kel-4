@@ -10,10 +10,17 @@ const db = admin.firestore();
 export const purchaseItem = onCall(
   {
     region: "us-central1",
+    cors: true,
+    invoker: "public",
   },
 
   async (request) => {
+    console.log("Auth Data:", request.auth); 
+    console.log("User UID:", request.auth?.uid);
 
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "User belum login");
+    }
     if (!request.auth) {
       throw new HttpsError(
         "unauthenticated",
