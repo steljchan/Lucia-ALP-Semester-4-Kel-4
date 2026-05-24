@@ -1,10 +1,53 @@
-# Compiled JavaScript files
-lib/**/*.js
-lib/**/*.js.map
+# =========================
+# Expo / React Native
+# =========================
 
-# TypeScript v1 declaration files
-typings/
-
-# Node.js dependency directory
 node_modules/
-*.local
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Expo generated
+expo-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# =========================
+# Firebase Functions
+# =========================
+
+Backend/functions/lib/
+Backend/functions/node_modules/
+
+# Firebase cache
+.firebase/
+
+# TypeScript
+*.tsbuildinfo
+
+# VSCode
+.vscode/
+
+# Android / iOS
+android/
+ios/
+
+# Temporary files
+*.tmp
+*.temp
+
+service-account.json

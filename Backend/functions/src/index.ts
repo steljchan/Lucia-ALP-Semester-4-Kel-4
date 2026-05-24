@@ -11,10 +11,13 @@ import {setGlobalOptions} from "firebase-functions";
 // import {onRequest} from "firebase-functions/https";
 // import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+
 if (admin.apps.length === 0) admin.initializeApp();
-setGlobalOptions({maxInstances: 10});
-export {adminCreateUser} from "./admin";
+setGlobalOptions({ maxInstances: 10 });
+
+export { adminCreateUser } from "./admin";
 export { purchaseItem } from "./purchaseItem";
+export { onMaterialCreated } from './triggers/onMaterialCreated';
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
