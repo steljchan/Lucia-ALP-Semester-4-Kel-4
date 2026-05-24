@@ -1,54 +1,175 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { Modal, Pressable, StyleSheet, Alert } from 'react-native';
 import StepPilihMetode from './pilihMetode';
 import StepKonfirmasi from './konfirmasi';
 import StepStatus from './status';
 import { router } from 'expo-router';
-import {COLORS } from '@/utils/theme';
-
+import { COLORS } from '@/utils/theme';
+import { purchaseItem } from '@/src/services/paymentService';
 const logoOvo = require('@/assets/images/pembayaran/ovo.png');
 const logoGopay = require('@/assets/images/pembayaran/gopay.png');
 const logoDana = require('@/assets/images/pembayaran/dana.png');
 const logoShopee = require('@/assets/images/pembayaran/spay.png');
 
-export default function PaymentModal({ isVisible, onClose, selectedItem }: any) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedMethod, setSelectedMethod] = useState<any>(null);
+export default function PaymentModal({
+
+  isVisible,
+  onClose,
+  selectedItem,
+  userData,
+  onSuccess,
+
+}: any) {
+
+  const [currentStep, setCurrentStep] =
+    useState(1);
+
+  const [selectedMethod, setSelectedMethod] =
+    useState<any>(null);
+
+  const [loading, setLoading] =
+    useState(false);
 
   const paymentMethods = [
-    { id: 'OVO', name: 'OVO', source: logoOvo },
-    { id: 'GOPAY', name: 'GOPAY', source: logoGopay },
-    { id: 'DANA', name: 'DANA', source: logoDana },
-    { id: 'SHOPEE', name: 'SHOPEEPAY', source: logoShopee },
+
+    {
+      id: 'OVO',
+      name: 'OVO',
+      source: logoOvo,
+    },
+
+    {
+      id: 'GOPAY',
+      name: 'GOPAY',
+      source: logoGopay,
+    },
+
+    {
+      id: 'DANA',
+      name: 'DANA',
+      source: logoDana,
+    },
+
+    {
+      id: 'SHOPEE',
+      name: 'SHOPEEPAY',
+      source: logoShopee,
+    },
   ];
 
   const handleClose = () => {
+
     setCurrentStep(1);
+
     setSelectedMethod(null);
+
     onClose();
   };
 
-  const handlePay = () => {
-    setCurrentStep(3); 
-    
-    setTimeout(() => {
-        setCurrentStep(4); 
-        setTimeout(() => {
-        onClose();
-        router.push({
-            pathname: '/siswa/toko/receipt',
-            params: { 
-            price: selectedItem.price, 
-            itemName: selectedItem.name,
-            method: selectedMethod.name 
-            }
-        });
-        }, 1500);
-        
-    }, 2000);
+  if (!selectedItem) return null;
+
+  const getDetailText = () => {
+
+    if (selectedItem.type === "coin") {
+      return `${selectedItem.coin} 🪙`;
+    }
+
+    if (selectedItem.type === "heart") {
+      return `${selectedItem.heart} ❤️`;
+    }
+
+    if (selectedItem.type === "limited") {
+      return `${selectedItem.coin} 🪙 + ${selectedItem.heart} ❤️`;
+    }
+
+    return "-";
   };
 
-  if (!selectedItem) return null;
+  const handlePay = async () => {
+
+    try {
+
+      if (
+        !selectedItem ||
+        !selectedMethod
+      ) return;
+
+      setLoading(true);
+
+      const result: any =
+        await purchaseItem(
+
+          selectedItem.id,
+
+          selectedMethod.name
+        );
+
+      handleClose();
+
+      if (onSuccess) {
+
+        await onSuccess();
+      }
+
+      router.push({
+
+        pathname:
+          "/siswa/toko/receipt",
+
+        params: {
+
+          orderId:
+            result.orderId,
+
+          itemName:
+            selectedItem.name,
+
+          itemDetail:
+            getDetailText(),
+
+          price:
+            result.subtotal,
+
+          pajak:
+            result.tax,
+
+          total:
+            result.total,
+
+          method:
+            selectedMethod.name,
+
+          userName:
+            userData?.name || "-",
+
+          userEmail:
+            userData?.email || "-",
+
+          time:
+            new Date()
+            .toLocaleString(
+              "id-ID"
+            ),
+        },
+      });
+
+    } catch (error: any) {
+
+      console.log(error);
+
+      Alert.alert(
+        "Pembelian Gagal",
+
+        error.message ||
+        "Terjadi kesalahan"
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
 
   return (
     <Modal 
@@ -64,8 +185,8 @@ export default function PaymentModal({ isVisible, onClose, selectedItem }: any) 
             <StepPilihMetode 
               selectedItem={selectedItem} 
               paymentMethods={paymentMethods}
-              onSelect={(m: any) => { 
-                setSelectedMethod(m); 
+              onSelect={(method: any) => { 
+                setSelectedMethod(method); 
                 setCurrentStep(2); 
               }} 
               onClose={handleClose} 
@@ -79,7 +200,8 @@ export default function PaymentModal({ isVisible, onClose, selectedItem }: any) 
               onBack={() => setCurrentStep(1)} 
               onPay={handlePay} 
               onClose={handleClose}
-              pajak={5000}
+              pajak={selectedItem.price * 0.1}
+              loading={loading}
             />
           )}
 
@@ -102,7 +224,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.overlay, 
     justifyContent: 'flex-end' 
   },
-
   modalContainer: { 
     backgroundColor: COLORS.white, 
     borderTopLeftRadius: 30, 

@@ -11,6 +11,7 @@ export const createUserData = async (user, data) => {
     class_id: data.class_id || null,
     class_name: data.class_name || null,
     xp: 0,
-    hearts: 5,
+    heart: 3,
+    coin: 0,
   });
 };

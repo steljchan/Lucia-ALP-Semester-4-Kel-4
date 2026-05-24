@@ -113,7 +113,8 @@ export default function AddUser() {
         userData.kelas = kelas;
         userData.tinkat = tingkat;
         userData.xp = 0;
-        userData.hearts = 3;
+        userData.heart = 3;
+        userData.coin = 0;
       } else {
         userData.NIK = nik;
         userData.mapel = mapel;

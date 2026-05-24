@@ -6,10 +6,18 @@ import { COLORS, BTN, containerHeader, scrollContent } from '@/utils/theme';
 
 export default function ReceiptScreen() {
   const params = useLocalSearchParams();
-  
-  const harga = Number(params.price) || 10000;
-  const pajak = harga * 0.1;
-  const total = harga + pajak;
+
+  const harga = Number(params.price) || 0;
+  const pajak = Number(params.pajak) || 0;
+  const total = Number(params.total) || 0;
+
+  const orderId = String(params.orderId || "-");
+  const itemName = String(params.itemName || "-");
+  const itemDetail = String(params.itemDetail || "-");
+  const method = String(params.method || "-");
+  const userName = String(params.userName || "-");
+  const userEmail = String(params.userEmail || "-");
+  const time = String(params.time || "-");
 
   return (
     <View style={[containerHeader, { backgroundColor: COLORS.background }]}>
@@ -48,12 +56,12 @@ export default function ReceiptScreen() {
             
             <View style={styles.section}>
               {[
-                { label: 'No. Pemesanan', value: '1876543234567876' },
-                { label: 'Barang', value: params.itemName || 'Paket Hati' },
-                { label: 'Waktu', value: '20.03.2026 - 19:28:30' },
-                { label: 'Metode Pembayaran', value: params.method || 'OVO' },
-                { label: 'Nama', value: 'Renata' },
-                { label: 'Email', value: 'Rena@student.SLBN1.ac.id' },
+                { label: 'No. Pemesanan', value: orderId },
+                {label: 'Barang', value: `${itemName} (${itemDetail})`},
+                { label: 'Waktu', value: time },
+                { label: 'Metode Pembayaran', value: method },
+                { label: 'Nama', value: userName },
+                { label: 'Email', value: userEmail },
               ].map((item, index) => (
                 <View key={index} style={styles.row}>
                   <Text style={styles.label}>{item.label}</Text>
