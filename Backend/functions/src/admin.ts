@@ -21,6 +21,7 @@ export const adminCreateUser = onCall(async (request) => {
       tinkat: tingkat || "-",
       xp: 0,
       coin: 0,
+      lastHeartRegen: admin.firestore.FieldValue.serverTimestamp(),
       heart: 3,
       purchasedLimitedBundle: false,
       profilePicture: "https://firebasestorage.googleapis.com/v0/b/lucia-4b190.firebasestorage.app/o/profilePictures%2Fpfp%20icon.jpeg?alt=media&token=9b9255dc-d61e-4b5b-b5cf-43ae9b786fa4",
