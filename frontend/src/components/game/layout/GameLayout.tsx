@@ -30,7 +30,9 @@ type Props = {
 
   level: number;
 
-  hearts?: number;
+  heart?: number;
+
+  coin?: number;
 
   children: React.ReactNode;
 
@@ -40,7 +42,8 @@ type Props = {
 export default function GameLayout({
   title,
   level,
-  hearts = 3,
+  heart = 3,
+  coin = 0,
   children,
   actions = [],
 }: Props) {
@@ -55,7 +58,8 @@ export default function GameLayout({
       <GameHeader
         title={title}
         level={level}
-        hearts={hearts}
+        heart={heart}
+        coin={coin}
       />
 
       {/* CONTENT */}
