@@ -83,10 +83,6 @@ export default function AddUser() {
     fetchMasterData();
   }, []);
 
-  
-
-  
-
   const handleSubmit = async () => {
     if (!name || !email || !password) {
       Alert.alert('Error', 'Nama, dan Password wajib diisi!');
@@ -279,6 +275,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     marginRight: 8,
   },
+
   chipActive: {
     backgroundColor: COLORS.primary,
   },
@@ -291,7 +288,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     backgroundColor: '#F9FAFB'
   },
-  dropdownItem: {
+  dropdownItem:
+   {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#EDF2F7'

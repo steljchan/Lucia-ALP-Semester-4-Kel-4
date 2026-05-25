@@ -1,106 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TouchableOpacity, Modal, StyleSheet, ScrollView, ActivityIndicator} from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '@/utils/theme';
-
-// firebase
+import { COLORS, BTN } from '@/utils/theme';
+import ClassSelector from '@/src/components/common/admin/classSelector';
 import { db } from '@/src/config/firebase';
-import { collection, getDocs, query, where} from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
 export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
-  const [loading, setLoading] = useState(true);
-  const [selectedTingkat, setSelectedTingkat] = useState('SMP');
-  
-  const [classes, setClasses] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
-  
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
+  const [kelas, setKelas] = useState('');
+  const [classId, setClassId] = useState('');
+  const [subject, setSubject] = useState('');
+  const [allSubjects, setAllSubjects] = useState<any[]>([]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      
-      const qClass = query(collection(db, "class"), where("tingkat", "==", selectedTingkat.toUpperCase()));
-      const classSnap = await getDocs(qClass);
-      const classList = classSnap.docs.map(doc => doc.data().kelas);
-      setClasses(classList);
-      setSelectedClass(classList[0] || '');
+  // Ambil data mapel dari firestore
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      const snap = await getDocs(collection(db, "subject"));
+      setAllSubjects(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    };
+    if (visible) fetchSubjects();
+  }, [visible]);
 
-      const qSubject = query(collection(db, "subject"), where("tingkat", "==", selectedTingkat.toLowerCase()));
-      const subjectSnap = await getDocs(qSubject);
-      
-    
-      const subjectList = subjectSnap.docs.map(doc => doc.data().name); 
-      setSubjects(subjectList);
-      setSelectedSubject(subjectList[0] || '');
-
-    } catch (error) {
-      console.error("Error fetching options:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleAdd = () => {
+    if (!kelas || !subject) return;
+    onSubmit({ tingkat, kelas, classId, subject });
+    // Reset setelah submit
+    setKelas('');
+    setSubject('');
+    onClose();
   };
 
-  useEffect(() => {
-    if (visible) {
-      fetchData();
-    }
-  }, [visible, selectedTingkat]);
-
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={[styles.card, { maxHeight: '80%' }]}>
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={onClose}><Ionicons name="arrow-back" size={20} color={COLORS.primary} /></TouchableOpacity>
-            <Text style={styles.title}>Assign Pair</Text>
-            <View style={{ width: 20 }} />
+            <Text style={styles.title}>Tambah Kelas & Mapel</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color={COLORS.darkGray} />
+            </TouchableOpacity>
           </View>
 
-          {/* Selector Tingkat */}
-          <Text style={styles.label}>Tingkat</Text>
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 5 }}>
-            {['SMP', 'SMA'].map((t) => (
-              <TouchableOpacity 
-                key={t} 
-                style={[styles.item, selectedTingkat === t && styles.active, { flex: 1 }]}
-                onPress={() => setSelectedTingkat(t)}
-              >
-                <Text style={[selectedTingkat === t && styles.activeText, { textAlign: 'center' }]}>{t}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <ScrollView style={{ maxHeight: 400 }}>
+            {/* Pakai ClassSelector yang sama dengan AddUser */}
+            <ClassSelector 
+              selectedTingkat={tingkat}
+              onTingkatChange={(t) => { setTingkat(t); setKelas(''); }}
+              selectedKelas={kelas}
+              onClassSelect={(name, id) => {
+                setKelas(name);
+                setClassId(id);
+              }}
+            />
 
-          {loading ? (
-            <ActivityIndicator color={COLORS.primary} style={{ marginVertical: 20 }} />
-          ) : (
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.label}>Kelas</Text>
-              {classes.map((c) => (
-                <TouchableOpacity key={c} style={[styles.item, selectedClass === c && styles.active]} onPress={() => setSelectedClass(c)}>
-                  <Text style={[selectedClass === c && styles.activeText]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
+            <Text style={[styles.label, { marginTop: 15 }]}>Pilih Mata Pelajaran</Text>
+            <View style={styles.subjectContainer}>
+              {allSubjects
+                .filter(s => s.tingkat === tingkat)
+                .map((s) => (
+                  <TouchableOpacity 
+                    key={s.id} 
+                    style={[styles.subjectBtn, subject === s.name && styles.subjectActive]}
+                    onPress={() => setSubject(s.name)}
+                  >
+                    <Text style={[styles.subjectText, subject === s.name && { color: 'white' }]}>{s.name}</Text>
+                  </TouchableOpacity>
+                ))}
+            </View>
+          </ScrollView>
 
-              <Text style={[styles.label, { marginTop: 10 }]}>Subject</Text>
-              {subjects.map((s) => (
-                <TouchableOpacity key={s} style={[styles.item, selectedSubject === s && styles.active]} onPress={() => setSelectedSubject(s)}>
-                  <Text style={[selectedSubject === s && styles.activeText]}>{s}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-
-          <TouchableOpacity
-            style={[styles.button, (loading || !selectedClass) && { opacity: 0.5 }]}
-            disabled={loading || !selectedClass}
-            onPress={() => {
-              onSubmit({ tingkat: selectedTingkat, kelas: selectedClass, subject: selectedSubject });
-              onClose();
-            }}
+          <TouchableOpacity 
+            style={[BTN.primary.box, { marginTop: 20, opacity: (kelas && subject) ? 1 : 0.5 }]} 
+            onPress={handleAdd}
+            disabled={!kelas || !subject}
           >
-            <Text style={styles.btnText}>Tambah</Text>
+            <Text style={BTN.primary.text}>Tambahkan</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -109,62 +84,59 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor:  COLORS.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  card: {
-    width: '85%',
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: 16,
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
   },
 
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontWeight: '700' 
+  modalContainer: { 
+    width: '90%', 
+    backgroundColor: 'white', 
+    borderRadius: 20, 
+    padding: 20 
   },
 
-  label: {
-    marginTop: 10,
-    fontSize: 12,
-    color: '#9CA3AF'
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 20 
   },
 
-  item: {
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 6,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+  title: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: COLORS.textMain 
+  },
+  label: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    marginBottom: 8, 
+    color: COLORS.darkGray 
   },
 
-  active: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+  subjectContainer: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 8 
   },
-
-  activeText: {
-    color: COLORS.white,
-    fontWeight: '700',
+  subjectBtn: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 8, 
+    borderRadius: 8, 
+    backgroundColor: COLORS.white, 
+    borderWidth: 1, 
+    borderColor: COLORS.primary 
   },
-
-  button: {
-    marginTop: 20,
-    backgroundColor: COLORS.primary,
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
+  subjectActive: { 
+    backgroundColor: COLORS.primary, 
+    borderColor: COLORS.primary 
   },
-
-  btnText: {
-    color: COLORS.white,
-    fontWeight: '700'
-  },
+  subjectText: { 
+    fontSize: 12, 
+    color: COLORS.primary,
+    fontWeight: '500' 
+  }
 });
