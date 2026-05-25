@@ -177,7 +177,6 @@ export default function ProfilGuru() {
                 <View style={styles.cardLeftAccent} />
                 <View style={styles.materiRow}>
                   <View style={styles.iconWrapper}>
-                    {/* Pakai icon dokumen jika tidak ada image materi */}
                     <Ionicons name="document-text" size={24} color={COLORS.primary} />
                   </View>
                   <View style={styles.materiContent}>

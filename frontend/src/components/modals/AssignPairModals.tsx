@@ -27,7 +27,7 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
       setClasses(classList);
       setSelectedClass(classList[0] || '');
 
-      const qSubject = query(collection(db, "subject"), where("tinkat", "==", selectedTingkat.toLowerCase()));
+      const qSubject = query(collection(db, "subject"), where("tingkat", "==", selectedTingkat.toLowerCase()));
       const subjectSnap = await getDocs(qSubject);
       
     
