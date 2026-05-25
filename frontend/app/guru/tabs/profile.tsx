@@ -175,15 +175,18 @@ export default function ProfilGuru() {
                 style={styles.materiCard}
               >
                 <View style={styles.cardLeftAccent} />
+                
                 <View style={styles.materiRow}>
                   <View style={styles.iconWrapper}>
                     <Ionicons name="document-text" size={24} color={COLORS.primary} />
                   </View>
+
                   <View style={styles.materiContent}>
                     <Text style={styles.materiTitle}>{item.title}</Text>
                     <Text style={styles.materiSubtitle} numberOfLines={1}>{item.description}</Text>
                     <Text style={styles.materiSubject}>{item.subjectId} - {item.classId}</Text>
                   </View>
+                  
                   <View style={styles.dateBadge}>
                     <Ionicons name="calendar-outline" size={12} color={COLORS.primary} />
                     <Text style={styles.materiDate}>{item.date}</Text>
