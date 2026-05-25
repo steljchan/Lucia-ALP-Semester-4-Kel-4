@@ -24,64 +24,34 @@ export default function SubMateri() {
 
       try {
         setLoading(true);
-
-        const subjectDoc = await getDoc(doc(db, "subject", subjectId as string));
-        if (subjectDoc.exists()) {
-          setSubjectData(subjectDoc.data());
-        }
-
-        const auth = getAuth();
         const user = auth.currentUser;
-
-        if (!user) {
-          console.log("User tidak login");
-          setLoading(false);
-          return;
-        }
+        if (!user) return;
 
         const userDocSnap = await getDoc(doc(db, "users", user.uid));
         
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
-          const classDocId = userData.classId;
+          const userClassId = userData.classId; 
+          const userKelasName = userData.kelas; 
 
-          if (!classDocId) {
-            console.error("User ini tidak memiliki field classId di Firestore");
+          if (!userClassId) {
             setLoading(false);
             return;
           }
 
-          const classDocSnap = await getDoc(doc(db, "class", classDocId));
-          
-          if (classDocSnap.exists()) {
-            const classData = classDocSnap.data();
-            
-            const className = classData.kelas || classData.nama; 
+          const q = query(
+            collection(db, "material"),
+            where("subjectId", "==", subjectName),
+            where("classId", "in", [userClassId, userKelasName]) 
+          );
 
-            if (!className) {
-              console.error("Dokumen kelas ditemukan, tapi field 'name' kosong/undefined");
-              setLoading(false);
-              return;
-            }
+          const querySnapshot = await getDocs(q);
+          const fetchedData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
 
-            console.log("Mencari materi untuk kelas:", className);
-
-            const q = query(
-              collection(db, "material"),
-              where("subjectId", "==", subjectName),
-              where("classId", "==", className) 
-            );
-
-            const querySnapshot = await getDocs(q);
-            const fetchedData = querySnapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            }));
-
-            setMaterials(fetchedData);
-          } else {
-            console.error("ID Kelas " + classDocId + " tidak terdaftar di koleksi 'class'");
-          }
+          setMaterials(fetchedData);
         }
       } catch (error) {
         console.error("Error detail:", error);
