@@ -3,6 +3,7 @@ import {ActivityIndicator, View, Text, ScrollView, TouchableOpacity,  StyleSheet
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
+import { Ionicons } from '@expo/vector-icons';
 
 //firebase
 import { auth, db } from "../../../src/config/firebase";
@@ -121,37 +122,37 @@ export default function SubMateri() {
         </View>
         
         {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
-        ) : materials.length === 0 ? (
-          <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
-            Belum ada materi untuk mata pelajaran ini.
-          </Text>
-        ) : (
-          materials.map((item) => (
-            <TouchableOpacity
-                key={item.id}
-                style={styles.card}
-                activeOpacity={0.7}
-                onPress={() => router.push({
-                  pathname: '/siswa/materi/detailMateri',
-                  params: { materialId: item.id }
-                })}>
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+          ) : materials.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
+              Belum ada materi untuk mata pelajaran ini.
+            </Text>
+          ) : (
+            materials.map((item) => (
+              <TouchableOpacity
+                  key={item.id}
+                  style={styles.card}
+                  activeOpacity={0.7}
+                  onPress={() => router.push({
+                    pathname: '/siswa/materi/detailMateri',
+                    params: { materialId: item.id }
+                  })}>
 
-                <Image 
-                  source={{ uri: item.fileUrl || 'https://via.placeholder.com/150' }} 
-                  style={styles.cardImage} 
-                />
+                  <Image 
+                    source={{ uri: item.fileUrl || 'https://via.placeholder.com/150' }} 
+                    style={styles.cardImage} 
+                  />
 
-                <View style={styles.cardContent}>
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  
-                  <Text style={styles.cardDescription} numberOfLines={2}>
-                    {item.description}
-                  </Text>
-                </View>
-            </TouchableOpacity>
-          ))
-        )}
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    
+                    <Text style={styles.cardDescription} numberOfLines={2}>
+                      {item.description}
+                    </Text>
+                  </View>
+              </TouchableOpacity>
+            ))
+          )}
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
     </View>
@@ -162,6 +163,17 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+
+  cardLeftAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    backgroundColor: COLORS.primary,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
   },
 
   scrollContainer: {
