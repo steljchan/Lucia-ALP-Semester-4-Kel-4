@@ -9,7 +9,7 @@ import ClassSelector from '@/src/components/common/admin/classSelector';
 import { initializeApp, deleteApp } from "firebase/app"; 
 import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { db, firebaseConfig } from "../../src/config/firebase";
-import { collection, getDocs, addDoc, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
+import { collection, getDocs, query, addDoc, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function AddUser() {
@@ -84,12 +84,38 @@ export default function AddUser() {
   }, []);
 
   const handleSubmit = async () => {
+
+    const cleanName = name.trim();
+    const cleanNis = nis.trim();
+    const cleanNik = nik.trim();
+    const cleanPassword = password.trim();
+
     if (!name || !email || !password) {
       Alert.alert('Error', 'Nama, dan Password wajib diisi!');
       return;
     }
 
     try {
+
+      const fieldToCheck = role === 'siswa' ? "nis" : "nik";
+      const valueToCheck = role === 'siswa' ? cleanNis : cleanNik;
+
+      if (!valueToCheck) {
+        Alert.alert('Error', `${role === 'siswa' ? 'NIS' : 'NIK'} wajib diisi!`);
+        return;
+      }
+
+      const duplicateQuery = query(
+        collection(db, "users"),
+        where(fieldToCheck, "==", valueToCheck)
+      );
+      
+      const duplicateSnap = await getDocs(duplicateQuery);
+      
+      if (!duplicateSnap.empty) {
+        Alert.alert('Error', `${role === 'siswa' ? 'NIS' : 'NIK'} sudah terdaftar di sistem.`);
+        return;
+      }
       
       const secondaryApp = initializeApp(firebaseConfig, "Secondary");
       const secondaryAuth = getAuth(secondaryApp);
@@ -98,17 +124,17 @@ export default function AddUser() {
       const userCredential = await createUserWithEmailAndPassword(
         secondaryAuth,
         email,
-        password
+        cleanPassword
       );
       const newUid = userCredential.user.uid;
 
       
       const userData: any = {
         uid: newUid,
-        name,
+        name: cleanName,
         email,
         role,
-        password, 
+        password: cleanPassword,
         profilePicture: "https://firebasestorage.googleapis.com/v0/b/lucia-4b190.firebasestorage.app/o/profilePictures%2Fpfp%20icon.jpeg?alt=media&token=9b9255dc-d61e-4b5b-b5cf-43ae9b786fa4",
         createdAt: serverTimestamp(),
       };
