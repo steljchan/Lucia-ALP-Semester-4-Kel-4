@@ -10,7 +10,7 @@ import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 import { db } from '@/src/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-//pdf
+//pdf 
 // import Pdf from 'react-native-pdf';
 
 export default function DetailMateri() {
@@ -45,13 +45,6 @@ export default function DetailMateri() {
     fetchFullData();
   }, [materialId]);
 
-  const goToEdit = () => {
-    router.push({
-      pathname: '/guru/editMateri',
-      params: { id: materialId as string },
-    });
-  };
-
   if (loading) {
     return <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />;
   }
@@ -61,7 +54,6 @@ export default function DetailMateri() {
       <DetailHeader
         title="Detail Materi"
         subtitle={materialData?.title || "Detail"}
-        onEdit={goToEdit}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

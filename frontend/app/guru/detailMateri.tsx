@@ -10,7 +10,7 @@ import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 import { db } from '@/src/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
-//pdf
+//pdf 
 // import Pdf from 'react-native-pdf';
 
 export default function DetailMateriGuru() {

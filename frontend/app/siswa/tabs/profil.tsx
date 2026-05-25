@@ -9,7 +9,7 @@ import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
 import { auth, db } from "../../../src/config/firebase";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, query, collection, where, getCountFromServer } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const REPORT_DATA = [
@@ -54,23 +54,48 @@ export default function ProfilSiswa() {
   const [image, setImage] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [showLogout, setShowLogout] = useState(false);
+  const [rank, setRank] = useState<number | string>('...');
+
   const router = useRouter();
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
-      const unsubscribe = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
+      const unsubscribeUser = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
           setUserData(data);
-          if (data.profilePicture) {
-            setImage(data.profilePicture); 
+          if (data.profilePicture) setImage(data.profilePicture);
+          
+          if (data.xp !== undefined && data.tingkat) {
+            calculateRank(data.xp, data.tingkat);
           }
         }
       });
-      return () => unsubscribe();
+      return () => unsubscribeUser();
     }
   }, []);
+
+  const calculateRank = async (currentXp: number, currentTingkat: string) => {
+    try {
+      
+      const q = query(
+        collection(db, "users"),
+        where("role", "==", "siswa"),
+        where("tingkat", "==", currentTingkat), 
+        where("xp", ">", currentXp)            
+      );
+      
+      
+      const snapshot = await getCountFromServer(q);
+      const higherXpCount = snapshot.data().count;
+      
+      setRank(higherXpCount + 1);
+    } catch (error) {
+      console.error("Error calculating rank:", error);
+      setRank("-");
+    }
+  };
 
   const handleUpload = async (uri: string) => {
     const user = auth.currentUser;
@@ -169,7 +194,7 @@ export default function ProfilSiswa() {
           <View style={[styles.statBox, styles.statBorder]}>
             <Ionicons name="podium" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Rank</Text>
-            <Text style={styles.statValue}>{userData?.rank || "11"}</Text>
+            <Text style={styles.statValue}>{`${rank}`}</Text>
           </View>
           
           <View style={styles.statBox}>

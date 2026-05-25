@@ -1,28 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { COLORS, BORDER_RADIUS} from '@/utils/theme';
+import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 import ClassSelector from '@/src/components/common/admin/classSelector';
 
-//firebase
+// firebase
 import { db } from '@/src/config/firebase'; 
-import { doc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore';
-import { Alert, ActivityIndicator } from 'react-native';
+import { doc, updateDoc, getDoc, getDocs, collection, where, query } from 'firebase/firestore';
 
 export default function EditUser() {
   const router = useRouter();
   const params = useLocalSearchParams();
-
-  // ID Dokumen untuk edit
   const userId = params.id as string; 
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
- 
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [nis, setNis] = useState('');
@@ -34,13 +30,12 @@ export default function EditUser() {
   const [pairs, setPairs] = useState<any[]>([]);
 
   const [editingName, setEditingName] = useState(false);
+  const [editingNis, setEditingNis] = useState(false); // State baru untuk NIS
+  const [editingAcademic, setEditingAcademic] = useState(false); // State untuk toggle ClassSelector
   const [showWali, setShowWali] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
   const [allClasses, setAllClasses] = useState<any[]>([]);
 
-  
-  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -53,7 +48,12 @@ export default function EditUser() {
           setRole(data.role || '');
           setNis(data.nis || '');
           setNik(data.nik || '');
-          setKelas(data.classId || '');
+          setTingkat(data.tingkat || 'SMP');
+          
+          // PERBAIKAN: Ambil Nama Kelas (string) dan ID-nya
+          setKelas(data.kelas || ''); 
+          setClassId(data.classId || '');
+          
           setWaliKelas(data.waliKelas || 'None');
           setPairs(data.pairs || []);
         } else {
@@ -62,12 +62,10 @@ export default function EditUser() {
         }
       } catch (error) {
         console.error(error);
-        Alert.alert("Error", "Gagal mengambil data terbaru");
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [userId]);
 
@@ -75,34 +73,58 @@ export default function EditUser() {
     const fetchClasses = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "class"));
-        const list = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setAllClasses(list);
-      } catch (error) {
-        console.error("Gagal ambil daftar kelas:", error);
-      }
+        setAllClasses(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (e) { console.error(e); }
     };
-    
     fetchClasses();
   }, []);
   
   const handleSave = async () => {
+    // 1. Sanitasi Dasar
+    const cleanName = name.trim();
+    const cleanNis = nis.trim();
+    const cleanNik = nik.trim();
+
+    if (!cleanName) {
+      Alert.alert("Error", "Nama tidak boleh kosong");
+      return;
+    }
+
     setSaving(true);
     try {
+      const fieldToCheck = role === 'siswa' ? "nis" : "nik";
+      const valueToCheck = role === 'siswa' ? cleanNis : cleanNik;
+
+      if (valueToCheck) {
+        const duplicateQuery = query(
+          collection(db, "users"),
+          where(fieldToCheck, "==", valueToCheck)
+        );
+        const duplicateSnap = await getDocs(duplicateQuery);
+
+        // Cari apakah ada dokumen lain yang punya NIS/NIK ini
+        const isDuplicate = duplicateSnap.docs.some(d => d.id !== userId);
+
+        if (isDuplicate) {
+          Alert.alert("Error", `${role === 'siswa' ? 'NIS' : 'NIK'} sudah digunakan oleh user lain!`);
+          setSaving(false);
+          return;
+        }
+      }
+
       const userRef = doc(db, "users", userId);
-      
-      const updatedData: any = {
-        name,
-        updatedAt: new Date(),
+      const updatedData: any = { 
+        name: cleanName, 
+        updatedAt: new Date() 
       };
 
       if (role === 'siswa') {
-        updatedData.nis = nis;
-        updatedData.classId = kelas;
+        updatedData.nis = cleanNis;
+        updatedData.tingkat = tingkat;
+        updatedData.kelas = kelas; 
+        updatedData.classId = classId; 
       } else if (role === 'guru') {
-        updatedData.nik = nik;
+        updatedData.nik = cleanNik;
         updatedData.waliKelas = waliKelas;
         updatedData.pairs = pairs;
       }
@@ -120,18 +142,17 @@ export default function EditUser() {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.root, { justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+  if (loading) return (
+    <View style={[styles.root, { justifyContent: 'center' }]}>
+      <ActivityIndicator size="large" color={COLORS.primary} />
+    </View>
+  );
 
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <AppHeaderSimple title="Edit User" />
+
 
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
@@ -142,27 +163,52 @@ export default function EditUser() {
           ) : (
             <EditableRow label="Nama" value={name} onChange={setName} onBlur={() => setEditingName(false)} />
           )}
+          
           <Row label="Email" value={params.email} />
           <Row label="Role" value={role.toUpperCase()} />
-          
+
+          {role === 'siswa' && (
+            !editingNis ? (
+              <TouchableOpacity onPress={() => setEditingNis(true)}>
+                <Row label="NIS" value={nis} icon="create-outline" />
+              </TouchableOpacity>
+            ) : (
+              <EditableRow 
+                label="NIS" 
+                value={nis} 
+                onChange={setNis} 
+                keyboardType="numeric" 
+                onBlur={() => setEditingNis(false)} 
+              />
+            )
+          )}
         </View>
-          
 
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-            <Text style={styles.label}>NIS</Text>
-            <TextInput placeholder="Masukkan NIS" value={nis} onChangeText={setNis} keyboardType="numeric" style={styles.input} />
-             
-            <ClassSelector 
-              selectedTingkat={tingkat}
-              onTingkatChange={setTingkat}
-              selectedKelas={kelas}
-              onClassSelect={(selectedName, selectedId) => {
-                setKelas(selectedName);
-                setClassId(selectedId);
-              }}
-            />
+            
+            <TouchableOpacity onPress={() => setEditingAcademic(!editingAcademic)}>
+              <Row 
+                label="Kelas & Tingkat" 
+                value={`${kelas} - ${tingkat}`} 
+                icon={editingAcademic ? "chevron-up" : "create-outline"} 
+              />
+            </TouchableOpacity>
+
+            {editingAcademic && (
+              <View style={{ padding: 15, backgroundColor: '#f9f9f9' }}>
+                <ClassSelector 
+                  selectedTingkat={tingkat}
+                  onTingkatChange={setTingkat}
+                  selectedKelas={kelas}
+                  onClassSelect={(selectedName, selectedId) => {
+                    setKelas(selectedName);
+                    setClassId(selectedId);
+                  }}
+                />
+              </View>
+            )}
           </View>
         )}
 
@@ -170,28 +216,37 @@ export default function EditUser() {
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
             <EditableRow label="NIK" value={nik} onChange={setNik} />
-            <TouchableOpacity onPress={() => setShowWali(!showWali)}>
-              <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
-            </TouchableOpacity>
-            {showWali && ['None', ...allClasses.map((c) => c.kelas)].map((c) => (
-              <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
-                <Text style={styles.dropdownItem}>{c}</Text>
-              </TouchableOpacity>
-            ))}
 
-            <Text style={styles.subTitle}>Kelas & Subject</Text>
-            {pairs.map((p, i) => (
-              <View key={i} style={styles.pairCard}>
-                <Text style={styles.pairText}>{p.kelas} - {p.subject}</Text>
-                <TouchableOpacity onPress={() => setPairs(pairs.filter((_, index) => index !== i))}>
-                  <Ionicons name="close-circle" size={20} color={COLORS.error} />
+           {role === 'guru' && (
+              <View style={styles.card}>
+                <Text style={styles.section}>Teaching</Text>
+                <EditableRow label="NIK" value={nik} onChange={setNik} />
+                <TouchableOpacity onPress={() => setShowWali(!showWali)}>
+                  <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
+                </TouchableOpacity> 
+
+                {showWali && ['None', ...allClasses.map((c) => c.kelas)].map((c) => (
+                  <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
+                    <Text style={styles.dropdownItem}>{c}</Text>
+                  </TouchableOpacity>
+                ))}
+
+                <Text style={styles.subTitle}>Kelas & Subject</Text>
+                {pairs.map((p, i) => (
+                  <View key={i} style={styles.pairCard}>
+                    <Text style={styles.pairText}>{p.kelas} - {p.subject}</Text>
+                      <TouchableOpacity onPress={() => setPairs(pairs.filter((_, index) => index !== i))}>
+                        <Ionicons name="close-circle" size={20} color={COLORS.error} />
+                      </TouchableOpacity>
+                  </View>
+                ))}
+
+                <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
+                  <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+                  <Text style={styles.addText}>Tambah Pair</Text>
                 </TouchableOpacity>
               </View>
-            ))}
-            <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
-              <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.addText}>Tambah Pair</Text>
-            </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -207,32 +262,37 @@ export default function EditUser() {
       <AssignPairModal
         visible={showModal}
         onClose={() => setShowModal(false)}
-        // tingkatData={TINGKAT_DATA}
         onSubmit={(data: any) => setPairs([...pairs, data])}
       />
     </View>
   );
 }
 
+// FUNGSI KOMPONEN TETAP DI BAWAH
 function Row({ label, value, icon }: any) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Text style={styles.value}>{value}</Text>
-        {icon && (
-          <Ionicons name={icon} size={16} color={COLORS.darkGray} style={{ marginLeft: 6 }} />
-        )}
+        {icon && <Ionicons name={icon} size={16} color={COLORS.darkGray} style={{ marginLeft: 6 }} />}
       </View>
     </View>
   );
 }
 
-function EditableRow({ label, value, onChange }: any) {
+function EditableRow({ label, value, onChange, onBlur, keyboardType }: any) {
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput value={value} onChangeText={onChange} style={styles.input} />
+      <TextInput 
+        value={value} 
+        onChangeText={onChange} 
+        onBlur={onBlur}
+        autoFocus
+        keyboardType={keyboardType || 'default'}
+        style={[styles.input, { textAlign: 'right', color: COLORS.primary }]} 
+      />
     </View>
   );
 }
