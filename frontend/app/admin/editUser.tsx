@@ -9,7 +9,7 @@ import ClassSelector from '@/src/components/common/admin/classSelector';
 
 // firebase
 import { db } from '@/src/config/firebase'; 
-import { doc, updateDoc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, getDocs, collection, where, query } from 'firebase/firestore';
 
 export default function EditUser() {
   const router = useRouter();
@@ -80,25 +80,62 @@ export default function EditUser() {
   }, []);
   
   const handleSave = async () => {
+    // 1. Sanitasi Dasar
+    const cleanName = name.trim();
+    const cleanNis = nis.trim();
+    const cleanNik = nik.trim();
+
+    if (!cleanName) {
+      Alert.alert("Error", "Nama tidak boleh kosong");
+      return;
+    }
+
     setSaving(true);
     try {
+      const fieldToCheck = role === 'siswa' ? "nis" : "nik";
+      const valueToCheck = role === 'siswa' ? cleanNis : cleanNik;
+
+      if (valueToCheck) {
+        const duplicateQuery = query(
+          collection(db, "users"),
+          where(fieldToCheck, "==", valueToCheck)
+        );
+        const duplicateSnap = await getDocs(duplicateQuery);
+
+        // Cari apakah ada dokumen lain yang punya NIS/NIK ini
+        const isDuplicate = duplicateSnap.docs.some(d => d.id !== userId);
+
+        if (isDuplicate) {
+          Alert.alert("Error", `${role === 'siswa' ? 'NIS' : 'NIK'} sudah digunakan oleh user lain!`);
+          setSaving(false);
+          return;
+        }
+      }
+
       const userRef = doc(db, "users", userId);
-      const updatedData: any = { name, updatedAt: new Date() };
+      const updatedData: any = { 
+        name: cleanName, 
+        updatedAt: new Date() 
+      };
 
       if (role === 'siswa') {
-        updatedData.nis = nis;
+        updatedData.nis = cleanNis;
         updatedData.tingkat = tingkat;
-        updatedData.kelas = kelas; // Simpan Nama Kelas
-        updatedData.classId = classId; // Simpan ID Kelas
+        updatedData.kelas = kelas; 
+        updatedData.classId = classId; 
       } else if (role === 'guru') {
-        updatedData.nik = nik;
+        updatedData.nik = cleanNik;
         updatedData.waliKelas = waliKelas;
         updatedData.pairs = pairs;
       }
 
       await updateDoc(userRef, updatedData);
-      Alert.alert("Berhasil", "Data user telah diperbarui", [{ text: "OK", onPress: () => router.back() }]);
+      
+      Alert.alert("Berhasil", "Data user telah diperbarui", [
+        { text: "OK", onPress: () => router.back() }
+      ]);
     } catch (error) {
+      console.error(error);
       Alert.alert("Error", "Gagal memperbarui data");
     } finally {
       setSaving(false);
@@ -116,7 +153,7 @@ export default function EditUser() {
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <AppHeaderSimple title="Edit User" />
 
-        {/* SECTION PERSONAL */}
+
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
           {!editingName ? (
