@@ -126,7 +126,7 @@ export default function ProfilGuru() {
           
           <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat Nama..."}</Text>
           
-          <Text style={{ color: COLORS.textSub, fontSize: 14 }}>NIK: {userData?.NIK || "-"}</Text>
+          <Text style={{ color: COLORS.textSub, fontSize: 14 }}>NIK: {userData?.nik || "-"}</Text>
           
           {userData?.isHomeroom && (
             <View style={{ backgroundColor: COLORS.secondary, paddingHorizontal: 10, borderRadius: 5, marginTop: 5 }}>
