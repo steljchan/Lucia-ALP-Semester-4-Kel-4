@@ -135,7 +135,7 @@ export default function AdminPanel() {
                   <View style={[styles.roleBadge, { borderColor: getRoleColor(item.role) }]}>
                     <Text style={[styles.roleText, { color: getRoleColor(item.role) }]}>
                       {item.role.toUpperCase()} 
-                      {item.tinkat ? ` • ${item.tinkat}` : ''} 
+                      {item.tingkat ? ` • ${item.tingkat}` : ''} 
                       {item.kelas ? ` • ${item.kelas}` : ''}
                       {item.mapel ? ` • ${item.mapel}` : ''}
                     </Text>

@@ -5,6 +5,7 @@ import { COLORS, BORDER_RADIUS} from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
+import ClassSelector from '@/src/components/common/admin/classSelector';
 
 //firebase
 import { db } from '@/src/config/firebase'; 
@@ -26,17 +27,18 @@ export default function EditUser() {
   const [role, setRole] = useState('');
   const [nis, setNis] = useState('');
   const [nik, setNik] = useState(''); 
+  const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
   const [kelas, setKelas] = useState('');
+  const [classId, setClassId] = useState('');
   const [waliKelas, setWaliKelas] = useState('None');
   const [pairs, setPairs] = useState<any[]>([]);
 
   const [editingName, setEditingName] = useState(false);
-  const [showClass, setShowClass] = useState(false);
   const [showWali, setShowWali] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
   const [allClasses, setAllClasses] = useState<any[]>([]);
-  const [tingkatSiswa, setTingkatSiswa] = useState('SMP');
+
   
   
   useEffect(() => {
@@ -49,9 +51,9 @@ export default function EditUser() {
           const data = docSnap.data();
           setName(data.name || '');
           setRole(data.role || '');
-          setNis(data.NIS || '');
-          setNik(data.NIK || '');
-          setKelas(data.kelas || '');
+          setNis(data.nis || '');
+          setNik(data.nik || '');
+          setKelas(data.classId || '');
           setWaliKelas(data.waliKelas || 'None');
           setPairs(data.pairs || []);
         } else {
@@ -97,10 +99,10 @@ export default function EditUser() {
       };
 
       if (role === 'siswa') {
-        updatedData.NIS = nis;
-        updatedData.kelas = kelas;
+        updatedData.nis = nis;
+        updatedData.classId = kelas;
       } else if (role === 'guru') {
-        updatedData.NIK = nik;
+        updatedData.nik = nik;
         updatedData.waliKelas = waliKelas;
         updatedData.pairs = pairs;
       }
@@ -140,22 +142,27 @@ export default function EditUser() {
           ) : (
             <EditableRow label="Nama" value={name} onChange={setName} onBlur={() => setEditingName(false)} />
           )}
-          <Row label="Role" value={role.toUpperCase()} />
           <Row label="Email" value={params.email} />
+          <Row label="Role" value={role.toUpperCase()} />
+          
         </View>
+          
 
         {role === 'siswa' && (
           <View style={styles.card}>
             <Text style={styles.section}>Academic</Text>
-            <EditableRow label="NIS" value={nis} onChange={setNis} />
-            <TouchableOpacity onPress={() => setShowClass(!showClass)}>
-              <Row label="Kelas" value={kelas || 'Pilih Kelas'} icon={showClass ? 'chevron-up' : 'chevron-down'}/>
-            </TouchableOpacity>
-            {showClass && allClasses.map((c) => (
-              <TouchableOpacity key={c.id} onPress={() => { setKelas(c.kelas); setShowClass(false); }}>
-                <Text style={styles.dropdownItem}>{c.kelas}</Text>
-              </TouchableOpacity>
-            ))}
+            <Text style={styles.label}>NIS</Text>
+            <TextInput placeholder="Masukkan NIS" value={nis} onChangeText={setNis} keyboardType="numeric" style={styles.input} />
+             
+            <ClassSelector 
+              selectedTingkat={tingkat}
+              onTingkatChange={setTingkat}
+              selectedKelas={kelas}
+              onClassSelect={(selectedName, selectedId) => {
+                setKelas(selectedName);
+                setClassId(selectedId);
+              }}
+            />
           </View>
         )}
 

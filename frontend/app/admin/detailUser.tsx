@@ -24,6 +24,8 @@ export default function DetailUser() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      setLoading(true);
+      setUserData(null);
       try {
         const docRef = doc(db, "users", userId);
         const docSnap = await getDoc(docRef);
@@ -42,7 +44,9 @@ export default function DetailUser() {
       }
     };
 
-    fetchUser();
+    if (userId) {
+      fetchUser();
+    }
   }, [userId]);
 
   const handleAddPair = async (data: any) => {
@@ -108,9 +112,9 @@ export default function DetailUser() {
           <Row label="Role" value={role.toUpperCase()} />
           
           {role === 'guru' ? (
-            <Row label="NIK" value={userData?.NIK || '-'} isLast />
+            <Row label="NIK" value={userData?.nik || '-'} isLast />
           ) : (
-            <Row label="NIS" value={userData?.NIS || '-'} isLast />
+            <Row label="NIS" value={userData?.nis || '-'} isLast />
           )}
         </View>
 

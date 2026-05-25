@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, KeyboardAvoidingView, Platform, ScrollView, GestureResponderEvent} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BORDER_RADIUS } from '@/utils/theme';
+import { COLORS, BTN, BORDER_RADIUS } from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import { useRouter } from 'expo-router';
-
-
-
+import ClassSelector from '@/src/components/common/admin/classSelector';
+// firebase
 import { initializeApp, deleteApp } from "firebase/app"; 
 import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-
-// firebase
 import { db, firebaseConfig } from "../../src/config/firebase";
-import { collection, getDocs, query, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
+import { collection, getDocs, addDoc, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 
 export default function AddUser() {
@@ -27,14 +24,15 @@ export default function AddUser() {
   const [password, setPassword] = useState('');
 
   
-  const [allClasses, setAllClasses] = useState<any[]>([]);
+  
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  // const [showDropdown, setShowDropdown] = useState(false);
 
  
   const [nis, setNis] = useState('');
   const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
   const [kelas, setKelas] = useState('');
+  const [classId, setClassId] = useState('');
 
   
   const [nik, setNik] = useState('');
@@ -52,35 +50,46 @@ export default function AddUser() {
     setPairs([]);
     setIsWalas(false);
     setMapel('');
+    setClassId('');
   };
 
+  useEffect(() => {
+    if (name.trim() === "") {
+      setEmail("");
+      return;
+    }
+
+    const firstName = name.trim().split(" ")[0].toLowerCase().replace(/[^a-z]/g, "");
+    
+    const domain = role === 'siswa' ? "@siswa.lucia.com" : "@guru.lucia.com";
+    
+    setEmail(`${firstName}${domain}`);
+  }, [name, role]);
   
   useEffect(() => {
-  const fetchMasterData = async () => {
-    try {
-      
-      const classSnap = await getDocs(collection(db, "class"));
-      setAllClasses(classSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })));
-     
-      const subjectSnap = await getDocs(collection(db, "subject"));
-      setAllSubjects(subjectSnap.docs.map(doc => ({
-        id: doc.id,
-        name: doc.data().name,    
-        tinkat: doc.data().tinkat 
-      })));
-    } catch (error) {
-      console.error("Gagal ambil data master:", error);
-    }
-  };
-  fetchMasterData();
-}, []);
+    const fetchMasterData = async () => {
+      try {
+       
+        const subjectSnap = await getDocs(collection(db, "subject"));
+        setAllSubjects(subjectSnap.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name,    
+          tingkat: doc.data().tingkat 
+        })));
+      } catch (error) {
+        console.error("Gagal ambil data master:", error);
+      }
+    };
+    fetchMasterData();
+  }, []);
+
+  
+
+  
 
   const handleSubmit = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Error', 'Nama, Email, dan Password wajib diisi!');
+      Alert.alert('Error', 'Nama, dan Password wajib diisi!');
       return;
     }
 
@@ -104,19 +113,20 @@ export default function AddUser() {
         email,
         role,
         password, 
-        profilePicture: "https://via.placeholder.com/150",
+        profilePicture: "https://firebasestorage.googleapis.com/v0/b/lucia-4b190.firebasestorage.app/o/profilePictures%2Fpfp%20icon.jpeg?alt=media&token=9b9255dc-d61e-4b5b-b5cf-43ae9b786fa4",
         createdAt: serverTimestamp(),
       };
 
       if (role === 'siswa') {
-        userData.NIS = nis;
+        userData.nis = nis;       
+        userData.classId = classId; 
         userData.kelas = kelas;
-        userData.tinkat = tingkat;
+        userData.tingkat = tingkat;
+        userData.hearts = 3;      
         userData.xp = 0;
-        userData.heart = 3;
         userData.coin = 0;
       } else {
-        userData.NIK = nik;
+        userData.nik = nik;
         userData.mapel = mapel;
         userData.isWalas = isWalas;
         userData.pairs = pairs;
@@ -160,8 +170,10 @@ export default function AddUser() {
             <Text style={styles.label}>Nama Lengkap</Text>
             <TextInput placeholder="Masukkan nama" value={name} onChangeText={setName} style={styles.input} />
 
-            <Text style={styles.label}>Email</Text>
-            <TextInput placeholder="Masukkan email" value={email} onChangeText={setEmail} style={styles.input} />
+            <Text style={styles.label}>Email (Otomatis)</Text>
+            <TextInput 
+              placeholder="Email akan terisi otomatis" value={email} editable={false} style={[styles.input, { paddingLeft: 14}]} 
+            />
 
             <Text style={styles.label}>Role</Text>
             <View style={styles.roleContainer}>
@@ -179,49 +191,25 @@ export default function AddUser() {
             {role === 'siswa' && (
               <View>
                 <Text style={styles.label}>NIS</Text>
-                <TextInput placeholder="Masukkan NIS" value={nis} onChangeText={setNis} keyboardType="numeric" style={styles.input} />
-                
-                <Text style={styles.label}>Tingkat</Text>
-                <View style={styles.roleContainer}>
-                  {['SMP', 'SMA'].map((t: any) => (
-                    <TouchableOpacity 
-                      key={t} 
-                      style={[styles.roleButton, tingkat === t && styles.roleActive]} 
-                      onPress={() => { setTingkat(t); setKelas(''); }} // Reset kelas jika tingkat ganti
-                    >
-                      <Text style={[styles.roleText, tingkat === t && { color: COLORS.white }]}>{t}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <Text style={styles.label}>Kelas</Text>
-                <TouchableOpacity 
+                <TextInput 
+                  placeholder="Masukkan NIS" 
+                  value={nis} 
+                  onChangeText={setNis} 
+                  keyboardType="numeric" 
                   style={styles.input} 
-                  onPress={() => setShowDropdown(!showDropdown)}
-                >
-                  <Text style={{ color: kelas ? COLORS.textMain : COLORS.darkGray }}>
-                    {kelas || "Pilih Kelas"}
-                  </Text>
-                </TouchableOpacity>
-
-                {showDropdown && (
-                  <View style={styles.dropdownBox}>
-                    {allClasses
-                      .filter(c => c.tingkat === tingkat)
-                      .map((c, i) => (
-                        <TouchableOpacity 
-                          key={i} 
-                          style={styles.dropdownItem} 
-                          onPress={() => { setKelas(c.kelas); setShowDropdown(false); }}
-                        >
-                          <Text>{c.kelas}</Text>
-                        </TouchableOpacity>
-                      ))}
-                  </View>
-                )}
+                />
+                
+                <ClassSelector 
+                  selectedTingkat={tingkat}
+                  onTingkatChange={setTingkat}
+                  selectedKelas={kelas}
+                  onClassSelect={(name, id) => {
+                    setKelas(name);
+                    setClassId(id);
+                  }}
+                />
               </View>
             )}
-
             
             {role === 'guru' && (
               <View>
@@ -267,8 +255,8 @@ export default function AddUser() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitText}>Tambah User</Text>
+            <TouchableOpacity style={BTN.primary.box} onPress={handleSubmit}>
+              <Text style={BTN.primary.text}>Tambah User</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -282,6 +270,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -397,15 +386,4 @@ const styles = StyleSheet.create({
     color: COLORS.textMain,
   },
 
-  submitButton: {
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: BORDER_RADIUS.s,
-    alignItems: 'center',
-  },
-
-  submitText: {
-    color: COLORS.white,
-    fontWeight: '700',
-  },
 });

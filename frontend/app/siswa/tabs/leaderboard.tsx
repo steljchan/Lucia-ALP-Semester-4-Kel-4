@@ -22,12 +22,12 @@ export default function LeaderboardSiswa() {
     
     const unsubUser = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        const userTingkat = docSnap.data().tinkat; 
+        const userTingkat = docSnap.data().tingkat; 
 
         const q = query(
           collection(db, "users"),
           where("role", "==", "siswa"),
-          where("tinkat", "==", userTingkat), 
+          where("tingkat", "==", userTingkat), 
           orderBy("xp", "desc"), 
           limit(10)
         );
@@ -40,8 +40,6 @@ export default function LeaderboardSiswa() {
           setStudents(list);
           setLoading(false);
         });
-
-        // Cleanup leaderboard listener di dalam
         return () => unsubLeaderboard();
       }
     });
@@ -101,7 +99,7 @@ export default function LeaderboardSiswa() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={scrollContent}>
         <View style={{ alignItems: 'center', marginTop: 10 }}>
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: COLORS.primary }}>
-            Leaderboard {students[0]?.tinkat || ""} 🏆
+            Leaderboard {students[0]?.tingkat || ""} 🏆
           </Text>
         </View>
         {/* 3 terartas */}

@@ -25,12 +25,12 @@ export default function DashboardSiswa() {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (!userDoc.exists()) return;
         
-        const userTingkat = userDoc.data().tinkat; 
+        const userTingkat = userDoc.data().tingkat; 
 
        
         const q = query(
           collection(db, "subject"), 
-          where("tinkat", "==", userTingkat)
+          where("tingkat", "==", userTingkat)
         );
 
         const querySnapshot = await getDocs(q);

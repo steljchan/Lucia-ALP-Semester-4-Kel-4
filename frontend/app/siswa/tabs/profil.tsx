@@ -145,15 +145,14 @@ export default function ProfilSiswa() {
             
             <View style={styles.badge}>
               <Text style={styles.badgeText}>
-                {`${userData?.tinkat || "Tingkat"} ${userData?.kelas || "Kelas"}`} 
-                {/* ada typo memang tinkat disitu, krna di firebase typo,, jdi biarmi tinkat terus */}
+                {`${userData?.tingkat || "Tingkat"} ${userData?.kelas || "Kelas"}`} 
               </Text>
             </View>
             
           </View>
 
           <Text style={[TEXT.bigTitle, { marginTop: 15 }]}>{userData?.name || "Memuat..."}</Text>
-          <Text style={PROFILE.studentId}>{userData?.NIS || "-"}</Text> 
+          <Text style={PROFILE.studentId}>{userData?.nis || "-"}</Text> 
           
           <View style={PROFILE.emailBadge}>
              <Text style={subtitle}>{auth.currentUser?.email || "Email tidak ditemukan"}</Text>
