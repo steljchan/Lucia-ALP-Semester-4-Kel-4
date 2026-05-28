@@ -96,7 +96,8 @@ export default function UploadMateri() {
       const pdfDoc = await PDFDocument.load(fileBase64);
       const pageCount = pdfDoc.getPageCount();
 
-      const storageRef = ref(storage, `materials/${user.uid}/${Date.now()}_${file.name}`);
+      const storagePath = `materials/${user.uid}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, storagePath);
       const response = await fetch(file.url);
       const blob = await response.blob();
       await uploadBytes(storageRef, blob);
@@ -109,6 +110,7 @@ export default function UploadMateri() {
         classId: selectedClasses[0],
         teacherId: user.uid,
         fileUrl: downloadURL,
+        storagePath: storagePath,
         totalSteps: pageCount,
         createdAt: serverTimestamp(),
       });
