@@ -8,7 +8,7 @@ export const firebaseConfig = {
   apiKey: "AIzaSyDZTLeHhEnoJmx40LTzgaMeQtR0wbiYGQA",
   authDomain: "lucia-4b190.firebaseapp.com",
   projectId: "lucia-4b190",
-  storageBucket: "lucia-4b190.firebasestorage.app",
+  storageBucket: "lucia-4b190.appspot.com",
   messagingSenderId: "172224433843",
   appId: "1:172224433843:web:90d6b38565e4cfd3766ac6",
 };
