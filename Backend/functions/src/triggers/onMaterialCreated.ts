@@ -35,43 +35,77 @@ export const onMaterialCreated =
           materialId
         );
 
-        // validation
-        if (!data.fileUrl) {
+        // =========================
+        // VALIDATION
+        // =========================
+
+        if (!data.storagePath) {
 
           console.log(
-            'No fileUrl found'
+            'No storagePath found'
           );
+
+          await admin
+            .firestore()
+            .collection('material')
+            .doc(materialId)
+            .update({
+              aiStatus: 'failed',
+              aiError:
+                'storagePath missing'
+            });
 
           return;
         }
 
-        // update status
+        // =========================
+        // UPDATE STATUS
+        // =========================
+
         await admin
           .firestore()
           .collection('material')
           .doc(materialId)
           .update({
-            aiStatus: 'processing'
+            aiStatus: 'processing',
+            processingStartedAt:
+              admin.firestore.FieldValue.serverTimestamp()
           });
 
-        // process material
+        // =========================
+        // PROCESS MATERIAL
+        // =========================
+
         await processMaterial(
           materialId,
-          data.fileUrl
+          data.storagePath
         );
 
-        // success
+        // =========================
+        // SUCCESS
+        // =========================
+
         await admin
           .firestore()
           .collection('material')
           .doc(materialId)
           .update({
-            aiStatus: 'completed'
+            aiStatus: 'completed',
+
+            processingCompletedAt:
+              admin.firestore.FieldValue.serverTimestamp()
           });
+
+        console.log(
+          'Material processed successfully'
+        );
 
       } catch (error) {
 
-        console.error(error);
+        console.error(
+          'TRIGGER ERROR:',
+          error
+        );
 
         const materialId =
           event.params.materialId;
@@ -82,10 +116,14 @@ export const onMaterialCreated =
           .doc(materialId)
           .update({
             aiStatus: 'failed',
+
             aiError:
               error instanceof Error
                 ? error.message
-                : 'Unknown error'
+                : 'Unknown error',
+
+            processingFailedAt:
+              admin.firestore.FieldValue.serverTimestamp()
           });
       }
     }

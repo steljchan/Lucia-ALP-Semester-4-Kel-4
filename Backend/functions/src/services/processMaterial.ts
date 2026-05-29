@@ -1,12 +1,12 @@
 import * as admin from 'firebase-admin';
 
 import {
-  pdfToImages
-} from '../ocr/pdfToImages';
+  extractPdfText
+} from '../ocr/extractPDFText';
 
 import {
-  extractTextFromImage
-} from '../ocr/extractText';
+  cleanupOCRResult
+} from '../ocr/cleanupOCRResult';
 
 import {
   generateQuizFromText
@@ -14,49 +14,56 @@ import {
 
 export async function processMaterial(
   materialId: string,
-  fileUrl: string
+  storagePath: string
 ) {
 
   try {
 
     console.log(
-      'Starting OCR process...'
+      '================================='
     );
-
-    // =========================
-    // 1. Convert PDF to images
-    // =========================
-
-    const imagePaths =
-      await pdfToImages(fileUrl);
 
     console.log(
-      `Converted ${imagePaths.length} pages`
+      'STARTING MATERIAL PROCESS'
+    );
+
+    console.log(
+      'Material ID:',
+      materialId
     );
 
     // =========================
-    // 2. OCR every page
+    // 1. CLEAN OLD OCR FILES
     // =========================
 
-    let fullText = '';
+    console.log(
+      'Cleaning old OCR files...'
+    );
 
-    for (const imagePath of imagePaths) {
+    await cleanupOCRResult();
 
-      console.log(
-        'OCR page:',
-        imagePath
-      );
-
-      const text =
-        await extractTextFromImage(
-          imagePath
-        );
-
-      fullText += '\n' + text;
-    }
+    console.log(
+      'Old OCR cleaned'
+    );
 
     // =========================
-    // 3. Save OCR text
+    // 2. CONVERT STORAGE PATH
+    //    TO GCS URI
+    // =========================
+
+    const bucketName =
+      'lucia-4b190.appspot.com';
+
+    const gcsUri =
+      `gs://${bucketName}/${storagePath}`;
+
+    console.log(
+      'GCS URI:',
+      gcsUri
+    );
+
+    // =========================
+    // 3. START OCR PROCESS
     // =========================
 
     await admin
@@ -64,20 +71,64 @@ export async function processMaterial(
       .collection('material')
       .doc(materialId)
       .update({
-        extractedText: fullText
+        aiStatus: 'ocr-processing'
       });
+
+    console.log(
+      'Starting Vision OCR...'
+    );
+
+    const fullText =
+      await extractPdfText(
+        materialId,
+        gcsUri
+      );
 
     console.log(
       'OCR completed'
     );
 
+    console.log(
+      'Extracted text length:',
+      fullText.length
+    );
+
     // =========================
-    // 4. Generate Quiz with Gemini
+    // 4. SAVE OCR RESULT
+    // =========================
+
+    await admin
+      .firestore()
+      .collection('material')
+      .doc(materialId)
+      .update({
+
+        extractedText:
+          fullText,
+
+        ocrCompletedAt:
+          admin.firestore.FieldValue.serverTimestamp(),
+
+        aiStatus:
+          'ocr-completed'
+      });
+
+    // =========================
+    // 5. GENERATE QUIZ
     // =========================
 
     console.log(
-      'Generating quiz...'
+      'Generating quiz with Gemini...'
     );
+
+    await admin
+      .firestore()
+      .collection('material')
+      .doc(materialId)
+      .update({
+        aiStatus:
+          'generating-quiz'
+      });
 
     const rawQuiz =
       await generateQuizFromText(
@@ -85,7 +136,7 @@ export async function processMaterial(
       );
 
     // =========================
-    // 5. Clean Gemini response
+    // 6. CLEAN GEMINI RESPONSE
     // =========================
 
     const cleanedQuiz =
@@ -95,7 +146,7 @@ export async function processMaterial(
         .trim();
 
     // =========================
-    // 6. Parse JSON
+    // 7. PARSE QUIZ JSON
     // =========================
 
     let quizData;
@@ -118,7 +169,20 @@ export async function processMaterial(
     }
 
     // =========================
-    // 7. Save quiz
+    // 8. VALIDATE QUIZ ARRAY
+    // =========================
+
+    if (
+      !Array.isArray(quizData)
+    ) {
+
+      throw new Error(
+        'Quiz result is not an array'
+      );
+    }
+
+    // =========================
+    // 9. SAVE QUIZ
     // =========================
 
     await admin
@@ -126,7 +190,12 @@ export async function processMaterial(
       .collection('material')
       .doc(materialId)
       .update({
+
         quiz: quizData,
+
+        aiStatus:
+          'completed',
+
         quizGeneratedAt:
           admin.firestore.FieldValue.serverTimestamp()
       });
@@ -135,12 +204,34 @@ export async function processMaterial(
       'Quiz generated successfully'
     );
 
+    console.log(
+      '================================='
+    );
+
   } catch (error) {
 
     console.error(
       'PROCESS MATERIAL ERROR:',
       error
     );
+
+    await admin
+      .firestore()
+      .collection('material')
+      .doc(materialId)
+      .update({
+
+        aiStatus:
+          'failed',
+
+        aiError:
+          error instanceof Error
+            ? error.message
+            : 'Unknown error',
+
+        failedAt:
+          admin.firestore.FieldValue.serverTimestamp()
+      });
 
     throw error;
   }
