@@ -1,58 +1,127 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-import { useRef } from 'react';
+
+// Firebase
+import { db } from '@/src/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
+// Helper: hilangkan prefix huruf dari option (contoh: "A. Memompa darah" -> "Memompa darah")
+const stripOptionPrefix = (option: string): string => {
+  return option.replace(/^[A-D]\.\s*/, '');
+};
+
+// Helper: konversi huruf jawaban ke index (A=0, B=1, dst)
+const letterToIndex = (letter: string): number => {
+  const map: { [key: string]: number } = { A: 0, B: 1, C: 2, D: 3 };
+  return map[letter] ?? 0;
+};
+
+interface Question {
+  questionText: string;
+  options: string[]; // sudah di-strip tanpa prefix huruf
+  correctAnswer: string; // teks jawaban benar
+  correctAnswerIndex: number;
+}
 
 export default function QuizScreen() {
   const router = useRouter();
+  const { id: materialId } = useLocalSearchParams<{ id: string }>();
+
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(30);
   const [timerActive, setTimerActive] = useState(true);
+  const [showResult, setShowResult] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+
   const correctRef = useRef(0);
   const wrongRef = useRef(0);
   const skippedRef = useRef(0);
   const answersRef = useRef<any[]>([]);
   const navigatingRef = useRef(false);
 
-  const questions = [
-    {
-      questionText: 'Tentukan bentuk kalimatnya!',
-      image: 'seratus',
-      options: ['Seratus Ribu', 'Satu Nol Nol Nol Nol Nol', 'Sepuluh Ribu', 'Seribu'],
-      correctAnswer: 'Seratus Ribu',
-    },
-    {
-      questionText: 'Tentukan bentuk kalimatnya!',
-      image: 'limapuluh',
-      options: ['Lima Ribu', 'Lima Puluh Ribu', 'Lima Ratus', 'Lima Juta'],
-      correctAnswer: 'Lima Puluh Ribu',
-    }
-  ];
-
-  const imageMap: any = {
-    seratus: require('@/assets/images/materi/seratus.jpg'),
-    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
-  };
-
-  const questionData = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
-  const currentQuestionNumber = currentQuestionIndex + 1;
-  const progress = currentQuestionNumber / totalQuestions;
-  const [showResult, setShowResult] = useState(false);
-  const [isChecking, setIsChecking] = useState(false);
-
+  // Fetch quiz dari Firestore
   useEffect(() => {
+    const fetchQuiz = async () => {
+      if (!materialId) {
+        setError('Material ID tidak ditemukan');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'material', materialId);
+        const docSnap = await getDoc(docRef);
+
+        if (!docSnap.exists()) {
+          setError('Materi tidak ditemukan');
+          setLoading(false);
+          return;
+        }
+
+        const data = docSnap.data();
+        const quizData = data.quiz;
+
+        if (!quizData || !Array.isArray(quizData) || quizData.length === 0) {
+          setError('Quiz belum tersedia. Silakan coba lagi nanti.');
+          setLoading(false);
+          return;
+        }
+
+        // Transformasi data quiz dari backend ke format yang digunakan frontend
+        const transformedQuestions: Question[] = quizData.map((item: any) => {
+          // Hilangkan prefix huruf dari options (A., B., dll)
+          const rawOptions = item.options || [];
+          const strippedOptions = rawOptions.map(stripOptionPrefix);
+
+          // Dapatkan jawaban benar dalam bentuk teks
+          const correctAnswerIndex = letterToIndex(item.answer);
+          const correctAnswerText = strippedOptions[correctAnswerIndex] || '';
+
+          return {
+            questionText: item.question || '',
+            options: strippedOptions,
+            correctAnswer: correctAnswerText,
+            correctAnswerIndex: correctAnswerIndex,
+          };
+        });
+
+        setQuestions(transformedQuestions);
+      } catch (err) {
+        console.error('Error fetching quiz:', err);
+        setError('Gagal memuat quiz. Periksa koneksi Anda.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuiz();
+  }, [materialId]);
+
+  const totalQuestions = questions.length;
+  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestionNumber = currentQuestionIndex + 1;
+  const progress = totalQuestions > 0 ? currentQuestionNumber / totalQuestions : 0;
+
+  // Timer effect
+  useEffect(() => {
+    if (loading || questions.length === 0) return;
+
     let interval: number;
     if (timerActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && timerActive) {
+    } else if (timeLeft === 0 && timerActive && !isChecking && !showResult) {
       setTimerActive(false);
       setSelectedOption(null);
       finalizeAnswer(null, true);
@@ -62,24 +131,25 @@ export default function QuizScreen() {
       }, 2000);
     }
     return () => clearInterval(interval);
-  }, [timerActive, timeLeft]);
+  }, [timerActive, timeLeft, currentQuestionIndex, loading, questions.length]);
 
   const resetTimer = () => {
     setTimeLeft(30);
     setTimerActive(true);
   };
 
-  const finalizeAnswer = (selectedOption: string | null, isSkippedByTimer = false) => {
-    const current = questions[currentQuestionIndex];
+  const finalizeAnswer = (selectedOptionText: string | null, isSkippedByTimer = false) => {
+    if (!currentQuestion) return;
     const alreadyAnswered = answersRef.current.some(a => a.questionIndex === currentQuestionIndex);
     if (alreadyAnswered) return;
 
     let isCorrect = false;
     let status = 'answered';
-    if (isSkippedByTimer || selectedOption === null) {
+
+    if (isSkippedByTimer || selectedOptionText === null) {
       status = 'skipped';
       skippedRef.current += 1;
-    } else if (selectedOption === current.correctAnswer) {
+    } else if (selectedOptionText === currentQuestion.correctAnswer) {
       isCorrect = true;
       correctRef.current += 1;
     } else {
@@ -88,25 +158,38 @@ export default function QuizScreen() {
 
     const answerData = {
       questionIndex: currentQuestionIndex,
-      image: current.image,
-      question: current.questionText,
-      options: current.options,
-      userAnswer: selectedOption,
-      correctAnswer: current.correctAnswer,
+      question: currentQuestion.questionText,
+      options: currentQuestion.options,
+      userAnswer: selectedOptionText,
+      correctAnswer: currentQuestion.correctAnswer,
       isCorrect: isCorrect,
       status: status,
     };
     answersRef.current.push(answerData);
   };
 
-  const handleAnswer = (option: string) => {
-    if (showResult || isChecking) return;
-    finalizeAnswer(option, false);
+  const handleAnswer = (optionText: string) => {
+    if (showResult || isChecking || !currentQuestion) return;
+
+    setSelectedOption(optionText);
+    setIsChecking(true);
+
+    setTimeout(() => {
+      finalizeAnswer(optionText, false);
+      setIsChecking(false);
+      setShowResult(true);
+      setTimerActive(false);
+
+      setTimeout(() => {
+        handleNextQuestion();
+      }, 2000);
+    }, 1000);
   };
 
   const handleNextQuestion = () => {
     if (navigatingRef.current) return;
     navigatingRef.current = true;
+
     if (currentQuestionIndex + 1 < totalQuestions) {
       setCurrentQuestionIndex((prev) => prev + 1);
       setSelectedOption(null);
@@ -120,7 +203,8 @@ export default function QuizScreen() {
       const finalCorrect = correctRef.current;
       const finalWrong = wrongRef.current;
       const finalSkipped = skippedRef.current;
-      const finalScore = Math.round((finalCorrect / totalQuestions) * 100);
+      const finalScore = totalQuestions > 0 ? Math.round((finalCorrect / totalQuestions) * 100) : 0;
+
       router.replace({
         pathname: '/siswa/materi/score',
         params: {
@@ -141,12 +225,41 @@ export default function QuizScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <DetailHeader title="Quiz" subtitle="Memuat soal..." />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+        <Text style={styles.loadingText}>Mempersiapkan quiz...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error || questions.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <DetailHeader title="Quiz" subtitle="Gagal memuat" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={60} color={COLORS.error} />
+          <Text style={styles.errorText}>{error || 'Quiz tidak tersedia'}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
+            <Text style={styles.retryButtonText}>Kembali</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <DetailHeader
         title="Quiz"
-        subtitle="Algebra : The Basics, Calculation and Usage"
+        subtitle={`Soal ${currentQuestionNumber} dari ${totalQuestions}`}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -159,8 +272,16 @@ export default function QuizScreen() {
             </Text>
           </View>
           <View style={styles.rightSection}>
-            <AnimatedCircularProgress size={70} width={6} fill={(timeLeft / 30) * 100} tintColor={COLORS.primary} backgroundColor={COLORS.white} rotation={0} lineCap="round">
-              {() => <Text style={{ fontSize: 12, fontWeight: '600' }}>{formatTime(timeLeft)}</Text>}
+            <AnimatedCircularProgress 
+              size={70} 
+              width={6} 
+              fill={(timeLeft / 30) * 100} 
+              tintColor={COLORS.primary} 
+              backgroundColor={COLORS.white} 
+              rotation={0} 
+              lineCap="round"
+            >
+              {() => <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>}
             </AnimatedCircularProgress>
           </View>
         </View>
@@ -171,22 +292,17 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        <View style={styles.imageQuestionContainer}>
-          <Image
-            source={imageMap[questionData.image]}
-            style={styles.questionImage}
-          />
-        </View>
-
-        <Text style={styles.questionText}>{questionData.questionText}</Text>
+        <Text style={styles.questionText}>{currentQuestion.questionText}</Text>
 
         <View style={styles.optionsContainer}>
-          {questionData.options.map((option, idx) => {
+          {currentQuestion.options.map((option, idx) => {
             const letter = String.fromCharCode(65 + idx);
-            const isCorrect = option === questionData.correctAnswer;
+            const isCorrect = option === currentQuestion.correctAnswer;
             const isSelected = selectedOption === option;
+
             let backgroundColor = COLORS.white;
             let borderColor = COLORS.smoothBlue;
+
             if (isChecking && isSelected) {
               backgroundColor = COLORS.smoothBlue;
               borderColor = COLORS.primary;
@@ -199,33 +315,31 @@ export default function QuizScreen() {
                 borderColor = COLORS.error;
               }
             }
+
             return (
               <TouchableOpacity
                 key={idx}
                 disabled={showResult || isChecking}
                 style={[styles.optionItem, { backgroundColor, borderColor, borderWidth: 2 }]}
-                onPress={() => {
-                  if (showResult || isChecking) return;
-                  setSelectedOption(option);
-                  setIsChecking(true);
-                  setTimeout(() => {
-                    setIsChecking(false);
-                    setShowResult(true);
-                    setTimerActive(false);
-                    handleAnswer(option);
-                    setTimeout(() => {
-                      handleNextQuestion();
-                    }, 2000);
-                  }, 1000);
-                }}
+               onPress={() => handleAnswer(option)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                  <View style={[styles.optionCircle, showResult && isCorrect && styles.circleCorrect, showResult && isSelected && !isCorrect && styles.circleWrong]}>
+                  <View style={[
+                    styles.optionCircle, 
+                    showResult && isCorrect && styles.circleCorrect, 
+                    showResult && isSelected && !isCorrect && styles.circleWrong
+                  ]}>
                     <Text style={styles.optionLetterText}>{letter}</Text>
                   </View>
                   <Text style={styles.optionText}>{option}</Text>
                 </View>
-                {showResult && (isCorrect ? <Ionicons name="checkmark-circle" size={24} color={COLORS.success} /> : isSelected ? <Ionicons name="close-circle" size={24} color={COLORS.error} /> : null)}
+                {showResult && (
+                  isCorrect ? 
+                    <Ionicons name="checkmark-circle" size={24} color={COLORS.success} /> : 
+                    isSelected ? 
+                      <Ionicons name="close-circle" size={24} color={COLORS.error} /> : 
+                      null
+                )}
               </TouchableOpacity>
             );
           })}
@@ -239,6 +353,45 @@ const styles = StyleSheet.create({
   root: { 
     flex: 1, 
     backgroundColor: COLORS.background 
+  },
+  
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+
+  loadingText: {
+    textAlign: 'center',
+    marginTop: SPACING.md,
+    color: COLORS.textSub,
+    fontSize: 14,
+  },
+
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+
+  errorText: {
+    marginTop: SPACING.md,
+    fontSize: 16,
+    color: COLORS.textMain,
+    textAlign: 'center',
+    marginBottom: SPACING.lg,
+  },
+
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.m,
+  },
+
+  retryButtonText: {
+    color: COLORS.white,
+    fontWeight: '600',
   },
     
   scrollContent: { 
@@ -292,27 +445,10 @@ const styles = StyleSheet.create({
     borderRadius: 4 
   },
 
-  imageQuestionContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.s,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.lg,
-    shadowColor: COLORS.black,
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
-  questionImage: {
-    width: '100%',
-    height: 100,
-    resizeMode: 'contain',
+  timerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textMain,
   },
 
   questionText: { 
@@ -320,7 +456,8 @@ const styles = StyleSheet.create({
     fontWeight: '600', 
     color: COLORS.textMain, 
     textAlign: 'center', 
-    marginBottom: SPACING.lg 
+    marginBottom: SPACING.lg,
+    marginTop: SPACING.md,
   },
 
   optionsContainer: { 
@@ -343,7 +480,8 @@ const styles = StyleSheet.create({
   optionText: { 
     fontSize: 16, 
     color: COLORS.textMain, 
-    flex: 1 
+    flex: 1,
+    marginLeft: 12,
   },
 
   optionCircle: { 
@@ -355,7 +493,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.smoothBlue, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginRight: 12 
   },
 
   optionLetterText: { 

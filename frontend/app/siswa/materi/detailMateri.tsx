@@ -6,12 +6,9 @@ import { COLORS, SPACING, BORDER_RADIUS, BTN } from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 
-//fireabase
+// firebase
 import { db } from '@/src/config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-
-//pdf 
-// import Pdf from 'react-native-pdf';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function DetailMateri() {
   const router = useRouter();
@@ -19,30 +16,35 @@ export default function DetailMateri() {
 
   const [materialData, setMaterialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [aiStatus, setAiStatus] = useState<string>('');
 
   const goToKuis = () => {
     router.push({
-      pathname: '/quiz', 
+      pathname: '/siswa/materi/quiz', 
       params: { id: materialId as string },
     });
   };
 
   useEffect(() => {
-    const fetchFullData = async () => {
-      if (!materialId) return;
-      try {
-        const docRef = doc(db, "material", materialId as string);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setMaterialData(docSnap.data());
-        }
-      } catch (error) {
-        console.error("Error fetching detail:", error);
-      } finally {
-        setLoading(false);
+    if (!materialId) return;
+
+    const docRef = doc(db, "material", materialId as string);
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+
+        setMaterialData(data);
+        setAiStatus(data?.aiStatus || '');
       }
-    };
-    fetchFullData();
+
+      setLoading(false);
+    }, (error) => {
+      console.error("Error listening material:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [materialId]);
 
   if (loading) {
@@ -78,18 +80,26 @@ export default function DetailMateri() {
         </View>
 
         <TouchableOpacity 
-          style={BTN.primary.box} 
+          style={[BTN.primary.box, (aiStatus !== 'completed') && { backgroundColor: COLORS.gray }]} 
           onPress={goToKuis}
+          disabled={aiStatus !== 'completed'}
           activeOpacity={0.8}
         >
-          <Text style={BTN.primary.text}>Mulai Kuis</Text>
+          <Text style={BTN.primary.text}>
+            {aiStatus === 'processing'
+              ? 'AI sedang membuat quiz...'
+              : aiStatus === 'failed'
+              ? 'Quiz gagal dibuat'
+              : aiStatus === 'completed'
+              ? 'Mulai Kuis'
+              : 'Menunggu proses AI'}
+          </Text>
         </TouchableOpacity>
 
       </ScrollView>
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   root: {

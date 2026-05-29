@@ -8,9 +8,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/LogoLucia.png", 
-      "resizeMode": "contain", 
-      "backgroundColor": "#E6F4FE" 
+      "image": "./assets/images/LogoLucia.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#E6F4FE"
     },
     "ios": {
       "supportsTablet": true
@@ -23,7 +23,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font"
     ]
   }
 }

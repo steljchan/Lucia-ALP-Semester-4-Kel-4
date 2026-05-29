@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
@@ -39,11 +39,6 @@ export default function ScoreScreen() {
     return COLORS.primary;
   };
 
-  const imageMap: any = {
-    seratus: require('@/assets/images/materi/seratus.jpg'),
-    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
-  };
-
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
@@ -53,10 +48,6 @@ export default function ScoreScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.mascotWrapper}>
-          <Image source={require('@/assets/images/maskot1.png')} style={styles.mascot} resizeMode="contain" />
-        </View>
-
         <View style={styles.card}>
           <View style={styles.cardContent}>
             <Text style={styles.title}>CONGRATULATIONS</Text>
@@ -116,11 +107,6 @@ export default function ScoreScreen() {
                 </View>
 
                 <Text style={styles.questionText}>{item.question}</Text>
-                <Image
-                  source={imageMap[item.image]}
-                  style={styles.questionImage}
-                  resizeMode="contain"
-                />
 
                 {item.options.map((option: string, i: number) => {
                   const isCorrectAnswer = option === item.correctAnswer;
@@ -129,7 +115,7 @@ export default function ScoreScreen() {
                   const isUserWrong = isUserAnswer && !item.isCorrect;
 
                   let optionBg = COLORS.white;
-                  let borderColor = '#E5E7EB'; 
+                  let borderColor = '#E5E7EB';
 
                   if (isUserCorrect) {
                     optionBg = '#D8FAE5';
@@ -196,22 +182,7 @@ const styles = StyleSheet.create({
 
   content: {
     padding: SPACING.md,
-    paddingTop: 100,
-  },
-
-  mascotWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-
-  mascot: {
-    width: 200,
-    height: 200,
-    transform: [{ scale: 1.05 }],
+    paddingTop: 20,
   },
   
   card: {
@@ -225,29 +196,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
 
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: COLORS.primary,
-    marginVertical: 12,
-  },
-
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-
-  verticalDivider: {
-    width: 1,
-    height: 50,
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 8,
-  },
-
   cardContent: {
-    marginTop: 100,
     width: '100%',
     alignItems: 'center',
   },
@@ -280,6 +229,27 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
+  divider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: COLORS.primary,
+    marginVertical: 12,
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+
+  verticalDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 8,
+  },
+
   statBox: {
     flex: 1,
     alignItems: 'center',
@@ -307,7 +277,7 @@ const styles = StyleSheet.create({
   },
 
   quizContainer: {
-    marginTop: 20,
+    marginTop: 10,
     gap: 16,
   },
 
@@ -339,13 +309,7 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
-  },
-
-  questionImage: {
-    width: '100%',
-    height: 180,
-    marginBottom: 14,
+    marginBottom: 16,
   },
 
   option: {
