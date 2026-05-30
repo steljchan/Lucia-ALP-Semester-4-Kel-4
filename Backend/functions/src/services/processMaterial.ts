@@ -52,7 +52,7 @@ export async function processMaterial(
     // =========================
 
     const bucketName =
-      'lucia-4b190.appspot.com';
+      'lucia-4b190.firebasestorage.app';
 
     const gcsUri =
       `gs://${bucketName}/${storagePath}`;

@@ -1,20 +1,35 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-// Jangan inisialisasi genAI di sini secara global!
+export async function generateQuizFromText(
+  text: string
+) {
 
-export async function generateQuizFromText(text: string) {
-  // 1. Ambil API Key di dalam scope fungsi
-  const apiKey = process.env.GEMINI_API_KEY;
+  // =========================
+  // API KEY
+  // =========================
+
+  const apiKey =
+    process.env.GEMINI_API_KEY;
+
   if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not defined in environment variables.");
+
+    throw new Error(
+      "GEMINI_API_KEY is missing"
+    );
   }
 
-  // 2. Inisialisasi SDK di dalam fungsi
-  const genAI = new GoogleGenerativeAI(apiKey);
+  // =========================
+  // INIT AI
+  // =========================
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-  });
+  const ai =
+    new GoogleGenAI({
+      apiKey
+    });
+
+  // =========================
+  // PROMPT
+  // =========================
 
   const prompt = `
 Buatkan 10 soal pilihan ganda berdasarkan materi berikut.
@@ -22,28 +37,22 @@ Buatkan 10 soal pilihan ganda berdasarkan materi berikut.
 TARGET PENGGUNA:
 - Anak tunarungu SMP/SMA
 - Gunakan bahasa sederhana
-- Hindari kalimat terlalu panjang
 - Hindari istilah rumit
-- Fokus pada pemahaman visual dan konsep inti
-- Pertanyaan harus jelas dan mudah dipahami
+- Pertanyaan harus jelas
 - Jangan ambigu
-- Jangan menggunakan majas atau kalimat abstrak
+- Kalimat pendek
+- Fokus pada inti materi
 
 ATURAN:
 - Bahasa Indonesia
-- Setiap soal harus memiliki 4 pilihan:
+- Setiap soal memiliki 4 pilihan:
   A, B, C, D
-- Jawaban benar HARUS bervariasi
-- Jangan jadikan semua jawaban "A"
-- Acak jawaban benar antara A-D
-- Soal harus sesuai materi
-- Jangan terlalu sulit
-- Jangan beri penjelasan tambahan
+- Jawaban benar harus bervariasi
 - Jangan gunakan markdown
 - Jangan gunakan \`\`\`
 - Balas HANYA JSON ARRAY VALID
 
-Format:
+FORMAT:
 
 [
   {
@@ -58,53 +67,81 @@ Format:
   }
 ]
 
-Materi:
+MATERI:
 ${text}
 `;
 
-  const result = await model.generateContent(prompt);
-  const response = result.response.text();
+  // =========================
+  // GENERATE
+  // =========================
+
+  console.log(
+    "Generating quiz..."
+  );
+
+  const result =
+    await ai.models.generateContent({
+
+      model: "gemini-2.5-flash-lite",
+
+      contents:
+        prompt
+    });
+
+  const response =
+    result.text;
+
+  console.log(
+    "Quiz generated"
+  );
 
   // =========================
   // CLEAN RESPONSE
   // =========================
-  const cleaned = response
-    .replace(/```json/g, '')
-    .replace(/```/g, '')
-    .trim();
+
+  const cleaned =
+    response
+      ?.replace(/```json/g, '')
+      ?.replace(/```/g, '')
+      ?.trim();
 
   // =========================
   // PARSE JSON
   // =========================
+
   let parsedQuiz;
+
   try {
-    parsedQuiz = JSON.parse(cleaned);
+
+    parsedQuiz =
+      JSON.parse(cleaned || '');
+
   } catch (error) {
-    console.error('Failed parsing Gemini JSON:', cleaned);
-    throw new Error('Invalid JSON from Gemini');
+
+    console.error(
+      "Invalid JSON:",
+      cleaned
+    );
+
+    throw new Error(
+      "Failed parsing Gemini JSON"
+    );
   }
 
   // =========================
-  // VALIDATE QUIZ
+  // VALIDATE
   // =========================
-  const validAnswers = ['A', 'B', 'C', 'D'];
-  const validatedQuiz = parsedQuiz.map((item: any) => {
-    return {
-      question: typeof item.question === 'string' ? item.question : '',
-      options: Array.isArray(item.options) ? item.options.slice(0, 4) : [],
-      answer: validAnswers.includes(item.answer) ? item.answer : 'A'
-    };
-  });
 
-  // =========================
-  // DISTRIBUTION CHECK
-  // =========================
-  const answerCounts = { A: 0, B: 0, C: 0, D: 0 };
-  validatedQuiz.forEach((quiz: any) => {
-    answerCounts[quiz.answer as keyof typeof answerCounts]++;
-  });
+  if (
+    !Array.isArray(parsedQuiz)
+  ) {
 
-  console.log('Answer Distribution:', answerCounts);
+    throw new Error(
+      "Quiz is not array"
+    );
+  }
 
-  return JSON.stringify(validatedQuiz);
+  return JSON.stringify(
+    parsedQuiz
+  );
 }
