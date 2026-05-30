@@ -1,134 +1,128 @@
-import * as admin from 'firebase-admin';
+import * as admin
+  from 'firebase-admin';
 
 export async function readOCRResult(
   materialId: string
 ): Promise<string> {
 
-  try {
+  // =========================
+  // OCR OUTPUT BUCKET
+  // =========================
 
-    const bucket =
-      admin.storage().bucket();
-
-    // =========================
-    // OCR output folder
-    // =========================
-
-    const prefix =
-      `ocr-output/`;
-
-    // =========================
-    // Get OCR JSON files
-    // =========================
-
-    const [files] =
-      await bucket.getFiles({
-        prefix
-      });
-
-    if (!files.length) {
-
-      throw new Error(
-        'No OCR result files found'
-      );
-    }
-
-    console.log(
-      `Found ${files.length} OCR files`
+  const bucket =
+    admin.storage().bucket(
+      'lucia-ocr-output'
     );
 
-    let fullText = '';
+  // =========================
+  // OCR FOLDER PREFIX
+  // =========================
 
-    // =========================
-    // Read every OCR JSON file
-    // =========================
+  const prefix =
+    `${materialId}/`;
 
-    for (const file of files) {
+  console.log(
+    'Reading OCR files from:',
+    prefix
+  );
 
-      // only JSON
-      if (
-        !file.name.endsWith('.json')
-      ) {
-        continue;
-      }
+  // =========================
+  // GET FILES
+  // =========================
 
-      console.log(
-        'Reading OCR file:',
-        file.name
-      );
+  const [files] =
+    await bucket.getFiles({
+      prefix
+    });
 
-      // download JSON
-      const [contents] =
-        await file.download();
+  if (
+    !files ||
+    files.length === 0
+  ) {
 
-      // parse JSON
-      const jsonData =
-        JSON.parse(
-          contents.toString()
-        );
-
-      // =========================
-      // Extract OCR text
-      // =========================
-
-      if (
-        jsonData.responses
-      ) {
-
-        for (
-          const response
-          of jsonData.responses
-        ) {
-
-          const text =
-            response
-              ?.fullTextAnnotation
-              ?.text;
-
-          if (text) {
-
-            fullText +=
-              '\n' + text;
-          }
-        }
-      }
-    }
-
-    // =========================
-    // Cleanup OCR text
-    // =========================
-
-    fullText =
-      fullText
-        .replace(/\s+/g, ' ')
-        .trim();
-
-    console.log(
-      'OCR text length:',
-      fullText.length
+    throw new Error(
+      'No OCR result files found'
     );
-
-    // =========================
-    // Save extracted text
-    // =========================
-
-    await admin
-      .firestore()
-      .collection('material')
-      .doc(materialId)
-      .update({
-        extractedText:
-          fullText
-      });
-
-    return fullText;
-
-  } catch (error) {
-
-    console.error(
-      'READ OCR RESULT ERROR:',
-      error
-    );
-
-    throw error;
   }
+
+  console.log(
+    'OCR files found:',
+    files.map(f => f.name)
+  );
+
+  // =========================
+  // FIND JSON FILES
+  // =========================
+
+  const jsonFiles =
+    files.filter(file =>
+      file.name.endsWith('.json')
+    );
+
+  if (
+    jsonFiles.length === 0
+  ) {
+
+    throw new Error(
+      'No OCR JSON files found'
+    );
+  }
+
+  // =========================
+  // READ ALL JSON FILES
+  // =========================
+
+  let fullText = '';
+
+  for (const file of jsonFiles) {
+
+    console.log(
+      'Reading file:',
+      file.name
+    );
+
+    const [content] =
+      await file.download();
+
+    const parsed =
+      JSON.parse(
+        content.toString()
+      );
+
+    const responses =
+      parsed.responses || [];
+
+    for (const response of responses) {
+
+      const text =
+        response.fullTextAnnotation?.text;
+
+      if (text) {
+
+        fullText +=
+          '\n' + text;
+      }
+    }
+  }
+
+  // =========================
+  // VALIDATION
+  // =========================
+
+  if (
+    fullText.trim().length === 0
+  ) {
+
+    throw new Error(
+      'OCR text empty'
+    );
+  }
+
+  console.log(
+    'OCR text length:',
+    fullText.length
+  );
+
+  return fullText;
 }
+
