@@ -14,6 +14,8 @@ export default function DashboardSiswa() {
   const router = useRouter();
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastSeen, setLastSeen] = useState<any>(null);
+
 
   useEffect(() => {
     const fetchUserAndSubjects = async () => {
@@ -24,8 +26,21 @@ export default function DashboardSiswa() {
         
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (!userDoc.exists()) return;
+        const userData = userDoc.data();
+        const materialId = userData.lastSeenMaterialId;
+        if (materialId) {
+          const materialDoc = await getDoc(doc(db, "material", materialId));
+
+          if (materialDoc.exists()) {
+            setLastSeen({
+              id: materialDoc.id,
+              ...materialDoc.data()
+            });
+          }
+}
         
         const userTingkat = userDoc.data().tingkat; 
+        
 
        
         const q = query(
@@ -49,6 +64,7 @@ export default function DashboardSiswa() {
 
     fetchUserAndSubjects();
   }, []);
+  
 
   return (
     <View style={styles.container}>
@@ -67,7 +83,21 @@ export default function DashboardSiswa() {
           ListHeaderComponent={
             <>
               <Text style={styles.sectionTitle}>Terakhir Dilihat</Text>
-              <LastSeenCard />
+              {lastSeen && (
+                <LastSeenCard
+                  title={lastSeen.title}
+                  subtitle={lastSeen.subjectId}
+                  image={{ uri: lastSeen.imageUrl }}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/siswa/materi/detailMateri',
+                      params: {
+                        materialId: lastSeen.id,
+                      },
+                    })
+                  }
+                />
+              )}
               <Text style={styles.sectionTitle}>Mata Pelajaran</Text>
             </>
           }
