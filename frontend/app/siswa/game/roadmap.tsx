@@ -5,31 +5,34 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { useEffect, useRef, useState, useCallback } from 'react';
+
+import { useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 
 import Svg, { Path } from 'react-native-svg';
 
 import LevelNode from '../../../src/components/game/common/levelnode';
 import GameHeader from '../../../src/components/game/common/gameHeader';
 
-// Firebase imports + heartRegen
-import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '../../../src/config/firebase';
-import { refreshHeart } from '../../../src/services/heartRegen'; // 🔥 import regenerator
-
 const { width } = Dimensions.get('window');
 
 type Level = {
   id: number;
   unlocked: boolean;
+  played?: boolean;
+  stars?: number;
 };
 
 interface RoadmapProps {
   title: string;
   levels: Level[];
+
   currentLevel: number;
   routePrefix: string;
+
+  heart?: number;
+  coin?: number;
+
   spacingY?: number;
   amplitude?: number;
 }
@@ -40,75 +43,72 @@ export default function Roadmap(props: RoadmapProps) {
     levels,
     currentLevel,
     routePrefix,
-    spacingY = 110,
-    amplitude = 50,
+
+    heart = 3,
+    coin = 0,
+
+    spacingY = 120,
+    amplitude = 55,
   } = props;
 
   const router = useRouter();
+
   const scrollRef = useRef<ScrollView>(null);
+
   const [ready, setReady] = useState(false);
 
-  // State untuk heart & coin
-  const [heart, setHeart] = useState(0);
-  const [coin, setCoin] = useState(0);
-
   const LEVEL_COUNT = levels.length;
-  const mapHeight = 120 + LEVEL_COUNT * spacingY;
 
-  // Ambil data heart & coin dari Firestore DENGAN REGENERASI
-  const loadUserStats = async () => {
-    try {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      
-      // 🔥 Regenerasi heart terlebih dahulu
-      const regeneratedHeart = await refreshHeart();
-      
-      const userRef = doc(db, 'users', uid);
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setHeart(regeneratedHeart);     // pakai heart yang sudah diregenerasi
-        setCoin(data?.coin ?? 0);
-      }
-    } catch (error) {
-      console.log('Gagal load heart/coin di roadmap:', error);
-    }
-  };
-
-  // Refresh setiap kali layar roadmap mendapat fokus (misal kembali dari toko)
-  useFocusEffect(
-    useCallback(() => {
-      loadUserStats();
-    }, [])
-  );
+  const mapHeight = 180 + LEVEL_COUNT * spacingY;
 
   useEffect(() => {
     setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: false });
-    }, 200);
+      const currentIndex = levels.findIndex(
+        (l) => l.id === currentLevel
+      );
+
+      if (currentIndex >= 0) {
+        const reversedIndex =
+          LEVEL_COUNT - 1 - currentIndex;
+
+        const targetY =
+          reversedIndex * spacingY;
+
+        scrollRef.current?.scrollTo({
+          y: Math.max(targetY - 250, 0),
+          animated: false,
+        });
+      }
+    }, 300);
   }, []);
 
   useEffect(() => {
     setTimeout(() => setReady(true), 100);
   }, []);
 
+  // Zigzag path
   const getOffsetX = (index: number) => {
     return Math.sin(index * 0.8) * amplitude;
   };
 
   const getNodePosition = (index: number) => {
     const centerX = width / 2;
-    const reversedIndex = LEVEL_COUNT - 1 - index;
+
+    const reversedIndex =
+      LEVEL_COUNT - 1 - index;
 
     return {
       x: centerX + getOffsetX(index),
-      y: 120 + reversedIndex * spacingY,
+      y: 140 + reversedIndex * spacingY,
     };
   };
 
+  // Smooth road path
   const generatePath = () => {
-    const points = levels.map((_, i) => getNodePosition(i));
+    const points = levels.map((_, i) =>
+      getNodePosition(i)
+    );
+
     if (points.length < 2) return '';
 
     let d = `M ${points[0].x} ${points[0].y}`;
@@ -143,43 +143,112 @@ export default function Roadmap(props: RoadmapProps) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.mapContainer, { height: mapHeight }]}>
-          <Svg width="100%" height={mapHeight} style={styles.road}>
+        <View
+          style={[
+            styles.mapContainer,
+            { height: mapHeight },
+          ]}
+        >
+          {/* ROAD */}
+          <Svg
+            width="100%"
+            height={mapHeight}
+            style={styles.road}
+          >
+            {/* Main Road */}
             <Path
               d={generatePath()}
               stroke="#5CBEFA"
-              strokeWidth="14"
+              strokeWidth="16"
               fill="none"
               strokeLinecap="round"
             />
+
+            {/* Highlight */}
             <Path
               d={generatePath()}
-              stroke="#A7D8FF"
+              stroke="#BFE7FF"
               strokeWidth="6"
               fill="none"
               strokeLinecap="round"
             />
           </Svg>
 
+          {/* LEVEL NODES */}
           {ready &&
             levels.map((item, index) => {
-              const pos = getNodePosition(index);
+              const pos =
+                getNodePosition(index);
+
+              const isCurrent =
+                item.id === currentLevel;
+
               return (
                 <View
                   key={item.id}
                   style={[
                     styles.nodeAbsolute,
-                    { top: pos.y, left: pos.x },
+                    {
+                      top: pos.y,
+                      left: pos.x,
+                    },
                   ]}
                 >
-                  <LevelNode
-                    level={item.id}
-                    unlocked={item.unlocked}
-                    onPress={() => router.push(`${routePrefix}/level/${item.id}`)}
-                  />
+                  <View
+                    style={[
+                      styles.nodeWrapper,
+
+                      isCurrent &&
+                        styles.currentNode,
+                    ]}
+                  >
+                    <LevelNode
+                      level={item.id}
+                      unlocked={item.unlocked}
+                      current={item.id === currentLevel}
+                      played={item.played}
+                      stars={item.stars}
+                      onPress={() => {
+                        if (item.unlocked) {
+                          router.push(
+                            `${routePrefix}/level/${item.id}`
+                          );
+                        }
+                      }}
+                    />
+                  </View>
+
+                  {/* START */}
                   {item.id === 1 && (
-                    <View style={styles.startMarker}>
-                      <Text style={{ fontSize: 20 }}>🚩</Text>
+                    <View
+                      style={
+                        styles.startMarker
+                      }
+                    >
+                      <Text
+                        style={{
+                          fontSize: 22,
+                        }}
+                      >
+                        🚩
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* CURRENT LABEL */}
+                  {isCurrent && (
+                    <View
+                      style={
+                        styles.currentBadge
+                      }
+                    >
+                      <Text
+                        style={
+                          styles.currentBadgeText
+                        }
+                      >
+                        CURRENT
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -193,25 +262,64 @@ export default function Roadmap(props: RoadmapProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    backgroundColor: '#EAF6FF' 
+    flex: 1,
+    backgroundColor: '#EAF6FF',
   },
+
   scroll: {
-    paddingBottom: 60
+    paddingBottom: 80,
   },
+
   mapContainer: {},
-  road: { 
-    position: 'absolute', 
-    left: 0, 
-    right: 0 
+
+  road: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
   },
+
   nodeAbsolute: {
-    position: 'absolute', 
-    transform: [{ translateX: -28 }, { translateY: -28 }] 
+    position: 'absolute',
+    transform: [
+      { translateX: -28 },
+      { translateY: -28 },
+    ],
   },
+
+  nodeWrapper: {
+    alignItems: 'center',
+  },
+
+  currentNode: {
+    shadowColor: '#5CBEFA',
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+
   startMarker: {
-    position: 'absolute', 
-    bottom: -30, 
-    alignSelf: 'center'
+    position: 'absolute',
+    bottom: -34,
+    alignSelf: 'center',
+  },
+
+  currentBadge: {
+    position: 'absolute',
+    top: -28,
+    alignSelf: 'center',
+
+    backgroundColor: '#5CBEFA',
+
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+
+    borderRadius: 20,
+  },
+
+  currentBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

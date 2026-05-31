@@ -17,11 +17,6 @@ export default function GameMenu() {
 
   const games = [
     {
-      title: 'Mencocokkan Kata',
-      image: require('../../../assets/images/games/mencocokkanKata.png'),
-      route: '/siswa/game/mencocokkan',
-    },
-    {
       title: 'Siapakah Aku?',
       image: require('../../../assets/images/games/siapakahAku.png'),
       route: '/siswa/game/siapakahaku',
@@ -41,6 +36,11 @@ export default function GameMenu() {
       title: 'Berapakah Jumlah Kami?',
       image: require('../../../assets/images/games/berapakahJumlahKami.png'),
       route: '/siswa/game/berapakahJumlahKami',
+    },
+    {
+      title: 'Mencocokkan Kata',
+      image: require('../../../assets/images/games/mencocokkanKata.png'),
+      route: '',
     },
     {
       title: 'Tebak Gambar',
