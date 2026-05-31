@@ -13,7 +13,22 @@ import {
   loadGameProgress,
 } from '../../../../src/services/loadGameProgress';
 
+import {
+  useUserGameData,
+} from '@/src/hooks/useUserGameData';
+
 export default function SiapakahAku() {
+
+  /*
+    =========================
+    USER GAME DATA
+    =========================
+  */
+
+  const {
+    heart,
+    coin,
+  } = useUserGameData();
 
   /*
     =========================
@@ -23,6 +38,9 @@ export default function SiapakahAku() {
 
   const [progress, setProgress] =
     useState<any>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   /*
     =========================
@@ -50,6 +68,11 @@ export default function SiapakahAku() {
             'ERROR LOAD PROGRESS:',
             error
           );
+
+        } finally {
+
+          setLoading(false);
+
         }
       };
 
@@ -84,6 +107,10 @@ export default function SiapakahAku() {
             levelData?.completed ||
             false,
 
+          played:
+            levelData?.completed ||
+            false,
+
           stars:
             levelData?.stars || 0,
         };
@@ -101,9 +128,27 @@ export default function SiapakahAku() {
       (l) => l.unlocked
     )?.id || 1;
 
+  /*
+    =========================
+    LOADING
+    =========================
+  */
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <Roadmap
       title="Siapakah Aku"
+
+      image={require(
+        '@/assets/images/games/siapakahAku.png'
+      )}
+
+      heart={heart}
+
+      coin={coin}
 
       levels={levels}
 

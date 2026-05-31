@@ -5,14 +5,19 @@ import {
   View,
 } from 'react-native';
 
-import { Ionicons } from '@expo/vector-icons';
+import {
+  Ionicons,
+} from '@expo/vector-icons';
 
 type Props = {
   level: number;
 
   unlocked: boolean;
 
+  disabled?: boolean;
+
   current?: boolean;
+
   played?: boolean;
 
   stars?: number;
@@ -22,35 +27,60 @@ type Props = {
 
 export default function LevelNode({
   level,
+
   unlocked,
+
+  disabled = false,
+
   current = false,
+
   played = false,
+
   stars = 0,
+
   onPress,
 }: Props) {
 
+  /*
+    =========================
+    STARS
+    =========================
+  */
+
   const renderStars = () => {
-    // kalau level terkunci
-    if (!unlocked) return null;
+
+    /*
+      LOCKED LEVEL
+    */
+
+    if (!unlocked)
+      return null;
 
     return (
       <View style={styles.starRow}>
-        {[1, 2, 3].map((i) => {
-          const earned = i <= stars;
 
-          return (
-            <Text
-              key={i}
-              style={[
-                earned
-                  ? styles.starFilled
-                  : styles.starEmpty,
-              ]}
-            >
-              {earned ? '⭐' : '☆'}
-            </Text>
-          );
-        })}
+        {[1, 2, 3].map(
+          (i) => {
+
+            const earned =
+              i <= stars;
+
+            return (
+              <Text
+                key={i}
+                style={
+                  earned
+                    ? styles.starFilled
+                    : styles.starEmpty
+                }
+              >
+                {earned
+                  ? '⭐'
+                  : '☆'}
+              </Text>
+            );
+          }
+        )}
       </View>
     );
   };
@@ -58,8 +88,11 @@ export default function LevelNode({
   return (
     <TouchableOpacity
       onPress={onPress}
+
       disabled={!unlocked}
+
       activeOpacity={0.85}
+
       style={[
         styles.circle,
 
@@ -67,12 +100,21 @@ export default function LevelNode({
           ? styles.unlocked
           : styles.locked,
 
-        current && styles.currentNode,
+        current &&
+          styles.currentNode,
+
+        disabled &&
+          styles.disabledNode,
       ]}
     >
+
       {/* CURRENT BADGE */}
       {current && (
-        <View style={styles.currentIcon}>
+        <View
+          style={
+            styles.currentIcon
+          }
+        >
           <Ionicons
             name="flash"
             size={12}
@@ -82,8 +124,16 @@ export default function LevelNode({
       )}
 
       {/* CONTENT */}
-      <View style={styles.content}>
-        {/* LEVEL NUMBER */}
+      <View
+        style={[
+          styles.content,
+
+          !unlocked &&
+            styles.lockedContent,
+        ]}
+      >
+
+        {/* LEVEL */}
         <Text
           style={[
             styles.level,
@@ -93,6 +143,9 @@ export default function LevelNode({
 
             played &&
               styles.levelPlayed,
+
+            disabled &&
+              styles.levelDisabled,
           ]}
         >
           {level}
@@ -108,140 +161,228 @@ export default function LevelNode({
           name="lock-closed"
           size={14}
           color="#8C8C8C"
-          style={styles.lockIcon}
+          style={
+            styles.lockIcon
+          }
         />
       )}
+
+      {/* HEART EMPTY OVERLAY */}
+      {disabled &&
+        unlocked && (
+          <View
+            style={
+              styles.heartOverlay
+            }
+          >
+            <Ionicons
+              name="heart-dislike"
+              size={18}
+              color="#fff"
+            />
+          </View>
+        )}
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
-  circle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+const styles =
+  StyleSheet.create({
+    circle: {
+      width: 80,
+      height: 80,
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      borderRadius: 40,
 
-    elevation: 6,
+      justifyContent:
+        'center',
 
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
+      alignItems: 'center',
+
+      elevation: 6,
+
+      shadowColor: '#000',
+
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+
+      shadowOpacity: 0.15,
+
+      shadowRadius: 5,
+
+      position: 'relative',
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
 
-    position: 'relative',
-  },
+    unlocked: {
+      backgroundColor:
+        '#FFFFFF',
 
-  unlocked: {
-    backgroundColor: '#FFFFFF',
+      borderWidth: 3,
 
-    borderWidth: 3,
-    borderColor: '#5CBEFA',
-  },
+      borderColor:
+        '#5CBEFA',
+    },
 
-  locked: {
-    backgroundColor: '#DADADA',
+    locked: {
+      backgroundColor:
+        '#DADADA',
 
-    borderWidth: 3,
-    borderColor: '#C5C5C5',
+      borderWidth: 3,
 
-    opacity: 0.85,
-  },
+      borderColor:
+        '#C5C5C5',
 
-  currentNode: {
-    shadowColor: '#5CBEFA',
-    shadowOpacity: 0.45,
-    shadowRadius: 15,
+      opacity: 0.85,
+    },
 
-    elevation: 12,
+    disabledNode: {
+      backgroundColor: '#E2E2E2',
+      borderColor: '#BDBDBD',
+    },
 
-    transform: [{ scale: 1.06 }],
-  },
+    currentNode: {
+      shadowColor:
+        '#5CBEFA',
 
-  content: {
-    alignItems: 'center',
-    justifyContent: 'center',
+      shadowOpacity: 0.45,
 
-    marginTop: 2,
-  },
+      shadowRadius: 15,
 
-  level: {
-    fontSize: 24,
-    fontWeight: '800',
+      elevation: 12,
 
-    color: '#1A3B5D',
+      transform: [
+        {
+          scale: 1.06,
+        },
+      ],
+    },
 
-    lineHeight: 28,
-  },
+    content: {
+      alignItems: 'center',
 
-  levelPlayed: {
-    color: '#0B5CAD',
-  },
+      justifyContent:
+        'center',
 
-  levelLocked: {
-    color: '#8C8C8C',
-  },
+      marginTop: 2,
+    },
 
-  star: {
-    fontSize: 11,
-    marginHorizontal: 1,
-  },
+    lockedContent: {
+      transform: [
+        {
+          translateY: -6,
+        },
+      ],
+    },
 
-  lockIcon: {
-    position: 'absolute',
-    bottom: 7,
-  },
+    level: {
+      fontSize: 24,
 
-  starRow: {
-    flexDirection: 'row',
+      fontWeight: '800',
 
-    alignItems: 'center',
-    justifyContent: 'center',
+      color: '#1A3B5D',
 
-    marginTop: 1,
-  },
+      lineHeight: 28,
+    },
 
-  starFilled: {
-    fontSize: 11,
+    levelPlayed: {
+      color: '#0B5CAD',
+    },
 
-    marginHorizontal: 1,
+    levelLocked: {
+      color: '#8C8C8C',
+    },
 
-    color: '#FFD700',
+    levelDisabled: {
+      color: '#9A9A9A',
+    },
 
-    lineHeight: 14,
-  },
+    starRow: {
+      flexDirection: 'row',
 
-  starEmpty: {
-    fontSize: 14,
+      alignItems: 'center',
 
-    marginHorizontal: 0.5,
+      justifyContent:
+        'center',
 
-    color: '#D6D6D6',
+      marginTop: 1,
+    },
 
-    lineHeight: 14,
+    starFilled: {
+      fontSize: 11,
 
-    fontWeight: '600',
-  },
+      marginHorizontal: 1,
 
-  currentIcon: {
-    position: 'absolute',
-    top: -8,
+      color: '#FFD700',
 
-    backgroundColor: '#5CBEFA',
+      lineHeight: 14,
+    },
 
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    starEmpty: {
+      fontSize: 14,
 
-    justifyContent: 'center',
-    alignItems: 'center',
+      marginHorizontal: 0.5,
 
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-});
+      color: '#D6D6D6',
+
+      lineHeight: 14,
+
+      fontWeight: '600',
+    },
+
+    lockIcon: {
+      position: 'absolute',
+
+      bottom: 12,
+    },
+
+    currentIcon: {
+      position: 'absolute',
+
+      top: -8,
+
+      backgroundColor:
+        '#5CBEFA',
+
+      width: 22,
+      height: 22,
+
+      borderRadius: 11,
+
+      justifyContent:
+        'center',
+
+      alignItems: 'center',
+
+      borderWidth: 2,
+
+      borderColor: '#fff',
+    },
+
+    heartOverlay: {
+      position: 'absolute',
+
+      top: -6,
+      right: -4,
+
+      width: 24,
+      height: 24,
+
+      borderRadius: 12,
+
+      backgroundColor:
+        '#FF5A5F',
+
+      justifyContent:
+        'center',
+
+      alignItems: 'center',
+
+      borderWidth: 2,
+
+      borderColor: '#fff',
+
+      elevation: 5,
+    },
+  });

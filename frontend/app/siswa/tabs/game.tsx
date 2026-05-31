@@ -35,7 +35,7 @@ export default function GameMenu() {
     {
       title: 'Berapakah Jumlah Kami?',
       image: require('../../../assets/images/games/berapakahJumlahKami.png'),
-      route: '/siswa/game/berapakahJumlahKami',
+      route: '/siswa/game/berapakahjumlahkami',
     },
     {
       title: 'Mencocokkan Kata',

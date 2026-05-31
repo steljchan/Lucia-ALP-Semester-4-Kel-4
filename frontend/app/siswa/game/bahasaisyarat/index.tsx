@@ -13,7 +13,22 @@ import {
   loadGameProgress,
 } from '../../../../src/services/loadGameProgress';
 
+import {
+  useUserGameData,
+} from '@/src/hooks/useUserGameData';
+
 export default function BahasaIsyarat() {
+
+  /*
+    =========================
+    USER GAME DATA
+    =========================
+  */
+
+  const {
+    heart,
+    coin,
+  } = useUserGameData();
 
   /*
     =========================
@@ -23,6 +38,9 @@ export default function BahasaIsyarat() {
 
   const [progress, setProgress] =
     useState<any>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   /*
     =========================
@@ -50,6 +68,11 @@ export default function BahasaIsyarat() {
             'ERROR LOAD PROGRESS:',
             error
           );
+
+        } finally {
+
+          setLoading(false);
+
         }
       };
 
@@ -59,7 +82,7 @@ export default function BahasaIsyarat() {
 
   /*
     =========================
-    LEVEL WITH UNLOCK
+    LEVEL WITH PROGRESS
     =========================
   */
 
@@ -84,6 +107,10 @@ export default function BahasaIsyarat() {
             levelData?.completed ||
             false,
 
+          played:
+            levelData?.completed ||
+            false,
+
           stars:
             levelData?.stars || 0,
         };
@@ -101,9 +128,27 @@ export default function BahasaIsyarat() {
       (l) => l.unlocked
     )?.id || 1;
 
+  /*
+    =========================
+    LOADING
+    =========================
+  */
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <Roadmap
       title="Bahasa Isyarat"
+
+      image={require(
+        '@/assets/images/games/bahasaIsyarat.png'
+      )}
+
+      heart={heart}
+
+      coin={coin}
 
       levels={levels}
 
