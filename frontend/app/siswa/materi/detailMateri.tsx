@@ -22,7 +22,7 @@ export default function DetailMateri() {
 
   const goToKuis = () => {
     router.push({
-      pathname: '/quiz', 
+      pathname: '/siswa/materi/quiz', 
       params: { id: materialId as string },
     });
   };
