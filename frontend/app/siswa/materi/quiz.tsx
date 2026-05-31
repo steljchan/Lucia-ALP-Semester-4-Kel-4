@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-import { useRef } from 'react';
+import { db } from '@/src/config/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function QuizScreen() {
   const router = useRouter();
+  const { id: materialId } = useLocalSearchParams<{ id: string }>();
+
+  // State untuk soal dari Firestore
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(30);
@@ -18,34 +26,54 @@ export default function QuizScreen() {
   const skippedRef = useRef(0);
   const answersRef = useRef<any[]>([]);
   const navigatingRef = useRef(false);
-
-  const questions = [
-    {
-      questionText: 'Tentukan bentuk kalimatnya!',
-      image: 'seratus',
-      options: ['Seratus Ribu', 'Satu Nol Nol Nol Nol Nol', 'Sepuluh Ribu', 'Seribu'],
-      correctAnswer: 'Seratus Ribu',
-    },
-    {
-      questionText: 'Tentukan bentuk kalimatnya!',
-      image: 'limapuluh',
-      options: ['Lima Ribu', 'Lima Puluh Ribu', 'Lima Ratus', 'Lima Juta'],
-      correctAnswer: 'Lima Puluh Ribu',
-    }
-  ];
-
-  const imageMap: any = {
-    seratus: require('@/assets/images/materi/seratus.jpg'),
-    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
-  };
-
-  const questionData = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
-  const currentQuestionNumber = currentQuestionIndex + 1;
-  const progress = currentQuestionNumber / totalQuestions;
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
+  // Ambil soal dari Firestore
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      if (!materialId) {
+        setError('Materi tidak valid');
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const docRef = doc(db, 'material', materialId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const quizData = data.quiz;
+          if (quizData && Array.isArray(quizData) && quizData.length > 0) {
+            // Transformasi ke format yang dipakai komponen (menyamakan dengan hardcode)
+            const transformed = quizData.map((q: any) => {
+              // cari teks jawaban benar berdasarkan huruf (answer: "A", "B", dll)
+              const correctAnswerText = q.options.find((opt: string) => opt.charAt(0) === q.answer) || '';
+              return {
+                questionText: q.question,
+                options: q.options,          
+                correctAnswer: correctAnswerText,
+                image: null,                 
+              };
+            });
+            setQuestions(transformed);
+          } else {
+            setError('Belum ada kuis untuk materi ini.');
+          }
+        } else {
+          setError('Materi tidak ditemukan.');
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Gagal memuat kuis. Periksa koneksi Anda.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuiz();
+  }, [materialId]);
+
+  // Timer (sama seperti asli)
   useEffect(() => {
     let interval: number;
     if (timerActive && timeLeft > 0) {
@@ -70,6 +98,7 @@ export default function QuizScreen() {
   };
 
   const finalizeAnswer = (selectedOption: string | null, isSkippedByTimer = false) => {
+    if (questions.length === 0) return;
     const current = questions[currentQuestionIndex];
     const alreadyAnswered = answersRef.current.some(a => a.questionIndex === currentQuestionIndex);
     if (alreadyAnswered) return;
@@ -101,13 +130,23 @@ export default function QuizScreen() {
 
   const handleAnswer = (option: string) => {
     if (showResult || isChecking) return;
-    finalizeAnswer(option, false);
+    setSelectedOption(option);
+    setIsChecking(true);
+    setTimeout(() => {
+      setIsChecking(false);
+      setShowResult(true);
+      setTimerActive(false);
+      finalizeAnswer(option, false);
+      setTimeout(() => {
+        handleNextQuestion();
+      }, 2000);
+    }, 1000);
   };
 
   const handleNextQuestion = () => {
     if (navigatingRef.current) return;
     navigatingRef.current = true;
-    if (currentQuestionIndex + 1 < totalQuestions) {
+    if (currentQuestionIndex + 1 < questions.length) {
       setCurrentQuestionIndex((prev) => prev + 1);
       setSelectedOption(null);
       setShowResult(false);
@@ -120,7 +159,7 @@ export default function QuizScreen() {
       const finalCorrect = correctRef.current;
       const finalWrong = wrongRef.current;
       const finalSkipped = skippedRef.current;
-      const finalScore = Math.round((finalCorrect / totalQuestions) * 100);
+      const finalScore = Math.round((finalCorrect / questions.length) * 100);
       router.replace({
         pathname: '/siswa/materi/score',
         params: {
@@ -128,7 +167,7 @@ export default function QuizScreen() {
           correct: finalCorrect.toString(),
           wrong: finalWrong.toString(),
           skipped: finalSkipped.toString(),
-          total: totalQuestions.toString(),
+          total: questions.length.toString(),
           answers: JSON.stringify(answersRef.current)
         }
       });
@@ -141,12 +180,50 @@ export default function QuizScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // State loading & error
+  if (loading) {
+    return (
+      <View style={styles.root}>
+        <DetailHeader title="Quiz" subtitle="Memuat soal..." />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  if (error || questions.length === 0) {
+    return (
+      <View style={styles.root}>
+        <DetailHeader title="Quiz" subtitle="Error" />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.lg }}>
+          <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+          <Text style={{ marginTop: SPACING.md, fontSize: 16, color: COLORS.textSub, textAlign: 'center' }}>
+            {error || 'Kuis tidak tersedia'}
+          </Text>
+          <TouchableOpacity
+            style={{ marginTop: SPACING.lg, backgroundColor: COLORS.primary, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm, borderRadius: BORDER_RADIUS.s }}
+            onPress={() => router.back()}
+          >
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>Kembali</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const questionData = questions[currentQuestionIndex];
+  const totalQuestions = questions.length;
+  const currentQuestionNumber = currentQuestionIndex + 1;
+  const progress = currentQuestionNumber / totalQuestions;
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <DetailHeader
         title="Quiz"
-        subtitle="Algebra : The Basics, Calculation and Usage"
+        subtitle="Jawab pertanyaan berikut"
+        showBackButton={false}
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -171,17 +248,24 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        <View style={styles.imageQuestionContainer}>
-          <Image
-            source={imageMap[questionData.image]}
-            style={styles.questionImage}
-          />
+        {/* Container gambar: hanya tampil jika ada gambar (dari hardcode dulu ada, sekarang tidak ada) */}
+        {questionData.image && (
+          <View style={styles.imageQuestionContainer}>
+            <Image
+              source={questionData.image}
+              style={styles.questionImage}
+            />
+          </View>
+        )}
+
+        <View style={styles.questionCard}>
+          <Text style={styles.questionText}>
+            {questionData.questionText}
+          </Text>
         </View>
 
-        <Text style={styles.questionText}>{questionData.questionText}</Text>
-
         <View style={styles.optionsContainer}>
-          {questionData.options.map((option, idx) => {
+          {questionData.options.map((option: string, idx: number) => {
             const letter = String.fromCharCode(65 + idx);
             const isCorrect = option === questionData.correctAnswer;
             const isSelected = selectedOption === option;
@@ -204,20 +288,7 @@ export default function QuizScreen() {
                 key={idx}
                 disabled={showResult || isChecking}
                 style={[styles.optionItem, { backgroundColor, borderColor, borderWidth: 2 }]}
-                onPress={() => {
-                  if (showResult || isChecking) return;
-                  setSelectedOption(option);
-                  setIsChecking(true);
-                  setTimeout(() => {
-                    setIsChecking(false);
-                    setShowResult(true);
-                    setTimerActive(false);
-                    handleAnswer(option);
-                    setTimeout(() => {
-                      handleNextQuestion();
-                    }, 2000);
-                  }, 1000);
-                }}
+                onPress={() => handleAnswer(option)}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                   <View style={[styles.optionCircle, showResult && isCorrect && styles.circleCorrect, showResult && isSelected && !isCorrect && styles.circleWrong]}>
@@ -235,6 +306,7 @@ export default function QuizScreen() {
   );
 }
 
+// Styles sama persis dengan asli (tidak ada perubahan)
 const styles = StyleSheet.create({
   root: { 
     flex: 1, 
@@ -315,12 +387,31 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
 
-  questionText: { 
-    fontSize: 18, 
-    fontWeight: '600', 
-    color: COLORS.textMain, 
-    textAlign: 'center', 
-    marginBottom: SPACING.lg 
+  questionText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.textMain,
+    textAlign: 'left',
+    lineHeight: 28,
+  },
+
+  questionCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: BORDER_RADIUS.s,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    shadowColor: COLORS.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    borderLeftWidth: 5,
+    borderLeftColor: COLORS.primary,
   },
 
   optionsContainer: { 

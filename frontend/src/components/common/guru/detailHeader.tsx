@@ -9,12 +9,14 @@ interface DetailHeaderProps {
   title: string;
   subtitle?: string;
   onEdit?: () => void;
+  showBackButton?: boolean;
 }
 
 export default function DetailHeader({
   title,
   subtitle,
   onEdit,
+  showBackButton = true,
 }: DetailHeaderProps) {
   const router = useRouter();
 
@@ -24,16 +26,20 @@ export default function DetailHeader({
       style={styles.header}
     >
       <View style={styles.headerRow}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={28}
-            color={COLORS.textMain}
-          />
-        </TouchableOpacity>
+        {showBackButton ? (
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={28}
+              color={COLORS.textMain}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 44 }} />
+        )}
 
         <Text style={styles.headerTitle}>
           {title}

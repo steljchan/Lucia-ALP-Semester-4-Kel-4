@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
-import DetailHeader from '@/src/components/common/guru/detailHeader';
+import { auth, db } from '@/src/config/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 export default function ScoreScreen() {
   const router = useRouter();
@@ -17,6 +19,10 @@ export default function ScoreScreen() {
   const progress = totalNum ? (correctNum / totalNum) * 100 : 0;
 
   const [openPembahasan, setOpenPembahasan] = useState<Record<number, boolean>>({});
+  const [xpEarned, setXpEarned] = useState(0);
+  const [xpAwarded, setXpAwarded] = useState(false);
+  const awardingRef = useRef(false);
+
   const togglePembahasan = (index: number) => {
     setOpenPembahasan(prev => ({ ...prev, [index]: !prev[index] }));
   };
@@ -29,6 +35,41 @@ export default function ScoreScreen() {
     parsedAnswers = [];
   }
 
+  // Hitung XP berdasarkan jawaban benar (10 XP per jawaban benar)
+  const calculateXp = () => {
+    return correctNum * 10;
+  };
+
+  // Update XP user ke Firestore (hanya sekali)
+  useEffect(() => {
+    const awardXp = async () => {
+      if (xpAwarded || awardingRef.current) return;
+      awardingRef.current = true;
+
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('User tidak login');
+        return;
+      }
+
+      const gainedXp = calculateXp();
+      setXpEarned(gainedXp);
+
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          xp: increment(gainedXp)
+        });
+        setXpAwarded(true);
+      } catch (error) {
+        console.error('Gagal update XP:', error);
+        Alert.alert('Error', 'Gagal menyimpan XP, coba lagi nanti.');
+      }
+    };
+
+    awardXp();
+  }, []);
+
   const getCircleColor = (option: string, correctAnswer: string, userAnswer: string | null, isSkipped: boolean, isCorrectAnswer: boolean) => {
     if (isSkipped && isCorrectAnswer) return COLORS.yellow;
     if (!isSkipped && userAnswer === option) {
@@ -39,18 +80,31 @@ export default function ScoreScreen() {
     return COLORS.primary;
   };
 
-  const imageMap: any = {
-    seratus: require('@/assets/images/materi/seratus.jpg'),
-    limapuluh: require('@/assets/images/materi/limapuluh.jpg'),
-  };
-
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      <DetailHeader
-        title="Score"
-        subtitle="Hasil Quiz Kamu"
-      />
+      
+      {/* Custom Header dengan tombol Leaderboard */}
+      <LinearGradient
+        colors={['#FFFFFF', '#ADDFFD']}
+        style={styles.header}
+      >
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
+          </TouchableOpacity>
+
+          <Text style={styles.headerTitle}>Score</Text>
+
+          <TouchableOpacity onPress={() => router.push('/siswa/tabs/leaderboard')}style={styles.iconButton}>
+            <Ionicons name="podium-outline" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.subtitle}>Hasil Quiz Kamu</Text>
+      </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.mascotWrapper}>
@@ -59,8 +113,14 @@ export default function ScoreScreen() {
 
         <View style={styles.card}>
           <View style={styles.cardContent}>
-            <Text style={styles.title}>CONGRATULATIONS</Text>
-            <Text style={styles.subtitle}>Kamu mendapatkan nilai {scoreNum}!</Text>
+            <Text style={styles.title}>CONGRATULATIONS 🎉</Text>
+            
+            {/* Tampilan Skor di tengah */}
+            <View style={styles.scoreHero}>
+              <Text style={styles.scoreNumber}>{scoreNum}</Text>
+              <Text style={styles.scoreLabel}>Nilai Akhir</Text>
+            </View>
+
             <View style={styles.progressBar}>
               <View style={[styles.fill, { width: `${progress}%` }]} />
             </View>
@@ -94,6 +154,15 @@ export default function ScoreScreen() {
                 <Text style={styles.statLabel}>Kosong</Text>
               </View>
             </View>
+
+            {/* XP Badge diletakkan di bawah statistik */}
+            <View style={styles.xpContainer}>
+              <Text style={styles.xpLabel}>Reward Diperoleh</Text>
+              <View style={styles.xpBadge}>
+                <Ionicons name="flash" size={20} color={COLORS.primary} />
+                <Text style={styles.xpBadgeText}>+{xpEarned} XP</Text>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -116,11 +185,15 @@ export default function ScoreScreen() {
                 </View>
 
                 <Text style={styles.questionText}>{item.question}</Text>
-                <Image
-                  source={imageMap[item.image]}
-                  style={styles.questionImage}
-                  resizeMode="contain"
-                />
+                
+                {/* Gambar hanya ditampilkan jika ada */}
+                {item.image && (
+                  <Image
+                    source={item.image}
+                    style={styles.questionImage}
+                    resizeMode="contain"
+                  />
+                )}
 
                 {item.options.map((option: string, i: number) => {
                   const isCorrectAnswer = option === item.correctAnswer;
@@ -193,12 +266,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    marginBottom: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  backButton: {
+    padding: 8,
+  },
+  iconButton: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    padding: 8,
+    borderRadius: BORDER_RADIUS.s,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.black,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textMain,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: COLORS.textMain,
+    textAlign: 'center',
+    fontWeight: '500',
+    opacity: 0.8,
+  },
   content: {
     padding: SPACING.md,
     paddingTop: 100,
   },
-
   mascotWrapper: {
     position: 'absolute',
     top: 0,
@@ -207,13 +319,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
-
   mascot: {
     width: 200,
     height: 200,
     transform: [{ scale: 1.05 }],
   },
-  
   card: {
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.s,
@@ -224,47 +334,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
-
   divider: {
     width: '100%',
     height: 1,
     backgroundColor: COLORS.primary,
     marginVertical: 12,
   },
-
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     width: '100%',
   },
-
   verticalDivider: {
     width: 1,
     height: 50,
     backgroundColor: COLORS.primary,
     marginHorizontal: 8,
   },
-
   cardContent: {
     marginTop: 100,
     width: '100%',
     alignItems: 'center',
   },
-
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.textMain,
     marginBottom: 6,
   },
-
-  subtitle: {
+  subtitleCard: {
     fontSize: 14,
     color: COLORS.textMain,
     marginBottom: 16,
   },
-
   progressBar: {
     width: '100%',
     height: 10,
@@ -273,44 +376,91 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 20,
   },
-
   fill: {
     height: '100%',
     backgroundColor: COLORS.primary,
     borderRadius: 20,
   },
-
   statBox: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
   },
-
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
     marginTop: 4,
   },
-
   statLabel: {
     fontSize: 12,
     color: COLORS.textSub,
     marginTop: 2,
     textAlign: 'center',
   },
-  
+
+  // Tampilan Skor (tengah, besar, bayangan)
+  scoreHero: {
+    alignItems: 'center',
+    marginVertical: 18,
+  },
+  scoreNumber: {
+    fontSize: 96,
+    fontWeight: '800',
+    color: COLORS.primary,
+    textShadowColor: 'rgba(0,0,0,0.15)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+    lineHeight: 100,
+  },
+  scoreLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textSub,
+    marginTop: 4,
+  },
+
+  // XP Container dan Badge (di bawah stats)
+  xpContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 18,
+  },
+
+  xpBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.smoothBlue,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+
+  xpBadgeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginLeft: 6,
+  },
+
+  xpLabel: {
+    fontSize: 12,
+    color: COLORS.textSub,
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     color: COLORS.textMain,
   },
-
   quizContainer: {
     marginTop: 20,
     gap: 16,
   },
-
   quizCard: {
     backgroundColor: COLORS.white,
     padding: SPACING.md,
@@ -318,36 +468,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
     marginBottom: 14,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
   },
-  
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-
   questionNumber: {
     fontSize: 12,
     color: COLORS.textSub,
   },
-
   questionText: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
   },
-
   questionImage: {
     width: '100%',
     height: 180,
     marginBottom: 14,
   },
-
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -358,7 +503,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
   },
-
   optionLetterBox: {
     width: 28,
     height: 28,
@@ -367,19 +511,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-
   optionLetterText: {
     color: COLORS.white,
     fontWeight: '700',
     fontSize: 13,
   },
-
   optionText: {
     fontSize: 14,
     color: COLORS.textMain,
     flex: 1,
   },
-
   skippedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,13 +530,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     gap: 4,
   },
-
   skippedBadgeText: {
     color: COLORS.yellow,
     fontWeight: '600',
     fontSize: 12,
   },
-
   dropdownButton: {
     marginTop: 12,
     paddingVertical: 10,
@@ -407,13 +546,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-
   dropdownButtonText: {
     color: COLORS.white,
     fontSize: 12,
     fontWeight: '600',
   },
-
   explanationBox: {
     marginTop: 10,
     padding: 12,
@@ -422,13 +559,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
   },
-
   explanationTitle: {
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 6,
   },
-
   explanationText: {
     fontSize: 13,
     color: COLORS.textSub,
