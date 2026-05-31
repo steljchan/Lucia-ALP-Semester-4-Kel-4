@@ -10,7 +10,6 @@ export const getCurrentUserData = async (): Promise<User> => {
     throw new Error("User belum login");
   }
 
-  // 🔄 Regenerasi heart sebelum mengambil data
   await refreshHeart();
 
   const userRef = doc(db, "users", currentUser.uid);

@@ -1,20 +1,38 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView,TouchableOpacity, Image} from 'react-native';
 import AppHeader from '../../../src/components/common/guru/appheaderGradient';
 import {BORDER_RADIUS, COLORS} from '@/utils/theme';
 import {useRouter} from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
 
-const DATA = [
-  { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar1.jpeg')},
-  { name: 'Lily Hartanto', nis: '230101', score: 80, mapel: 'Bahasa Inggris', image: require('@/assets/images/avatar2.jpeg')},
-  { name: 'Ricky bambang', nis: '230101', score: 100, mapel: 'IPA', image: require('@/assets/images/avatar3.jpeg')},
-  { name: 'Arsya Aulia', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar4.jpeg')},
-  { name: 'Budi Budiman', nis: '230101', score: 70, mapel: 'Matematika', image: require('@/assets/images/avatar5.jpeg')},
-];
+//firebase
+import { db } from "@/src/config/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+// const DATA = [
+//   { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar1.jpeg')},
+//   { name: 'Lily Hartanto', nis: '230101', score: 80, mapel: 'Bahasa Inggris', image: require('@/assets/images/avatar2.jpeg')},
+//   { name: 'Ricky bambang', nis: '230101', score: 100, mapel: 'IPA', image: require('@/assets/images/avatar3.jpeg')},
+//   { name: 'Arsya Aulia', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar4.jpeg')},
+//   { name: 'Budi Budiman', nis: '230101', score: 70, mapel: 'Matematika', image: require('@/assets/images/avatar5.jpeg')},
+// ];
 
 export default function NilaiSiswa() {
+  const [students, setStudents] = useState<any[]>([]);
+
   const router = useRouter();
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const q = query(collection(db, "users"), where("role", "==", "siswa"));
+      const snap = await getDocs(q);
+      const data = snap.docs.map(doc => ({
+        id: doc.id, 
+        ...doc.data()
+      }));
+      setStudents(data);
+    };
+    fetchStudents();
+  }, []);
 
   const [selectedMapel, setSelectedMapel] = useState('Semua');
   const [showSemester, setShowSemester] = useState(false);
@@ -25,8 +43,8 @@ export default function NilaiSiswa() {
 
   const filteredData =
     selectedMapel === 'Semua'
-      ? DATA
-      : DATA.filter(item => item.mapel === selectedMapel);
+      ? students
+      : students.filter(item => item.mapel === selectedMapel);
 
   return (
     <View style={styles.container}>
@@ -96,7 +114,7 @@ export default function NilaiSiswa() {
           </View>
         </View>
 
-        {filteredData.map((item, index) => (
+        {students.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.card}
@@ -104,16 +122,22 @@ export default function NilaiSiswa() {
               router.push({
                 pathname: '/guru/detailNilai',
                 params: {
+                  userId: item.id,
                   name: item.name,
                   nis: item.nis,
-                  score: item.score,
-                  mapel: item.mapel,
+                  // Ambil field profilePicture dari Firestore
+                  photoProfile: item.profilePicture || '', 
+                  mapel: selectedMapel,
                 },
               })
             }
           >
             <Image
-              source={item.image}
+              source={
+                item.profilePicture 
+                  ? { uri: item.profilePicture } 
+                  : require('@/assets/images/avatar1.jpeg') // Gambar default
+              }
               style={styles.avatar}
             />
 
@@ -122,15 +146,16 @@ export default function NilaiSiswa() {
               <Text style={styles.nis}>NIS: {item.nis}</Text>
             </View>
 
-            <View style={{ alignItems: 'flex-end' }}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.mapel}</Text>
-              </View>
-              <Text style={styles.score}>{item.score}</Text>
-              <Text style={styles.scoreLabel}>Score</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{selectedMapel}</Text>
             </View>
-          </TouchableOpacity>
-        ))}
+            
+            <Text style={styles.score}>{item.score || 0}</Text>
+            <Text style={styles.scoreLabel}>Score</Text>
+          </View>
+        </TouchableOpacity>
+      ))}
       </ScrollView>
     </View>
   );

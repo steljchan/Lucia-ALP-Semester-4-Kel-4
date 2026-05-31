@@ -1,22 +1,52 @@
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, ActivityIndicator} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 
-const QUIZ = [
-  {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90},
-  {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
-  {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
-  {title: 'Final Quiz', desc: '', score: 90},
-];
+//firebase
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/src/config/firebase";
 
 export default function DetailNilai() {
   const params = useLocalSearchParams();
-  const name = params.name || 'Nama Siswa';
-  const nis = params.nis || '000000';
-  const score = params.score || 0;
-  const mapel = params.mapel || 'Mapel';
+
+  const { userId, materialId, name, nis, mapel } = params;
+
+  const [userQuizzes, setUserQuizzes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserGrades = async () => {
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, "quizResults"),
+          where("userId", "==", userId),
+          where("materialId", "==", materialId)
+        );
+        
+        const snap = await getDocs(q);
+        const data = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setUserQuizzes(data);
+      } catch (error) {
+        console.error("Error fetching grades:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (userId && materialId) {
+      fetchUserGrades();
+    }
+  }, [userId, materialId]);
+
+  const totalRataRata = userQuizzes.length > 0 
+    ? (userQuizzes.reduce((acc, curr) => acc + (curr.score || 0), 0) / userQuizzes.length).toFixed(0)
+    : "0";
 
   return (
     <View style={styles.container}>
@@ -54,26 +84,31 @@ export default function DetailNilai() {
             </View>
 
             <View style={styles.scoreRight}>
-              <Text style={styles.score}>{score}</Text>
+              <Text style={styles.score}>{totalRataRata}</Text>
               <View style={styles.bar}/>
             </View>
           </View>
 
           <View style={styles.divider} />
 
-          {QUIZ.map((q, i) => (
-            <View key={i} style={styles.quizItem}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.quizTitle}>{q.title}</Text>
-                <Text style={styles.quizDesc}>{q.desc}</Text>
+          {loading ? (
+            <ActivityIndicator color={COLORS.primary} />
+          ) : userQuizzes.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: COLORS.textSub }}>Belum ada data kuis.</Text>
+          ) : (
+            userQuizzes.map((q, i) => (
+              <View key={i} style={styles.quizItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.quizTitle}>{q.quizTitle || `Kuis ${i+1}`}</Text>
+                  <Text style={styles.quizDesc}>{q.desc || 'Telah diselesaikan'}</Text>
+                </View>
+                <View style={styles.scoreRight}>
+                  <Text style={styles.score}>{q.score}</Text>
+                  <View style={styles.bar}/>
+                </View>
               </View>
-
-              <View style={styles.scoreRight}>
-                <Text style={styles.score}>{q.score}</Text>
-                <View style={styles.bar}/>
-              </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
     </View>

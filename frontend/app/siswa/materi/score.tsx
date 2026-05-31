@@ -4,8 +4,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+
+//firestore
 import { auth, db } from '@/src/config/firebase';
-import { doc, updateDoc, increment } from 'firebase/firestore';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function ScoreScreen() {
   const router = useRouter();
@@ -35,12 +37,12 @@ export default function ScoreScreen() {
     parsedAnswers = [];
   }
 
-  // Hitung XP berdasarkan jawaban benar (10 XP per jawaban benar)
+  
   const calculateXp = () => {
     return correctNum * 10;
   };
 
-  // Update XP user ke Firestore (hanya sekali)
+  
   useEffect(() => {
     const awardXp = async () => {
       if (xpAwarded || awardingRef.current) return;
@@ -60,6 +62,21 @@ export default function ScoreScreen() {
         await updateDoc(userRef, {
           xp: increment(gainedXp)
         });
+
+        const {materialId, subjectId, classId, name} = useLocalSearchParams();
+
+        await addDoc(collection(db, 'quizResults'), {
+          userId: user.uid,
+          studentName: name || user.displayName || 'Siswa',
+          classId: classId,
+          subjectId: subjectId,
+          materialId: materialId,
+          score: scoreNum,
+          correct: correctNum,
+          total: totalNum,
+          timestamp: serverTimestamp(),
+        });
+        
         setXpAwarded(true);
       } catch (error) {
         console.error('Gagal update XP:', error);
