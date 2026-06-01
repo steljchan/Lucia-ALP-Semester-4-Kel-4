@@ -1,100 +1,270 @@
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db, auth } from '@/src/config/firebase';
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  Timestamp,
+} from 'firebase/firestore';
 
-const REGEN_INTERVAL_MINUTES = 30; // 30 menit
+import {
+  auth,
+  db,
+} from '@/src/config/firebase';
+
+const REGEN_INTERVAL_MINUTES = 30;
+
 const MAX_HEART = 3;
 
+const INTERVAL_MS =
+  REGEN_INTERVAL_MINUTES *
+  60 *
+  1000;
+
 /**
- * Hitung dan update heart berdasarkan lastHeartRegen
- * @returns heart terbaru
+ * Refresh heart berdasarkan waktu
  */
-export const refreshHeart = async (): Promise<number> => {
-  const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error('User not logged in');
+export const refreshHeart =
+  async (): Promise<number> => {
 
-  const userRef = doc(db, 'users', uid);
-  const snap = await getDoc(userRef);
-  if (!snap.exists()) throw new Error('User data not found');
+    const uid =
+      auth.currentUser?.uid;
 
-  const data = snap.data();
-  let currentHeart = data.heart ?? 0;
-  let lastRegen = data.lastHeartRegen?.toDate?.();
+    if (!uid) {
 
-  // Jika lastHeartRegen belum ada (user lama), gunakan createdAt atau set ke now
-  if (!lastRegen) {
-    const createdAt = data.createdAt?.toDate?.();
-    if (createdAt) {
-      lastRegen = createdAt;
-      // Simpan lastHeartRegen untuk pertama kali
-      await updateDoc(userRef, { lastHeartRegen: lastRegen });
-    } else {
-      // Jika tidak ada createdAt (sangat unlikely), set ke now dan jangan tambah heart
-      await updateDoc(userRef, { lastHeartRegen: new Date() });
-      return currentHeart;
+      throw new Error(
+        'User not logged in'
+      );
     }
-  }
 
-  const now = new Date();
-  const diffMinutes = (now.getTime() - lastRegen.getTime()) / (1000 * 60);
-  const increments = Math.floor(diffMinutes / REGEN_INTERVAL_MINUTES);
+    const userRef = doc(
+      db,
+      'users',
+      uid
+    );
 
-  if (increments > 0 && currentHeart < MAX_HEART) {
-    let newHeart = Math.min(currentHeart + increments, MAX_HEART);
-    const newLastRegen = new Date(lastRegen.getTime() + increments * REGEN_INTERVAL_MINUTES * 60000);
-    
-    await updateDoc(userRef, {
+    const snap =
+      await getDoc(userRef);
+
+    if (!snap.exists()) {
+
+      throw new Error(
+        'User not found'
+      );
+    }
+
+    const data =
+      snap.data();
+
+    let heart =
+      data.heart ??
+      MAX_HEART;
+
+    let lastHeartRegen =
+      data.lastHeartRegen?.toDate?.() ??
+      new Date();
+
+    const now =
+      new Date();
+
+    // Kalau full heart,
+    // reset timestamp supaya aman
+    if (
+      heart >= MAX_HEART
+    ) {
+
+      await updateDoc(
+        userRef,
+        {
+          heart: MAX_HEART,
+          lastHeartRegen:
+            Timestamp.fromDate(
+              now
+            ),
+        }
+      );
+
+      return MAX_HEART;
+    }
+
+    const diffMs =
+      now.getTime() -
+      lastHeartRegen.getTime();
+
+    const regenerated =
+      Math.floor(
+        diffMs /
+        INTERVAL_MS
+      );
+
+    // Tidak ada heart baru
+    if (
+      regenerated <= 0
+    ) {
+
+      return heart;
+    }
+
+    // Tambah heart
+    heart =
+      Math.min(
+        heart +
+        regenerated,
+        MAX_HEART
+      );
+
+    // Geser timestamp sesuai jumlah regen
+    const updatedLastRegen =
+      new Date(
+        lastHeartRegen.getTime() +
+        regenerated *
+        INTERVAL_MS
+      );
+
+    await updateDoc(
+      userRef,
+      {
+        heart,
+
+        lastHeartRegen:
+          Timestamp.fromDate(
+            updatedLastRegen
+          ),
+      }
+    );
+
+    return heart;
+  };
+
+/**
+ * Kurangi heart
+ */
+export const decrementHeart =
+  async (): Promise<number> => {
+
+    const currentHeart =
+      await refreshHeart();
+
+    if (
+      currentHeart <= 0
+    ) {
+
+      throw new Error(
+        'Heart habis!'
+      );
+    }
+
+    const uid =
+      auth.currentUser?.uid;
+
+    if (!uid) {
+
+      throw new Error(
+        'User not logged in'
+      );
+    }
+
+    const userRef = doc(
+      db,
+      'users',
+      uid
+    );
+
+    const newHeart =
+      currentHeart - 1;
+
+    const updateData: any = {
       heart: newHeart,
-      lastHeartRegen: newLastRegen,
-    });
+    };
+
+    /**
+     * Kalau sebelumnya FULL,
+     * mulai timer dari sekarang
+     */
+    if (
+      currentHeart ===
+      MAX_HEART
+    ) {
+
+      updateData.lastHeartRegen =
+        Timestamp.fromDate(
+          new Date()
+        );
+    }
+
+    await updateDoc(
+      userRef,
+      updateData
+    );
+
     return newHeart;
-  }
-  
-  return currentHeart;
-};
+  };
 
 /**
- * Kurangi heart (panggil saat jawab salah)
- * Sebelum mengurangi, refresh dulu biar regenerasi terhitung
+ * Ambil sisa detik
+ * menuju heart berikutnya
  */
-export const decrementHeart = async (): Promise<number> => {
-  // Refresh dulu biar kalau ada regenerasi terhitung
-  await refreshHeart();
-  
-  const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error('User not logged in');
-  const userRef = doc(db, 'users', uid);
-  const snap = await getDoc(userRef);
-  const currentHeart = snap.data()?.heart ?? 0;
-  
-  if (currentHeart <= 0) throw new Error('Heart habis!');
-  
-  const newHeart = currentHeart - 1;
-  await updateDoc(userRef, { heart: newHeart });
-  return newHeart;
-};
+export const getNextHeartSeconds =
+  async (): Promise<number> => {
 
-/**
- * Ambil sisa waktu (dalam detik) hingga heart berikutnya bertambah
- * (untuk tampilan countdown)
- */
-export const getNextHeartSeconds = async (): Promise<number> => {
-  const uid = auth.currentUser?.uid;
-  if (!uid) return 0;
-  const userRef = doc(db, 'users', uid);
-  const snap = await getDoc(userRef);
-  if (!snap.exists()) return 0;
-  const data = snap.data();
-  let lastRegen = data.lastHeartRegen?.toDate?.();
-  if (!lastRegen) {
-    // Jika belum ada, gunakan createdAt atau return 0
-    lastRegen = data.createdAt?.toDate?.();
-    if (!lastRegen) return 0;
-  }
-  const now = new Date();
-  const diff = now.getTime() - lastRegen.getTime();
-  const intervalMs = REGEN_INTERVAL_MINUTES * 60000;
-  const remaining = intervalMs - (diff % intervalMs);
-  // Jika remaining mendekati intervalMs (karena diff negatif?), handle edge case
-  if (remaining >= intervalMs) return 0;
-  return Math.floor(remaining / 1000);
-};
+    const uid =
+      auth.currentUser?.uid;
+
+    if (!uid) {
+
+      return 0;
+    }
+
+    // refresh dulu
+    const currentHeart =
+      await refreshHeart();
+
+    if (
+      currentHeart >=
+      MAX_HEART
+    ) {
+
+      return 0;
+    }
+
+    const userRef = doc(
+      db,
+      'users',
+      uid
+    );
+
+    const snap =
+      await getDoc(userRef);
+
+    if (!snap.exists()) {
+
+      return 0;
+    }
+
+    const data =
+      snap.data();
+
+    const lastHeartRegen =
+      data.lastHeartRegen?.toDate?.();
+
+    if (
+      !lastHeartRegen
+    ) {
+
+      return 0;
+    }
+
+    const now =
+      new Date();
+
+    const elapsed =
+      now.getTime() -
+      lastHeartRegen.getTime();
+
+    const remaining =
+      INTERVAL_MS -
+      (elapsed %
+        INTERVAL_MS);
+
+    return Math.floor(
+      remaining / 1000
+    );
+  };

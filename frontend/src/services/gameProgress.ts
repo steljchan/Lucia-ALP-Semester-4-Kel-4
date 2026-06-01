@@ -10,13 +10,43 @@ import {
   db,
 } from '../config/firebase';
 
+/*
+  ========================================
+  TYPES
+  ========================================
+*/
+
 type SaveGameProgressProps = {
   gameId: string;
+
   levelId: number;
+
   stars: number;
+
   xp: number;
+
   coin: number;
 };
+
+type SaveGameProgressResult = {
+  earnedXp: number;
+
+  earnedCoin: number;
+
+  addedStars: number;
+
+  firstCompletion: boolean;
+
+  previousStars: number;
+
+  bestStars: number;
+};
+
+/*
+  ========================================
+  SAVE GAME PROGRESS
+  ========================================
+*/
 
 export const saveGameProgress =
   async ({
@@ -25,22 +55,34 @@ export const saveGameProgress =
     stars,
     xp,
     coin,
-  }: SaveGameProgressProps) => {
+  }: SaveGameProgressProps):
+  Promise<SaveGameProgressResult> => {
+
+    /*
+      ========================================
+      AUTH
+      ========================================
+    */
 
     const uid =
       auth.currentUser?.uid;
 
     if (!uid) {
+
       return {
         earnedXp: 0,
         earnedCoin: 0,
+        addedStars: 0,
+        firstCompletion: false,
+        previousStars: 0,
+        bestStars: 0,
       };
     }
 
     /*
-      =========================
+      ========================================
       REFERENCES
-      =========================
+      ========================================
     */
 
     const userRef = doc(
@@ -58,13 +100,15 @@ export const saveGameProgress =
     );
 
     /*
-      =========================
-      GET OLD GAME DATA
-      =========================
+      ========================================
+      GET OLD DATA
+      ========================================
     */
 
     const snap =
-      await getDoc(gameRef);
+      await getDoc(
+        gameRef
+      );
 
     const oldData =
       snap.data() || {};
@@ -79,9 +123,9 @@ export const saveGameProgress =
       levels[levelKey] || {};
 
     /*
-      =========================
+      ========================================
       OLD VALUES
-      =========================
+      ========================================
     */
 
     const oldStars =
@@ -90,13 +134,10 @@ export const saveGameProgress =
     const xpClaimed =
       oldLevel.xpClaimed || false;
 
-    const oldCompleted =
-      oldLevel.completed || false;
-
     /*
-      =========================
-      BEST STAR ONLY
-      =========================
+      ========================================
+      BEST STAR
+      ========================================
     */
 
     const bestStars =
@@ -106,106 +147,153 @@ export const saveGameProgress =
       );
 
     /*
-      =========================
-      STAR DIFFERENCE
-      =========================
+      ========================================
+      ADDED STAR
+      ========================================
     */
 
     const addedStars =
       Math.max(
-        bestStars - oldStars,
+        bestStars -
+          oldStars,
         0
       );
 
     /*
-      =========================
-      REWARD RESULT
-      =========================
-    */
-
-    let earnedXp = 0;
-    let earnedCoin = 0;
-
-    /*
-      =========================
-      ANTI FARMING
-      XP & COIN
-      ONLY FIRST CLEAR
-      =========================
+      ========================================
+      FIRST CLEAR
+      ========================================
     */
 
     const firstCompletion =
-      !oldCompleted &&
       !xpClaimed;
 
-    if (firstCompletion) {
-
-      earnedXp = xp;
-      earnedCoin = coin;
-
-      await setDoc(
-        userRef,
-        {
-          xp: increment(xp),
-
-          coin: increment(coin),
-
-          totalStars:
-            increment(
-              addedStars
-            ),
-        },
-        { merge: true }
-      );
-    }
-
     /*
-      =========================
-      ONLY UPDATE STARS
-      WHEN REPLAY IMPROVES
-      =========================
+      ========================================
+      FINAL REWARD
+      ========================================
     */
 
-    else if (addedStars > 0) {
+    const earnedXp =
+      firstCompletion
+        ? xp
+        : 0;
+
+    const earnedCoin =
+      firstCompletion
+        ? coin
+        : 0;
+
+    /*
+      ========================================
+      UPDATE USER
+      ========================================
+    */
+
+    const userUpdate: any =
+      {};
+
+    /*
+      XP
+    */
+
+    if (
+      earnedXp > 0
+    ) {
+
+      userUpdate.xp =
+        increment(
+          earnedXp
+        );
+    }
+
+    /*
+      COIN
+    */
+
+    if (
+      earnedCoin > 0
+    ) {
+
+      userUpdate.coin =
+        increment(
+          earnedCoin
+        );
+    }
+
+    /*
+      STAR
+    */
+
+    if (
+      addedStars > 0
+    ) {
+
+      userUpdate.totalStars =
+        increment(
+          addedStars
+        );
+    }
+
+    /*
+      SAVE USER
+    */
+
+    if (
+      Object.keys(
+        userUpdate
+      ).length > 0
+    ) {
 
       await setDoc(
         userRef,
+        userUpdate,
         {
-          totalStars:
-            increment(
-              addedStars
-            ),
-        },
-        { merge: true }
+          merge: true,
+        }
       );
     }
 
     /*
-      =========================
-      SAVE LEVEL PROGRESS
-      =========================
+      ========================================
+      SAVE LEVEL
+      ========================================
     */
 
     levels[levelKey] = {
+
+      ...oldLevel,
+
       stars: bestStars,
 
       completed: true,
 
       unlocked: true,
 
-      xpClaimed: true,
+      /*
+        xpClaimed hanya
+        true setelah
+        first clear
+      */
+
+      xpClaimed:
+        xpClaimed ||
+        firstCompletion,
     };
 
     /*
-      =========================
+      ========================================
       UNLOCK NEXT LEVEL
-      =========================
+      ========================================
     */
 
     const nextLevelKey =
-      `level_${levelId + 1}`;
+      `level_${
+        levelId + 1
+      }`;
 
     levels[nextLevelKey] = {
+
       ...(levels[
         nextLevelKey
       ] || {}),
@@ -214,9 +302,9 @@ export const saveGameProgress =
     };
 
     /*
-      =========================
+      ========================================
       SAVE GAME DATA
-      =========================
+      ========================================
     */
 
     await setDoc(
@@ -224,23 +312,37 @@ export const saveGameProgress =
       {
         currentLevel:
           Math.max(
-            oldData.currentLevel || 1,
+            oldData.currentLevel ||
+              1,
             levelId + 1
           ),
 
         levels,
       },
-      { merge: true }
+      {
+        merge: true,
+      }
     );
 
     /*
-      =========================
-      RETURN REWARD
-      =========================
+      ========================================
+      RETURN
+      ========================================
     */
 
     return {
+
       earnedXp,
+
       earnedCoin,
+
+      addedStars,
+
+      firstCompletion,
+
+      previousStars:
+        oldStars,
+
+      bestStars,
     };
   };

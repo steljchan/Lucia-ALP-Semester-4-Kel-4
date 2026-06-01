@@ -25,6 +25,7 @@ import {
 
 import {
   getNextHeartSeconds,
+  refreshHeart,
 } from '@/src/services/heartRegen';
 
 type GameHeaderProps = {
@@ -39,6 +40,8 @@ type GameHeaderProps = {
   image?: any;
 };
 
+const MAX_HEART = 3;
+
 export default function GameHeader({
   title = 'Game',
   level = 1,
@@ -47,7 +50,8 @@ export default function GameHeader({
   image,
 }: GameHeaderProps) {
 
-  const router = useRouter();
+  const router =
+    useRouter();
 
   const [
     nextHeartSeconds,
@@ -56,67 +60,166 @@ export default function GameHeader({
 
   /*
     =========================
-    HEART TIMER
+    INIT TIMER
     =========================
   */
 
   useEffect(() => {
 
-    let interval: number;
+    let mounted = true;
 
-    let isMounted = true;
-
-    const updateTimer =
+    const initTimer =
       async () => {
 
-        if (heart < 3) {
+        if (
+          heart >=
+          MAX_HEART
+        ) {
 
-          try {
+          setNextHeartSeconds(
+            0
+          );
 
-            const seconds =
-              await getNextHeartSeconds();
+          return;
+        }
 
-            if (isMounted) {
+        try {
 
-              setNextHeartSeconds(
-                seconds
-              );
-            }
+          // sync heart dulu
+          await refreshHeart();
 
-          } catch (error) {
+          const seconds =
+            await getNextHeartSeconds();
 
-            console.log(
-              'Error getting next heart seconds:',
-              error
+          if (mounted) {
+
+            setNextHeartSeconds(
+              seconds
             );
           }
 
-        } else {
+        } catch (error) {
 
-          if (isMounted) {
-
-            setNextHeartSeconds(0);
-
-          }
+          console.log(
+            'INIT HEART TIMER ERROR:',
+            error
+          );
         }
       };
 
-    updateTimer();
-
-    interval = setInterval(
-      updateTimer,
-      1000
-    );
+    initTimer();
 
     return () => {
 
-      isMounted = false;
-
-      clearInterval(interval);
-
+      mounted = false;
     };
 
   }, [heart]);
+
+  /*
+    =========================
+    LOCAL COUNTDOWN
+    =========================
+  */
+
+  useEffect(() => {
+
+    if (
+      heart >=
+      MAX_HEART
+    ) {
+
+      return;
+    }
+
+    const interval =
+      setInterval(
+        async () => {
+
+          setNextHeartSeconds(
+            (prev) => {
+
+              /*
+                TIMER HABIS
+              */
+
+              if (
+                prev <= 1
+              ) {
+
+                return 0;
+              }
+
+              return prev - 1;
+            }
+          );
+
+        },
+
+        1000
+      );
+
+    return () => {
+
+      clearInterval(
+        interval
+      );
+    };
+
+  }, [heart]);
+
+  /*
+    =========================
+    REFRESH SAAT TIMER HABIS
+    =========================
+  */
+
+  useEffect(() => {
+
+    if (
+      heart >=
+      MAX_HEART
+    ) {
+
+      return;
+    }
+
+    if (
+      nextHeartSeconds !== 0
+    ) {
+
+      return;
+    }
+
+    const handleRegen =
+      async () => {
+
+        try {
+
+          await refreshHeart();
+
+          const seconds =
+            await getNextHeartSeconds();
+
+          setNextHeartSeconds(
+            seconds
+          );
+
+        } catch (error) {
+
+          console.log(
+            'HEART REGEN ERROR:',
+            error
+          );
+        }
+      };
+
+    handleRegen();
+
+  }, [
+    nextHeartSeconds,
+    heart,
+  ]);
 
   /*
     =========================
@@ -128,8 +231,12 @@ export default function GameHeader({
     totalSeconds: number
   ) => {
 
-    if (totalSeconds <= 0)
+    if (
+      totalSeconds <= 0
+    ) {
+
       return '';
+    }
 
     const mins =
       Math.floor(
@@ -238,8 +345,10 @@ export default function GameHeader({
             {heart}
           </Text>
 
-          {heart < 3 &&
-            nextHeartSeconds > 0 && (
+          {heart <
+            MAX_HEART &&
+            nextHeartSeconds >
+              0 && (
               <Text
                 style={
                   styles.timerText
@@ -280,146 +389,161 @@ export default function GameHeader({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
+const styles =
+  StyleSheet.create({
+    container: {
+      flexDirection:
+        'row',
 
-    alignItems: 'center',
+      alignItems:
+        'center',
 
-    paddingHorizontal: 12,
+      paddingHorizontal: 12,
 
-    paddingTop: 55,
+      paddingTop: 55,
 
-    paddingBottom: 14,
+      paddingBottom: 14,
 
-    shadowColor: '#5CBEFA',
+      shadowColor:
+        '#5CBEFA',
 
-    shadowOffset: {
-      width: 0,
-      height: 4,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+
+      shadowOpacity: 0.1,
+
+      shadowRadius: 10,
+
+      elevation: 5,
     },
 
-    shadowOpacity: 0.1,
+    backBtn: {
+      padding: 4,
+    },
 
-    shadowRadius: 10,
+    card: {
+      flex: 1,
 
-    elevation: 5,
-  },
+      flexDirection:
+        'row',
 
-  backBtn: {
-    padding: 4,
-  },
+      alignItems:
+        'center',
 
-  card: {
-    flex: 1,
+      marginLeft: 6,
 
-    flexDirection: 'row',
+      marginRight: 8,
 
-    alignItems: 'center',
+      backgroundColor:
+        '#fff',
 
-    marginLeft: 6,
+      paddingHorizontal: 10,
 
-    marginRight: 8,
+      paddingVertical: 6,
 
-    backgroundColor: '#fff',
+      borderRadius: 14,
 
-    paddingHorizontal: 10,
+      borderWidth: 1,
 
-    paddingVertical: 6,
+      borderColor:
+        '#5CBEFA',
 
-    borderRadius: 14,
+      elevation: 3,
+    },
 
-    borderWidth: 1,
+    icon: {
+      width: 28,
+      height: 28,
 
-    borderColor: '#5CBEFA',
+      marginRight: 6,
 
-    elevation: 3,
-  },
+      borderRadius: 6,
+    },
 
-  icon: {
-    width: 28,
-    height: 28,
+    textWrapper: {
+      flex: 1,
 
-    marginRight: 6,
+      justifyContent:
+        'center',
+    },
 
-    borderRadius: 6,
-  },
+    title: {
+      fontSize: 12,
 
-  textWrapper: {
-    flex: 1,
+      fontWeight: '600',
 
-    justifyContent: 'center',
-  },
+      color: '#1A3B5D',
+    },
 
-  title: {
-    fontSize: 12,
+    level: {
+      fontSize: 10,
 
-    fontWeight: '600',
+      color: '#666',
+    },
 
-    color: '#1A3B5D',
-  },
+    balanceWrapper: {
+      flexDirection:
+        'row',
 
-  level: {
-    fontSize: 10,
+      alignItems:
+        'center',
 
-    color: '#666',
-  },
+      gap: 6,
+    },
 
-  balanceWrapper: {
-    flexDirection: 'row',
+    balanceItem: {
+      flexDirection:
+        'row',
 
-    alignItems: 'center',
+      alignItems:
+        'center',
 
-    gap: 6,
-  },
+      backgroundColor:
+        '#fff',
 
-  balanceItem: {
-    flexDirection: 'row',
+      paddingHorizontal: 6,
 
-    alignItems: 'center',
+      paddingVertical: 4,
 
-    backgroundColor: '#fff',
+      borderRadius: 16,
 
-    paddingHorizontal: 6,
+      elevation: 2,
+    },
 
-    paddingVertical: 4,
+    balanceText: {
+      marginLeft: 3,
 
-    borderRadius: 16,
+      fontWeight: '600',
 
-    elevation: 2,
-  },
+      fontSize: 12,
 
-  balanceText: {
-    marginLeft: 3,
+      color: '#1A3B5D',
+    },
 
-    fontWeight: '600',
+    coinIcon: {
+      fontSize: 12,
+    },
 
-    fontSize: 12,
+    timerText: {
+      marginLeft: 4,
 
-    color: '#1A3B5D',
-  },
+      fontSize: 9,
 
-  coinIcon: {
-    fontSize: 12,
-  },
+      fontWeight: '500',
 
-  timerText: {
-    marginLeft: 4,
+      color: '#F59E0B',
 
-    fontSize: 9,
+      backgroundColor:
+        '#FEF3C7',
 
-    fontWeight: '500',
+      paddingHorizontal: 4,
 
-    color: '#F59E0B',
+      paddingVertical: 2,
 
-    backgroundColor: '#FEF3C7',
+      borderRadius: 10,
 
-    paddingHorizontal: 4,
-
-    paddingVertical: 2,
-
-    borderRadius: 10,
-
-    overflow: 'hidden',
-  },
-});
+      overflow: 'hidden',
+    },
+  });

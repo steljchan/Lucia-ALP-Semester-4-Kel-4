@@ -1,589 +1,1161 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 
-//firestore
-import { auth, db } from '@/src/config/firebase';
-import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Image,
+  Alert,
+} from 'react-native';
+
+import {
+  useRouter,
+  useLocalSearchParams,
+} from 'expo-router';
+
+import {
+  Ionicons,
+} from '@expo/vector-icons';
+
+import {
+  LinearGradient,
+} from 'expo-linear-gradient';
+
+import {
+  COLORS,
+  SPACING,
+  BORDER_RADIUS,
+} from '@/utils/theme';
+
+/*
+  ========================================
+  FIREBASE
+  ========================================
+*/
+
+import {
+  auth,
+  db,
+} from '@/src/config/firebase';
+
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+} from 'firebase/firestore';
+
+/*
+  ========================================
+  SERVICES
+  ========================================
+*/
+
+import {
+  calculateGameRewards,
+} from '../../../utils/calculatedGameReward';
+
+import {
+  saveGameProgress,
+} from '../../../src/services/gameProgress';
 
 export default function ScoreScreen() {
-  const router = useRouter();
-  const { score, correct, wrong, skipped, total, answers } = useLocalSearchParams();
 
-  const correctNum = parseInt(correct as string) || 0;
-  const wrongNum = parseInt(wrong as string) || 0;
-  const skippedNum = parseInt(skipped as string) || 0;
-  const totalNum = parseInt(total as string) || 1;
-  const scoreNum = parseInt(score as string) || 0;
-  const progress = totalNum ? (correctNum / totalNum) * 100 : 0;
+  const router =
+    useRouter();
 
-  const [openPembahasan, setOpenPembahasan] = useState<Record<number, boolean>>({});
-  const [xpEarned, setXpEarned] = useState(0);
-  const [xpAwarded, setXpAwarded] = useState(false);
-  const awardingRef = useRef(false);
+  const params =
+    useLocalSearchParams();
 
-  const togglePembahasan = (index: number) => {
-    setOpenPembahasan(prev => ({ ...prev, [index]: !prev[index] }));
-  };
+  const {
+    score,
+    correct,
+    wrong,
+    skipped,
+    total,
+    answers,
+    gameId,
+    levelId,
+    difficulty,
+    streak,
+    materialId,
+    subjectId,
+    classId,
+    name,
+  } = params;
 
-  let parsedAnswers: any[] = [];
+  /*
+    ========================================
+    PARSE DATA
+    ========================================
+  */
+
+  const correctNum =
+    parseInt(
+      correct as string
+    ) || 0;
+
+  const wrongNum =
+    parseInt(
+      wrong as string
+    ) || 0;
+
+  const skippedNum =
+    parseInt(
+      skipped as string
+    ) || 0;
+
+  const totalNum =
+    parseInt(
+      total as string
+    ) || 1;
+
+  const scoreNum =
+    parseInt(
+      score as string
+    ) || 0;
+
+  const progress =
+    totalNum
+      ? (correctNum /
+          totalNum) *
+        100
+      : 0;
+
+  /*
+    ========================================
+    STATE
+    ========================================
+  */
+
+  const [
+    openPembahasan,
+    setOpenPembahasan,
+  ] = useState<
+    Record<number, boolean>
+  >({});
+
+  const [
+    xpEarned,
+    setXpEarned,
+  ] = useState(0);
+
+  const [
+    coinEarned,
+    setCoinEarned,
+  ] = useState(0);
+
+  const [
+    earnedStars,
+    setEarnedStars,
+  ] = useState(0);
+
+  const [
+    isReplay,
+    setIsReplay,
+  ] = useState(false);
+
+  const [
+    rewardSaved,
+    setRewardSaved,
+  ] = useState(false);
+
+  const awardingRef =
+    useRef(false);
+
+  /*
+    ========================================
+    TOGGLE PEMBAHASAN
+    ========================================
+  */
+
+  const togglePembahasan =
+    (
+      index: number
+    ) => {
+
+      setOpenPembahasan(
+        (prev) => ({
+          ...prev,
+          [index]:
+            !prev[index],
+        })
+      );
+    };
+
+  /*
+    ========================================
+    PARSE ANSWERS
+    ========================================
+  */
+
+  let parsedAnswers:
+    any[] = [];
+
   try {
-    parsedAnswers = answers ? JSON.parse(answers as string) : [];
-    if (!Array.isArray(parsedAnswers)) parsedAnswers = [];
+
+    parsedAnswers =
+      answers
+        ? JSON.parse(
+            answers as string
+          )
+        : [];
+
+    if (
+      !Array.isArray(
+        parsedAnswers
+      )
+    ) {
+
+      parsedAnswers =
+        [];
+    }
+
   } catch (e) {
+
     parsedAnswers = [];
   }
 
-  
-  const calculateXp = () => {
-    return correctNum * 10;
-  };
+  /*
+    ========================================
+    SAVE RESULT
+    ========================================
+  */
 
-  
   useEffect(() => {
-    const awardXp = async () => {
-      if (xpAwarded || awardingRef.current) return;
-      awardingRef.current = true;
 
-      const user = auth.currentUser;
-      if (!user) {
-        console.log('User tidak login');
-        return;
-      }
+    const saveResult =
+      async () => {
 
-      const gainedXp = calculateXp();
-      setXpEarned(gainedXp);
+        if (
+          rewardSaved ||
+          awardingRef.current
+        ) {
 
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          xp: increment(gainedXp)
-        });
+          return;
+        }
 
-        const {materialId, subjectId, classId, name} = useLocalSearchParams();
+        awardingRef.current =
+          true;
 
-        await addDoc(collection(db, 'quizResults'), {
-          userId: user.uid,
-          studentName: name || user.displayName || 'Siswa',
-          classId: classId,
-          subjectId: subjectId,
-          materialId: materialId,
-          score: scoreNum,
-          correct: correctNum,
-          total: totalNum,
-          timestamp: serverTimestamp(),
-        });
-        
-        setXpAwarded(true);
-      } catch (error) {
-        console.error('Gagal update XP:', error);
-        Alert.alert('Error', 'Gagal menyimpan XP, coba lagi nanti.');
-      }
-    };
+        const user =
+          auth.currentUser;
 
-    awardXp();
+        if (!user) {
+
+          return;
+        }
+
+        try {
+
+          /*
+            =========================
+            CALCULATE REWARD
+            =========================
+          */
+
+          const reward =
+            calculateGameRewards({
+
+              correctAnswers:
+                correctNum,
+
+              wrongAnswers:
+                wrongNum,
+
+              totalQuestions:
+                totalNum,
+
+              difficulty:
+                (difficulty as any) ||
+                'easy',
+
+              streak:
+                Number(
+                  streak
+                ) || 0,
+
+              alreadyCompleted:
+                false,
+            });
+
+          /*
+            =========================
+            SAVE PROGRESS
+            =========================
+          */
+
+          const result =
+            await saveGameProgress({
+
+              gameId:
+                String(
+                  gameId
+                ),
+
+              levelId:
+                Number(
+                  levelId
+                ),
+
+              stars:
+                reward.stars,
+
+              xp:
+                reward.xp,
+
+              coin:
+                reward.coin,
+            });
+
+          /*
+            =========================
+            UI
+            =========================
+          */
+
+          setXpEarned(
+            result.earnedXp
+          );
+
+          setCoinEarned(
+            result.earnedCoin
+          );
+
+          setEarnedStars(
+            result.bestStars
+          );
+
+          setIsReplay(
+            !result.firstCompletion
+          );
+
+          /*
+            =========================
+            SAVE QUIZ RESULT
+            =========================
+          */
+
+          await addDoc(
+            collection(
+              db,
+              'quizResults'
+            ),
+            {
+              userId:
+                user.uid,
+
+              studentName:
+                name ||
+                user.displayName ||
+                'Siswa',
+
+              classId,
+
+              subjectId,
+
+              materialId,
+
+              score:
+                scoreNum,
+
+              correct:
+                correctNum,
+
+              wrong:
+                wrongNum,
+
+              skipped:
+                skippedNum,
+
+              total:
+                totalNum,
+
+              stars:
+                result.bestStars,
+
+              xp:
+                result.earnedXp,
+
+              coin:
+                result.earnedCoin,
+
+              replay:
+                !result.firstCompletion,
+
+              timestamp:
+                serverTimestamp(),
+            }
+          );
+
+          setRewardSaved(
+            true
+          );
+
+        } catch (error) {
+
+          console.error(
+            'SAVE RESULT ERROR:',
+            error
+          );
+
+          Alert.alert(
+            'Error',
+            'Gagal menyimpan progress.'
+          );
+        }
+      };
+
+    saveResult();
+
   }, []);
 
-  const getCircleColor = (option: string, correctAnswer: string, userAnswer: string | null, isSkipped: boolean, isCorrectAnswer: boolean) => {
-    if (isSkipped && isCorrectAnswer) return COLORS.yellow;
-    if (!isSkipped && userAnswer === option) {
-      if (option === correctAnswer) return COLORS.success;
-      return COLORS.error;
-    }
-    if (option === correctAnswer) return COLORS.success;
-    return COLORS.primary;
-  };
+  /*
+    ========================================
+    OPTION COLOR
+    ========================================
+  */
+
+  const getCircleColor =
+    (
+      option: string,
+      correctAnswer: string,
+      userAnswer:
+        | string
+        | null,
+      isSkipped: boolean,
+      isCorrectAnswer: boolean
+    ) => {
+
+      if (
+        isSkipped &&
+        isCorrectAnswer
+      ) {
+
+        return COLORS.yellow;
+      }
+
+      if (
+        !isSkipped &&
+        userAnswer ===
+          option
+      ) {
+
+        if (
+          option ===
+          correctAnswer
+        ) {
+
+          return COLORS.success;
+        }
+
+        return COLORS.error;
+      }
+
+      if (
+        option ===
+        correctAnswer
+      ) {
+
+        return COLORS.success;
+      }
+
+      return COLORS.primary;
+    };
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      
-      {/* Custom Header dengan tombol Leaderboard */}
+
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={
+          COLORS.white
+        }
+      />
+
+      {/* HEADER */}
       <LinearGradient
-        colors={['#FFFFFF', '#ADDFFD']}
-        style={styles.header}
+        colors={[
+          '#FFFFFF',
+          '#ADDFFD',
+        ]}
+        style={
+          styles.header
+        }
       >
-        <View style={styles.headerRow}>
+
+        <View
+          style={
+            styles.headerRow
+          }
+        >
+
           <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
+            onPress={() =>
+              router.back()
+            }
+            style={
+              styles.backButton
+            }
           >
-            <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
+            <Ionicons
+              name="chevron-back"
+              size={28}
+              color={
+                COLORS.textMain
+              }
+            />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Score</Text>
+          <Text
+            style={
+              styles.headerTitle
+            }
+          >
+            Score
+          </Text>
 
-          <TouchableOpacity onPress={() => router.push('/siswa/tabs/leaderboard')}style={styles.iconButton}>
-            <Ionicons name="podium-outline" size={24} color={COLORS.primary} />
+          <TouchableOpacity
+            onPress={() =>
+              router.push(
+                '/siswa/tabs/leaderboard'
+              )
+            }
+            style={
+              styles.iconButton
+            }
+          >
+            <Ionicons
+              name="podium-outline"
+              size={24}
+              color={
+                COLORS.primary
+              }
+            />
           </TouchableOpacity>
         </View>
-        <Text style={styles.subtitle}>Hasil Quiz Kamu</Text>
+
+        <Text
+          style={
+            styles.subtitle
+          }
+        >
+          Hasil Quiz Kamu
+        </Text>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.mascotWrapper}>
-          <Image source={require('@/assets/images/maskot1.png')} style={styles.mascot} resizeMode="contain" />
+      <ScrollView
+        contentContainerStyle={
+          styles.content
+        }
+      >
+
+        {/* MASCOT */}
+        <View
+          style={
+            styles.mascotWrapper
+          }
+        >
+          <Image
+            source={require('@/assets/images/maskot1.png')}
+            style={
+              styles.mascot
+            }
+            resizeMode="contain"
+          />
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardContent}>
-            <Text style={styles.title}>CONGRATULATIONS 🎉</Text>
-            
-            {/* Tampilan Skor di tengah */}
-            <View style={styles.scoreHero}>
-              <Text style={styles.scoreNumber}>{scoreNum}</Text>
-              <Text style={styles.scoreLabel}>Nilai Akhir</Text>
+        {/* SCORE CARD */}
+        <View
+          style={
+            styles.card
+          }
+        >
+
+          <View
+            style={
+              styles.cardContent
+            }
+          >
+
+            <Text
+              style={
+                styles.title
+              }
+            >
+              CONGRATULATIONS 🎉
+            </Text>
+
+            {/* SCORE */}
+            <View
+              style={
+                styles.scoreHero
+              }
+            >
+              <Text
+                style={
+                  styles.scoreNumber
+                }
+              >
+                {scoreNum}
+              </Text>
+
+              <Text
+                style={
+                  styles.scoreLabel
+                }
+              >
+                Nilai Akhir
+              </Text>
             </View>
 
-            <View style={styles.progressBar}>
-              <View style={[styles.fill, { width: `${progress}%` }]} />
-            </View>
-            <View style={styles.divider} />
-
-            <View style={styles.statsRow}>
-              <View style={styles.statBox}>
-                <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
-                <Text style={styles.statNumber}>{totalNum}</Text>
-                <Text style={styles.statLabel}>Total Soal</Text>
-              </View>
-
-              <View style={styles.verticalDivider} />
-              <View style={styles.statBox}>
-                <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.success} />
-                <Text style={[styles.statNumber, { color: COLORS.success }]}>{correctNum}</Text>
-                <Text style={styles.statLabel}>Benar</Text>
-              </View>
-
-              <View style={styles.verticalDivider} />
-              <View style={styles.statBox}>
-                <Ionicons name="close-circle-outline" size={28} color={COLORS.error} />
-                <Text style={[styles.statNumber, { color: COLORS.error }]}>{wrongNum}</Text>
-                <Text style={styles.statLabel}>Salah</Text>
-              </View>
-
-              <View style={styles.verticalDivider} />
-              <View style={styles.statBox}>
-                <Ionicons name="hourglass-outline" size={28} color={COLORS.yellow} />
-                <Text style={[styles.statNumber, { color: COLORS.yellow }]}>{skippedNum}</Text>
-                <Text style={styles.statLabel}>Kosong</Text>
-              </View>
+            {/* PROGRESS */}
+            <View
+              style={
+                styles.progressBar
+              }
+            >
+              <View
+                style={[
+                  styles.fill,
+                  {
+                    width: `${progress}%`,
+                  },
+                ]}
+              />
             </View>
 
-            {/* XP Badge diletakkan di bawah statistik */}
-            <View style={styles.xpContainer}>
-              <Text style={styles.xpLabel}>Reward Diperoleh</Text>
-              <View style={styles.xpBadge}>
-                <Ionicons name="flash" size={20} color={COLORS.primary} />
-                <Text style={styles.xpBadgeText}>+{xpEarned} XP</Text>
+            <View
+              style={
+                styles.divider
+              }
+            />
+
+            {/* STATS */}
+            <View
+              style={
+                styles.statsRow
+              }
+            >
+
+              <View
+                style={
+                  styles.statBox
+                }
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={28}
+                  color={
+                    COLORS.primary
+                  }
+                />
+
+                <Text
+                  style={
+                    styles.statNumber
+                  }
+                >
+                  {totalNum}
+                </Text>
+
+                <Text
+                  style={
+                    styles.statLabel
+                  }
+                >
+                  Total Soal
+                </Text>
+              </View>
+
+              <View
+                style={
+                  styles.verticalDivider
+                }
+              />
+
+              <View
+                style={
+                  styles.statBox
+                }
+              >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={28}
+                  color={
+                    COLORS.success
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.statNumber,
+                    {
+                      color:
+                        COLORS.success,
+                    },
+                  ]}
+                >
+                  {correctNum}
+                </Text>
+
+                <Text
+                  style={
+                    styles.statLabel
+                  }
+                >
+                  Benar
+                </Text>
+              </View>
+
+              <View
+                style={
+                  styles.verticalDivider
+                }
+              />
+
+              <View
+                style={
+                  styles.statBox
+                }
+              >
+                <Ionicons
+                  name="close-circle-outline"
+                  size={28}
+                  color={
+                    COLORS.error
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.statNumber,
+                    {
+                      color:
+                        COLORS.error,
+                    },
+                  ]}
+                >
+                  {wrongNum}
+                </Text>
+
+                <Text
+                  style={
+                    styles.statLabel
+                  }
+                >
+                  Salah
+                </Text>
+              </View>
+
+              <View
+                style={
+                  styles.verticalDivider
+                }
+              />
+
+              <View
+                style={
+                  styles.statBox
+                }
+              >
+                <Ionicons
+                  name="hourglass-outline"
+                  size={28}
+                  color={
+                    COLORS.yellow
+                  }
+                />
+
+                <Text
+                  style={[
+                    styles.statNumber,
+                    {
+                      color:
+                        COLORS.yellow,
+                    },
+                  ]}
+                >
+                  {skippedNum}
+                </Text>
+
+                <Text
+                  style={
+                    styles.statLabel
+                  }
+                >
+                  Kosong
+                </Text>
               </View>
             </View>
+
+            {/* REWARD */}
+            <View
+              style={
+                styles.xpContainer
+              }
+            >
+
+              <Text
+                style={
+                  styles.xpLabel
+                }
+              >
+                {isReplay
+                  ? 'Replay Reward'
+                  : 'Reward Diperoleh'}
+              </Text>
+
+              <View
+                style={
+                  styles.rewardRow
+                }
+              >
+
+                {/* XP */}
+                <View
+                  style={
+                    styles.xpBadge
+                  }
+                >
+                  <Ionicons
+                    name="flash"
+                    size={20}
+                    color={
+                      COLORS.primary
+                    }
+                  />
+
+                  <Text
+                    style={
+                      styles.xpBadgeText
+                    }
+                  >
+                    +{xpEarned} XP
+                  </Text>
+                </View>
+
+                {/* COIN */}
+                <View
+                  style={
+                    styles.xpBadge
+                  }
+                >
+                  <Text
+                    style={{
+                      fontSize: 18,
+                    }}
+                  >
+                    🪙
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.xpBadgeText
+                    }
+                  >
+                    +{coinEarned}
+                  </Text>
+                </View>
+
+                {/* STAR */}
+                <View
+                  style={
+                    styles.xpBadge
+                  }
+                >
+                  <Ionicons
+                    name="star"
+                    size={18}
+                    color="#F59E0B"
+                  />
+
+                  <Text
+                    style={
+                      styles.xpBadgeText
+                    }
+                  >
+                    {earnedStars}
+                  </Text>
+                </View>
+
+              </View>
+
+              {isReplay && (
+
+                <Text
+                  style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color:
+                      COLORS.textSub,
+                  }}
+                >
+                  Replay level —
+                  XP & coin tidak
+                  bertambah
+                </Text>
+              )}
+            </View>
+
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Pembahasan Jawaban</Text>
-        <View style={styles.quizContainer}>
-          {parsedAnswers.map((item, index) => {
-            const letter = (i: number) => String.fromCharCode(65 + i);
-            const isSkipped = item.status === 'skipped' || item.userAnswer === null;
-
-            return (
-              <View key={index} style={styles.quizCard}>
-                <View style={styles.cardHeader}>
-                  <Text style={styles.questionNumber}>Soal {index + 1}</Text>
-                  {isSkipped && (
-                    <View style={styles.skippedBadge}>
-                      <Ionicons name="time-outline" size={16} color={COLORS.yellow} />
-                      <Text style={styles.skippedBadgeText}>Skip</Text>
-                    </View>
-                  )}
-                </View>
-
-                <Text style={styles.questionText}>{item.question}</Text>
-                
-                {/* Gambar hanya ditampilkan jika ada */}
-                {item.image && (
-                  <Image
-                    source={item.image}
-                    style={styles.questionImage}
-                    resizeMode="contain"
-                  />
-                )}
-
-                {item.options.map((option: string, i: number) => {
-                  const isCorrectAnswer = option === item.correctAnswer;
-                  const isUserAnswer = !isSkipped && option === item.userAnswer;
-                  const isUserCorrect = isUserAnswer && item.isCorrect;
-                  const isUserWrong = isUserAnswer && !item.isCorrect;
-
-                  let optionBg = COLORS.white;
-                  let borderColor = '#E5E7EB'; 
-
-                  if (isUserCorrect) {
-                    optionBg = '#D8FAE5';
-                    borderColor = COLORS.success;
-                  } else if (isUserWrong) {
-                    optionBg = '#F9C3C4';
-                    borderColor = COLORS.error;
-                  } else if (isSkipped && isCorrectAnswer) {
-                    optionBg = '#FEF3C7';
-                    borderColor = COLORS.yellow;
-                  } else if (!isSkipped && !isUserAnswer && isCorrectAnswer) {
-                    optionBg = '#D8FAE5';
-                    borderColor = COLORS.success;
-                  }
-
-                  const circleColor = getCircleColor(option, item.correctAnswer, item.userAnswer, isSkipped, isCorrectAnswer);
-
-                  let rightIcon = null;
-                  if (isUserCorrect) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
-                  else if (isUserWrong) rightIcon = <Ionicons name="close-circle" size={22} color={COLORS.error} />;
-                  else if (!isSkipped && !isUserAnswer && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
-                  else if (isSkipped && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.yellow} />;
-
-                  return (
-                    <View key={i} style={[styles.option, { backgroundColor: optionBg, borderColor }]}>
-                      <View style={[styles.optionLetterBox, { backgroundColor: circleColor }]}>
-                        <Text style={styles.optionLetterText}>{letter(i)}</Text>
-                      </View>
-                      <Text style={styles.optionText}>{option}</Text>
-                      {rightIcon}
-                    </View>
-                  );
-                })}
-
-                <TouchableOpacity style={styles.dropdownButton} onPress={() => togglePembahasan(index)}>
-                  <Text style={styles.dropdownButtonText}>
-                    {openPembahasan[index] ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan'}
-                  </Text>
-                </TouchableOpacity>
-
-                {openPembahasan[index] && (
-                  <View style={styles.explanationBox}>
-                    <Text style={styles.explanationTitle}>Pembahasan:</Text>
-                    <Text style={styles.explanationText}>Jawaban benar: {item.correctAnswer}</Text>
-                    <Text style={styles.explanationText}>
-                      Jawaban kamu: {isSkipped ? 'Tidak dijawab' : (item.userAnswer ?? 'Tidak dijawab')}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    marginBottom: 12,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  backButton: {
-    padding: 8,
-  },
-  iconButton: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    padding: 8,
-    borderRadius: BORDER_RADIUS.s,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.black,
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textMain,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textMain,
-    textAlign: 'center',
-    fontWeight: '500',
-    opacity: 0.8,
-  },
-  content: {
-    padding: SPACING.md,
-    paddingTop: 100,
-  },
-  mascotWrapper: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  mascot: {
-    width: 200,
-    height: 200,
-    transform: [{ scale: 1.05 }],
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: BORDER_RADIUS.s,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: COLORS.primary,
-    marginVertical: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  verticalDivider: {
-    width: 1,
-    height: 50,
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 8,
-  },
-  cardContent: {
-    marginTop: 100,
-    width: '100%',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textMain,
-    marginBottom: 6,
-  },
-  subtitleCard: {
-    fontSize: 14,
-    color: COLORS.textMain,
-    marginBottom: 16,
-  },
-  progressBar: {
-    width: '100%',
-    height: 10,
-    backgroundColor: COLORS.gray,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 20,
-  },
-  fill: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-    borderRadius: 20,
-  },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textSub,
-    marginTop: 2,
-    textAlign: 'center',
-  },
+const styles =
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor:
+        COLORS.background,
+    },
 
-  // Tampilan Skor (tengah, besar, bayangan)
-  scoreHero: {
-    alignItems: 'center',
-    marginVertical: 18,
-  },
-  scoreNumber: {
-    fontSize: 96,
-    fontWeight: '800',
-    color: COLORS.primary,
-    textShadowColor: 'rgba(0,0,0,0.15)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-    lineHeight: 100,
-  },
-  scoreLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.textSub,
-    marginTop: 4,
-  },
+    header: {
+      paddingHorizontal: 20,
+      paddingTop: 60,
+      paddingBottom: 20,
+      marginBottom: 12,
+    },
 
-  // XP Container dan Badge (di bawah stats)
-  xpContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 18,
-  },
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent:
+        'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+    },
 
-  xpBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.smoothBlue,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
+    backButton: {
+      padding: 8,
+    },
 
-  xpBadgeText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginLeft: 6,
-  },
+    iconButton: {
+      backgroundColor:
+        COLORS.white,
+      borderWidth: 1,
+      borderColor:
+        COLORS.primary,
+      padding: 8,
+      borderRadius:
+        BORDER_RADIUS.s,
+      alignItems: 'center',
+      justifyContent:
+        'center',
+      shadowColor:
+        COLORS.black,
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
 
-  xpLabel: {
-    fontSize: 12,
-    color: COLORS.textSub,
-    marginBottom: 6,
-    fontWeight: '500',
-  },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color:
+        COLORS.textMain,
+      textAlign: 'center',
+    },
 
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: COLORS.textMain,
-  },
-  quizContainer: {
-    marginTop: 20,
-    gap: 16,
-  },
-  quizCard: {
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: BORDER_RADIUS.s,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    marginBottom: 14,
-    shadowColor: COLORS.black,
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  questionNumber: {
-    fontSize: 12,
-    color: COLORS.textSub,
-  },
-  questionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  questionImage: {
-    width: '100%',
-    height: 180,
-    marginBottom: 14,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  optionLetterBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  optionLetterText: {
-    color: COLORS.white,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  optionText: {
-    fontSize: 14,
-    color: COLORS.textMain,
-    flex: 1,
-  },
-  skippedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    gap: 4,
-  },
-  skippedBadgeText: {
-    color: COLORS.yellow,
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  dropdownButton: {
-    marginTop: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.primary,
-    borderRadius: BORDER_RADIUS.s,
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dropdownButtonText: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  explanationBox: {
-    marginTop: 10,
-    padding: 12,
-    backgroundColor: COLORS.background,
-    borderRadius: BORDER_RADIUS.s,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  explanationTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  explanationText: {
-    fontSize: 13,
-    color: COLORS.textSub,
-    lineHeight: 18,
-  },
-});
+    subtitle: {
+      fontSize: 16,
+      color:
+        COLORS.textMain,
+      textAlign: 'center',
+      fontWeight: '500',
+      opacity: 0.8,
+    },
+
+    content: {
+      padding: SPACING.md,
+      paddingTop: 100,
+    },
+
+    mascotWrapper: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+      zIndex: 10,
+    },
+
+    mascot: {
+      width: 200,
+      height: 200,
+      transform: [
+        {
+          scale: 1.05,
+        },
+      ],
+    },
+
+    card: {
+      backgroundColor:
+        COLORS.white,
+      borderRadius:
+        BORDER_RADIUS.s,
+      padding:
+        SPACING.lg,
+      alignItems:
+        'center',
+      marginBottom:
+        SPACING.lg,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor:
+        COLORS.primary,
+    },
+
+    cardContent: {
+      marginTop: 100,
+      width: '100%',
+      alignItems:
+        'center',
+    },
+
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color:
+        COLORS.textMain,
+      marginBottom: 6,
+    },
+
+    scoreHero: {
+      alignItems:
+        'center',
+      marginVertical: 18,
+    },
+
+    scoreNumber: {
+      fontSize: 96,
+      fontWeight: '800',
+      color:
+        COLORS.primary,
+      lineHeight: 100,
+    },
+
+    scoreLabel: {
+      fontSize: 16,
+      fontWeight: '600',
+      color:
+        COLORS.textSub,
+      marginTop: 4,
+    },
+
+    progressBar: {
+      width: '100%',
+      height: 10,
+      backgroundColor:
+        COLORS.gray,
+      borderRadius: 20,
+      overflow: 'hidden',
+      marginBottom: 20,
+    },
+
+    fill: {
+      height: '100%',
+      backgroundColor:
+        COLORS.primary,
+      borderRadius: 20,
+    },
+
+    divider: {
+      width: '100%',
+      height: 1,
+      backgroundColor:
+        COLORS.primary,
+      marginVertical: 12,
+    },
+
+    statsRow: {
+      flexDirection: 'row',
+      alignItems:
+        'center',
+      justifyContent:
+        'space-around',
+      width: '100%',
+    },
+
+    verticalDivider: {
+      width: 1,
+      height: 50,
+      backgroundColor:
+        COLORS.primary,
+      marginHorizontal: 8,
+    },
+
+    statBox: {
+      flex: 1,
+      alignItems:
+        'center',
+      paddingVertical: 8,
+    },
+
+    statNumber: {
+      fontSize: 24,
+      fontWeight: '700',
+      marginTop: 4,
+    },
+
+    statLabel: {
+      fontSize: 12,
+      color:
+        COLORS.textSub,
+      marginTop: 2,
+      textAlign: 'center',
+    },
+
+    xpContainer: {
+      width: '100%',
+      alignItems:
+        'center',
+      marginTop: 18,
+    },
+
+    xpLabel: {
+      fontSize: 12,
+      color:
+        COLORS.textSub,
+      marginBottom: 6,
+      fontWeight: '500',
+    },
+
+    rewardRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 6,
+    },
+
+    xpBadge: {
+      flexDirection: 'row',
+      alignItems:
+        'center',
+      backgroundColor:
+        COLORS.smoothBlue,
+      paddingVertical: 8,
+      paddingHorizontal: 18,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor:
+        COLORS.primary,
+    },
+
+    xpBadgeText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color:
+        COLORS.primary,
+      marginLeft: 6,
+    },
+  });
