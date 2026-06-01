@@ -105,8 +105,8 @@ export default function DashboardSiswa() {
               {lastSeen && (
                 <LastSeenCard
                   title={lastSeen.title}
-                  subtitle={lastSeen.subjectId}
-                  image={{ uri: lastSeen.imageUrl }}
+                  subtitle={lastSeen.subjectName || `Materi ${lastSeen.subjectId}`}
+                  image={lastSeen.imageUrl ? { uri: lastSeen.imageUrl } : require('@/assets/images/materi/Matematika.png')}
                   onPress={() =>
                     router.push({
                       pathname: '/siswa/materi/detailMateri',
