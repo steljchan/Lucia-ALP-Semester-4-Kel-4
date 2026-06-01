@@ -138,7 +138,11 @@ export default function SubMateri() {
                 })}>
 
                 <Image 
-                  source={{ uri: item.fileUrl || 'https://via.placeholder.com/150' }} 
+                  source={
+                    subjectData?.imageUrl 
+                      ? { uri: subjectData.imageUrl } 
+                      : require('@/assets/images/materi/Matematika.png') 
+                  } 
                   style={styles.cardImage} 
                 />
 
