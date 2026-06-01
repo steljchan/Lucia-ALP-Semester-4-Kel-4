@@ -7,8 +7,8 @@ import FilterChips from '@/src/components/dashboard/guru/filter';
 import { Ionicons } from '@expo/vector-icons';
 
 // firebase
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "@/src/config/firebase";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { db, auth } from "@/src/config/firebase";
 
 export default function NilaiSiswa() {
   const router = useRouter();
@@ -16,18 +16,84 @@ export default function NilaiSiswa() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  
+  const [teacherPairs, setTeacherPairs] = useState<any[]>([]);
+
+  
   const [search, setSearch] = useState('');
-  const [selectedMapel, setSelectedMapel] = useState('Semua');
+  const [selectedMapel, setSelectedMapel] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState(''); 
+  
   const [showSemester, setShowSemester] = useState(false);
   const [semester, setSemester] = useState('Semester 1 2025/2026');
   const [showClass, setShowClass] = useState(false);
-  const [selectedClass, setSelectedClass] = useState('Select a Class');
+
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchTeacherData = async () => {
       try {
         setLoading(true);
-        const q = query(collection(db, "users"), where("role", "==", "siswa"));
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const pairsData = userDoc.data().pairs || [];
+          setTeacherPairs(pairsData);
+          
+          
+          if (pairsData.length > 0) {
+            setSelectedMapel(pairsData[0].subject);
+            setSelectedClass(pairsData[0].kelas);
+            setSelectedClassId(pairsData[0].classId || pairsData[0].kelas); 
+          }
+        }
+      } catch (error) {
+        console.error("Gagal ambil data guru:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeacherData();
+  }, []);
+
+  
+  const uniqueSubjects = [...new Set(teacherPairs.map(p => p.subject))];
+
+  const availableClasses = teacherPairs.filter(p => p.subject === selectedMapel);
+
+  
+  useEffect(() => {
+    if (availableClasses.length > 0) {
+      const isStillAvailable = availableClasses.some(c => c.kelas === selectedClass);
+      if (!isStillAvailable) {
+        setSelectedClass(availableClasses[0].kelas);
+        setSelectedClassId(availableClasses[0].classId || availableClasses[0].kelas);
+      }
+    } else {
+      setSelectedClass('');
+      setSelectedClassId('');
+    }
+  }, [selectedMapel, teacherPairs]);
+
+  
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!selectedClass) {
+        setStudents([]);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const q = query(
+          collection(db, "users"), 
+          where("role", "==", "siswa"),
+          where("kelas", "==", selectedClass)
+        );
+        
         const snap = await getDocs(q);
         const data = snap.docs.map(doc => ({
           id: doc.id,
@@ -40,17 +106,17 @@ export default function NilaiSiswa() {
         setLoading(false);
       }
     };
+
     fetchStudents();
-  }, []);
+  }, [selectedClass]);
 
+  // Handle Search Siswa berdasarkan Nama atau NIS
   const filteredData = students.filter((item) => {
-    const matchMapel = selectedMapel === 'Semua' || item.mapel === selectedMapel;
-
     const matchSearch =
       (item.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
       (item.nis?.toLowerCase() || "").includes(search.toLowerCase());
 
-    return matchMapel && matchSearch;
+    return matchSearch;
   });
 
   return (
@@ -58,6 +124,7 @@ export default function NilaiSiswa() {
       <AppHeader search={search} setSearch={setSearch} />
 
       <ScrollView contentContainerStyle={styles.content}>
+        
         <View style={{ position: 'relative', marginBottom: 12 }}>
           <TouchableOpacity 
             style={styles.semesterBox}
@@ -67,15 +134,11 @@ export default function NilaiSiswa() {
             }}>
             <Text style={styles.semesterText}>{semester}</Text>
           </TouchableOpacity>
-
           {showSemester && (
             <View style={styles.dropdownAbsolute}>
               {['Semester 1 2025/2026', 'Semester 2 2025/2026'].map((s, i) => (
                 <TouchableOpacity key={i} style={styles.dropdownItemBox}
-                  onPress={() => {
-                    setSemester(s);
-                    setShowSemester(false);
-                  }}>
+                  onPress={() => { setSemester(s); setShowSemester(false); }}>
                   <Text style={styles.dropdownItem}>{s}</Text>
                 </TouchableOpacity>
               ))}
@@ -83,14 +146,15 @@ export default function NilaiSiswa() {
           )}
         </View>
 
+        
         <FilterChips
-          data={['Semua', 'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'IPA', 'IPS']}
+          data={uniqueSubjects}
           selected={selectedMapel}
           onSelect={setSelectedMapel}
         />
 
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Nama Siswa</Text>
+          <Text style={styles.title}>Daftar Siswa</Text>
           
           <View style={{ position: 'relative' }}>
             <TouchableOpacity
@@ -100,21 +164,23 @@ export default function NilaiSiswa() {
                 setShowSemester(false);
               }}
             >
-              <Text style={styles.classText}>{selectedClass}</Text>
+              <Text style={styles.classText}>{selectedClass || 'Pilih Kelas'}</Text>
             </TouchableOpacity>
 
+            {/* Dropdown Kelas dinamis berdasarkan mapel pilihan guru saat ini */}
             {showClass && (
               <View style={styles.dropdownAbsolute}>
-                {['Kelas 7', 'Kelas 8', 'Kelas 9'].map((c, i) => (
+                {availableClasses.map((c: any, i: number) => (
                   <TouchableOpacity
                     key={i}
                     style={styles.dropdownItemBox}
                     onPress={() => {
-                      setSelectedClass(c);
+                      setSelectedClass(c.kelas);
+                      setSelectedClassId(c.classId || c.kelas);
                       setShowClass(false);
                     }}
                   >
-                    <Text style={styles.dropdownItem}>{c}</Text>
+                    <Text style={styles.dropdownItem}>{c.kelas} ({c.tingkat})</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -136,7 +202,7 @@ export default function NilaiSiswa() {
                     userId: item.id, 
                     name: item.name,
                     nis: item.nis,
-                    mapel: selectedMapel,
+                    mapel: selectedMapel, // Mengirim mapel aktif ke detail view guru
                   },
                 })
               }
@@ -155,15 +221,14 @@ export default function NilaiSiswa() {
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{selectedMapel}</Text>
                 </View>
-                <Text style={styles.score}>{item.score || 0}</Text>
-                <Text style={styles.scoreLabel}>Score</Text>
+                <Ionicons name="chevron-forward" size={20} color={COLORS.gray} style={{ marginTop: 4 }} />
               </View>
             </TouchableOpacity>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Ionicons name="search-outline" size={40} color={COLORS.darkGray} />
-            <Text style={styles.emptyText}>Siswa tidak ditemukan</Text>
+            <Ionicons name="people-outline" size={40} color={COLORS.darkGray} />
+            <Text style={styles.emptyText}>Tidak ada siswa di kelas ini</Text>
           </View>
         )}
       </ScrollView>
