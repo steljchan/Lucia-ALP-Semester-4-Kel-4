@@ -10,7 +10,7 @@ import {
 interface LastSeenCardProps {
   title: string;
   subtitle: string;
-  image: any;
+  image?: any;
   onPress?: () => void;
 }
 
@@ -20,6 +20,8 @@ export default function LastSeenCard({
   image,
   onPress,
 }: LastSeenCardProps) {
+  const imageSource = image || require('@/assets/images/materi/Matematika.png');
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -52,10 +54,11 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 75,
-    height: 75,
+    width: 70,          
+    height: 70,
+    borderRadius: 12,   
     marginRight: 14,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
   },
 
   content: {
