@@ -7,9 +7,16 @@ import {
   SafeAreaView,
 } from 'react-native-safe-area-context';
 
-import GameHeader from '../common/gameHeader';
+import {
+  useRouter,
+  usePathname,
+} from 'expo-router';
 
-import GameActionButton from './GameActionButton';
+import GameHeader
+from '../common/gameHeader';
+
+import GameActionButton
+from './GameActionButton';
 
 type ActionButton = {
   icon?: string;
@@ -28,6 +35,8 @@ type ActionButton = {
 type Props = {
   title: string;
 
+  image?: any;
+
   level: number;
 
   heart?: number;
@@ -40,15 +49,57 @@ type Props = {
 };
 
 export default function GameLayout({
+
   title,
+
+  image,
+
   level,
+
   heart = 3,
+
   coin = 0,
+
   children,
+
   actions = [],
+
 }: Props) {
 
+  const router =
+    useRouter();
+
+  const pathname =
+    usePathname();
+
+  // ========================================
+  // HANDLE BACK
+  // ========================================
+
+  const handleBack =
+    () => {
+
+      /*
+        ====================================
+        EXAMPLE:
+        /siswa/game/berapakahaku/level/1
+
+        RESULT:
+        /siswa/game/berapakahaku
+        ====================================
+      */
+
+      const roadmapRoute =
+        pathname
+          .split('/level')[0];
+
+      router.replace(
+        roadmapRoute as any
+      );
+    };
+
   return (
+
     <SafeAreaView
       edges={['top', 'bottom']}
       style={styles.container}
@@ -57,62 +108,120 @@ export default function GameLayout({
       {/* HEADER */}
       <GameHeader
         title={title}
+
+        image={image}
+
         level={level}
+
         heart={heart}
+
         coin={coin}
+
+        onBack={handleBack}
       />
 
       {/* CONTENT */}
-      <View style={styles.content}>
+      <View
+        style={styles.content}
+      >
         {children}
       </View>
 
       {/* ACTION BUTTONS */}
       {actions.length > 0 && (
-        <View style={styles.actionRow}>
-          {actions.map((action, index) => (
-            <GameActionButton
-              key={index}
-              {...action}
-            />
-          ))}
+
+        <View
+          style={styles.actionWrapper}
+        >
+
+          <View
+            style={styles.actionRow}
+          >
+
+            {actions.map(
+              (
+                action,
+                index
+              ) => (
+
+                <GameActionButton
+                  key={index}
+                  {...action}
+                />
+
+              )
+            )}
+
+          </View>
+
         </View>
+
       )}
 
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const styles =
+  StyleSheet.create({
 
-  container: {
-    flex: 1,
+    /*
+      =========================
+      CONTAINER
+      =========================
+    */
 
-    backgroundColor: '#EAF6FF',
+    container: {
+      flex: 1,
 
-    justifyContent: 'space-between',
-  },
+      backgroundColor:
+        '#EAF6FF',
+    },
 
-  content: {
-    flex: 1,
+    /*
+      =========================
+      CONTENT
+      =========================
+    */
 
-    paddingHorizontal: 20,
+    content: {
+      flex: 1,
 
-    paddingTop: 10,
-  },
+      paddingHorizontal: 20,
 
-  actionRow: {
-    flexDirection: 'row',
+      paddingTop: 6,
 
-    alignItems: 'center',
+      paddingBottom: 10,
+    },
 
-    gap: 10,
+    /*
+      =========================
+      ACTION WRAPPER
+      =========================
+    */
 
-    paddingHorizontal: 20,
+    actionWrapper: {
+      paddingHorizontal: 20,
 
-    paddingTop: 10,
+      paddingBottom: 40,
 
-    paddingBottom: 30,
-  },
+      paddingTop: 8,
 
-});
+      backgroundColor:
+        '#EAF6FF',
+    },
+
+    /*
+      =========================
+      ACTION BUTTONS
+      =========================
+    */
+
+    actionRow: {
+      flexDirection: 'row',
+
+      alignItems: 'center',
+
+      gap: 10,
+    },
+  });

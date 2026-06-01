@@ -1,3 +1,7 @@
+import {
+  Difficulty,
+} from '../../utils/calculatedGameReward';
+
 export type JumlahKamiQuestion = {
   id: number;
   emoji1: string;
@@ -10,15 +14,28 @@ export type JumlahKamiQuestion = {
 export type JumlahKamiLevel = {
   id: number;
   questions: JumlahKamiQuestion[];
+
   unlocked: boolean;
   stars: number;
+
+  difficulty: Difficulty;
+  totalQuestions: number;
 };
 
-export const jumlahKamiLevels: JumlahKamiLevel[] = [
+export const jumlahKamiLevels:
+JumlahKamiLevel[] = [
+
+  // ========================================
+  // EASY
+  // ========================================
+
   {
     id: 1,
     unlocked: true,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -28,6 +45,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 3,
         answer: 5,
       },
+
       {
         id: 2,
         emoji1: '🐱',
@@ -36,6 +54,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 4,
         answer: 5,
       },
+
       {
         id: 3,
         emoji1: '⭐',
@@ -51,6 +70,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 2,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -60,6 +82,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 6,
         answer: 9,
       },
+
       {
         id: 2,
         emoji1: '🐸',
@@ -68,6 +91,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 5,
         answer: 7,
       },
+
       {
         id: 3,
         emoji1: '⚽',
@@ -83,6 +107,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 3,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -92,6 +119,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 2,
         answer: 9,
       },
+
       {
         id: 2,
         emoji1: '🐰',
@@ -100,6 +128,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 6,
         answer: 11,
       },
+
       {
         id: 3,
         emoji1: '🌟',
@@ -115,6 +144,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 4,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -124,6 +156,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 5,
         answer: 13,
       },
+
       {
         id: 2,
         emoji1: '🐯',
@@ -132,6 +165,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 8,
         answer: 14,
       },
+
       {
         id: 3,
         emoji1: '🚗',
@@ -147,6 +181,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 5,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -156,6 +193,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 6,
         answer: 15,
       },
+
       {
         id: 2,
         emoji1: '🐧',
@@ -164,6 +202,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 5,
         answer: 12,
       },
+
       {
         id: 3,
         emoji1: '🎈',
@@ -175,10 +214,17 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     ],
   },
 
+  // ========================================
+  // MEDIUM
+  // ========================================
+
   {
     id: 6,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -188,6 +234,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 3,
         answer: 14,
       },
+
       {
         id: 2,
         emoji1: '🐶',
@@ -196,6 +243,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 9,
         answer: 17,
       },
+
       {
         id: 3,
         emoji1: '🌈',
@@ -211,6 +259,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 7,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -220,6 +271,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 8,
         answer: 13,
       },
+
       {
         id: 2,
         emoji1: '🐼',
@@ -228,6 +280,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 10,
         answer: 20,
       },
+
       {
         id: 3,
         emoji1: '🚀',
@@ -243,6 +296,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 8,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -252,6 +308,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 8,
         answer: 17,
       },
+
       {
         id: 2,
         emoji1: '🐨',
@@ -260,6 +317,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 12,
         answer: 18,
       },
+
       {
         id: 3,
         emoji1: '⚽',
@@ -275,6 +333,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 9,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -284,6 +345,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 4,
         answer: 19,
       },
+
       {
         id: 2,
         emoji1: '🐰',
@@ -292,6 +354,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 14,
         answer: 21,
       },
+
       {
         id: 3,
         emoji1: '🎈',
@@ -307,6 +370,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 10,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -316,6 +382,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 8,
         answer: 24,
       },
+
       {
         id: 2,
         emoji1: '🐯',
@@ -324,6 +391,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 15,
         answer: 24,
       },
+
       {
         id: 3,
         emoji1: '🚗',
@@ -335,10 +403,17 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     ],
   },
 
+  // ========================================
+  // HARD
+  // ========================================
+
   {
     id: 11,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -348,6 +423,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 6,
         answer: 26,
       },
+
       {
         id: 2,
         emoji1: '🐱',
@@ -356,6 +432,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 16,
         answer: 27,
       },
+
       {
         id: 3,
         emoji1: '⭐',
@@ -371,6 +448,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 12,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -380,6 +460,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 15,
         answer: 29,
       },
+
       {
         id: 2,
         emoji1: '🐸',
@@ -388,6 +469,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 18,
         answer: 30,
       },
+
       {
         id: 3,
         emoji1: '⚽',
@@ -403,6 +485,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 13,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -412,6 +497,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 14,
         answer: 31,
       },
+
       {
         id: 2,
         emoji1: '🐰',
@@ -420,6 +506,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 12,
         answer: 32,
       },
+
       {
         id: 3,
         emoji1: '🌟',
@@ -435,6 +522,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 14,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -444,6 +534,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 16,
         answer: 34,
       },
+
       {
         id: 2,
         emoji1: '🐯',
@@ -452,6 +543,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 8,
         answer: 33,
       },
+
       {
         id: 3,
         emoji1: '🚗',
@@ -467,6 +559,9 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
     id: 15,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 3,
+
     questions: [
       {
         id: 1,
@@ -476,6 +571,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 15,
         answer: 39,
       },
+
       {
         id: 2,
         emoji1: '🐧',
@@ -484,6 +580,7 @@ export const jumlahKamiLevels: JumlahKamiLevel[] = [
         count2: 19,
         answer: 40,
       },
+
       {
         id: 3,
         emoji1: '🎈',

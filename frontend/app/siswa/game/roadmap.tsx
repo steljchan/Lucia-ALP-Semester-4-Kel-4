@@ -301,6 +301,14 @@ export default function Roadmap({
         heart={heart}
 
         coin={coin}
+
+        onBack={() =>
+
+          router.replace(
+            '/siswa/tabs/game'
+          )
+
+        }
       />
 
       {/* ROADMAP */}
