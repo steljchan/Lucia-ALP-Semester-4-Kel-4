@@ -7,6 +7,7 @@ import AppHeaderWOsearch from '../../../src/components/common/appheaderWOsearch'
 import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 
 //firebase
 import { auth, db } from "../../../src/config/firebase";
@@ -50,6 +51,7 @@ export default function ProfilSiswa() {
   const [userData, setUserData] = useState<any>(null);
   const [showLogout, setShowLogout] = useState(false);
   const [rank, setRank] = useState<number | string>('...');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [completedQuizzes, setCompletedQuizzes] = useState(0);
   const [reports, setReports] = useState<any[]>([]);
@@ -169,7 +171,7 @@ export default function ProfilSiswa() {
         profilePicture: photoURL
       });
 
-      Alert.alert("Sukses", "Foto profil berhasil diperbarui!");
+      setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Gagal mengunggah foto ke server.");
@@ -270,6 +272,13 @@ export default function ProfilSiswa() {
             setShowLogout(false);
             auth.signOut().then(() => router.replace('/auth/login'));
           }}
+        />
+
+        <SuccessModal
+          visible={showSuccessModal}
+          title="Berhasil"
+          message="Foto profil berhasil diperbarui"
+          onClose={() => setShowSuccessModal(false)}
         />
 
         <View style={styles.reportDivider}>
