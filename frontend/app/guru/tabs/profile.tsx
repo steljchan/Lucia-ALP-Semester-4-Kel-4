@@ -7,6 +7,7 @@ import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import LogoutModal from '@/src/components/common/logout';
 import { useRouter } from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 
 //firebase
 import { auth, db } from "../../../src/config/firebase";
@@ -18,6 +19,7 @@ export default function ProfilGuru() {
   const [userData, setUserData] = useState<any>(null); 
   const [showLogout, setShowLogout] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [materiFirebase, setMateriFirebase] = useState<any[]>([]);
 
@@ -75,7 +77,7 @@ export default function ProfilGuru() {
       await updateDoc(doc(db, "users", user.uid), {
         profilePicture: photoURL
       });
-      Alert.alert("Sukses", "Foto profil guru berhasil diperbarui!");
+      setShowSuccessModal(true);
     } catch (error) {
       Alert.alert("Error", "Gagal mengunggah foto.");
     }
@@ -151,6 +153,13 @@ export default function ProfilGuru() {
             setShowLogout(false);
             router.replace('/auth/login');
           }}
+        />
+
+        <SuccessModal
+          visible={showSuccessModal}
+          title="Berhasil"
+          message="Foto profil berhasil diperbarui"
+          onClose={() => setShowSuccessModal(false)}
         />
 
         <View style={styles.reportDivider}>
