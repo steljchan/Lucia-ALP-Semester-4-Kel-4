@@ -38,16 +38,32 @@ type GameHeaderProps = {
   coin?: number;
 
   image?: any;
+
+  /*
+    ========================================
+    CUSTOM BACK
+    ========================================
+  */
+
+  onBack?: () => void;
 };
 
 const MAX_HEART = 3;
 
 export default function GameHeader({
+
   title = 'Game',
+
   level = 1,
+
   heart = 3,
+
   coin = 0,
+
   image,
+
+  onBack,
+
 }: GameHeaderProps) {
 
   const router =
@@ -279,8 +295,9 @@ export default function GameHeader({
       {/* BACK */}
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() =>
-          router.back()
+        onPress={
+          onBack ??
+          (() => router.back())
         }
       >
         <Ionicons
@@ -391,6 +408,7 @@ export default function GameHeader({
 
 const styles =
   StyleSheet.create({
+
     container: {
       flexDirection:
         'row',

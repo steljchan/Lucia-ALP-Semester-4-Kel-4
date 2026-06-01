@@ -554,9 +554,17 @@ export default function BahasaIsyaratLevel() {
 
       <GameLayout
         title="Bahasa Isyarat"
+
+        image={require(
+          '@/assets/images/games/bahasaIsyarat.png'
+        )}
+
         level={level.id}
+
         heart={heart}
+
         coin={coinBalance}
+
         actions={[
 
           {

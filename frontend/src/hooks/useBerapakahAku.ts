@@ -1,54 +1,192 @@
-import { useState } from 'react';
+import {
+  useMemo,
+  useState,
+} from 'react';
+
+type QuestionResult =
+  | 'correct'
+  | 'wrong';
 
 export default function useBerapakahAku(
-  correctAnswer: number
+  totalQuestions: number
 ) {
 
-  const [selected, setSelected] =
-    useState<number | null>(null);
 
-  const [status, setStatus] =
-    useState<
-      'idle' | 'correct' | 'wrong'
-    >('idle');
+  const [
+    selectedAnswers,
+    setSelectedAnswers,
+  ] = useState<
+    (number | null)[]
+  >(
+    Array(totalQuestions).fill(
+      null
+    )
+  );
+
+  const [
+    results,
+    setResults,
+  ] = useState<
+    QuestionResult[]
+  >([]);
+
+  // ========================================
+  // SELECT ANSWER
+  // ========================================
 
   const select = (
+    questionIndex: number,
     value: number
   ) => {
 
-    setSelected(value);
+    setSelectedAnswers(
+      (prev) => {
+
+        const updated = [
+          ...prev,
+        ];
+
+        // toggle selection
+        if (
+          updated[
+            questionIndex
+          ] === value
+        ) {
+
+          updated[
+            questionIndex
+          ] = null;
+
+        } else {
+
+          updated[
+            questionIndex
+          ] = value;
+        }
+
+        return updated;
+      }
+    );
   };
+
+  // ========================================
+  // RESET
+  // ========================================
 
   const reset = () => {
 
-    setSelected(null);
-
-    setStatus('idle');
-  };
-
-  const check = () => {
-
-    const result =
-      selected === correctAnswer;
-
-    setStatus(
-      result
-        ? 'correct'
-        : 'wrong'
+    setSelectedAnswers(
+      Array(
+        totalQuestions
+      ).fill(null)
     );
 
-    return result;
+    setResults([]);
   };
 
+  // ========================================
+  // CHECK
+  // ========================================
+
+  const check = (
+    answers: number[]
+  ) => {
+
+    const tempResults:
+      QuestionResult[] = [];
+
+    let correctCount = 0;
+
+    let wrongCount = 0;
+
+    for (
+      let i = 0;
+      i < totalQuestions;
+      i++
+    ) {
+
+      const userAnswer =
+        selectedAnswers[i];
+
+      const correctAnswer =
+        answers[i];
+
+      if (
+        userAnswer !== null &&
+        userAnswer ===
+          correctAnswer
+      ) {
+
+        tempResults.push(
+          'correct'
+        );
+
+        correctCount++;
+      }
+
+      else {
+
+        tempResults.push(
+          'wrong'
+        );
+
+        wrongCount++;
+      }
+    }
+
+    setResults(
+      tempResults
+    );
+
+    return {
+
+      results:
+        tempResults,
+
+      correctCount,
+
+      wrongCount,
+
+      isPerfect:
+        correctCount ===
+        totalQuestions,
+    };
+  };
+
+  // ========================================
+  // ALL FILLED
+  // ========================================
+
   const isFilled =
-    selected !== null;
+    useMemo(() => {
+
+      return selectedAnswers.every(
+        (
+          answer
+        ) =>
+          answer !== null
+      );
+
+    }, [
+      selectedAnswers,
+    ]);
+
+  // ========================================
+  // RETURN
+  // ========================================
 
   return {
-    selected,
-    status,
+
+    // states
+    selectedAnswers,
+    results,
+
+    // actions
     select,
     reset,
     check,
+
+    // helper
     isFilled,
   };
 }
