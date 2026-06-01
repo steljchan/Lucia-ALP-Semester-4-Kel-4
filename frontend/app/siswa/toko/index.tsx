@@ -439,14 +439,14 @@ const styles = StyleSheet.create({
   line: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.textMain,
+    backgroundColor: COLORS.primary,
   },
   
   sectionText: {
     marginHorizontal: 10,
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textMain,
+    color: COLORS.primary,
     textTransform: 'uppercase',
   },
 

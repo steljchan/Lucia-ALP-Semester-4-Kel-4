@@ -5,7 +5,7 @@ import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-import { db } from '@/src/config/firebase';
+import { auth, db } from '@/src/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function QuizScreen() {
@@ -16,6 +16,9 @@ export default function QuizScreen() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [materialData, setMaterialData] = useState<any>(null);
+  const [userData, setUserData] = useState<any>(null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -41,13 +44,24 @@ export default function QuizScreen() {
         setLoading(true);
         const docRef = doc(db, 'material', materialId);
         const docSnap = await getDoc(docRef);
+
+        const user = auth.currentUser;
+        if (user){
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          if (userSnap.exists()) {
+            setUserData(userSnap.data());
+          }
+        }
+
         if (docSnap.exists()) {
           const data = docSnap.data();
+          setMaterialData(data);
+
           const quizData = data.quiz;
           if (quizData && Array.isArray(quizData) && quizData.length > 0) {
-            // Transformasi ke format yang dipakai komponen (menyamakan dengan hardcode)
+            
             const transformed = quizData.map((q: any) => {
-              // cari teks jawaban benar berdasarkan huruf (answer: "A", "B", dll)
+              
               const correctAnswerText = q.options.find((opt: string) => opt.charAt(0) === q.answer) || '';
               return {
                 questionText: q.question,
@@ -73,7 +87,7 @@ export default function QuizScreen() {
     fetchQuiz();
   }, [materialId]);
 
-  // Timer (sama seperti asli)
+  
   useEffect(() => {
     let interval: number;
     if (timerActive && timeLeft > 0) {
@@ -168,7 +182,11 @@ export default function QuizScreen() {
           wrong: finalWrong.toString(),
           skipped: finalSkipped.toString(),
           total: questions.length.toString(),
-          answers: JSON.stringify(answersRef.current)
+          answers: JSON.stringify(answersRef.current),
+          materialId: materialId,
+          subjectId: materialData?.subjectId || '',
+          classId: userData?.classId || '',
+          name: userData?.name || ''
         }
       });
     }

@@ -1,41 +1,108 @@
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Image} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 
+//firebase
+import {auth, db} from '@/src/config/firebase';
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
 
-const QUIZ_DATA = [
-  {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90,},
-  {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
-  {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
-  {title: 'Final Quiz', desc: '', score: 90},
-];
+// const QUIZ_DATA = [
+//   {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90,},
+//   {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
+//   {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
+//   {title: 'Final Quiz', desc: '', score: 90},
+// ];
 
 export default function DetailNilaiSiswa() {
   const router = useRouter();
-  const { subject, score, grade, imageName } = useLocalSearchParams();
+  const { subject, score, grade } = useLocalSearchParams();
+
+  const [userQuizzes, setUserQuizzes] = useState<any[]>([]);
+  const [subjectImage, setSubjectImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const subjectName = subject;
   const finalGrade = score;
   const gradeLetter = grade;
-  const topicName = 'Cara menghitung mata uang';
-  const topicScore = 92.75;
+  const topicName = userQuizzes.length > 0 ? userQuizzes[0].materialName : 'Belum ada kuis';
+  const topicScore = userQuizzes.length > 0 ? userQuizzes[0].score : 0;
 
-  const imageMap: any = {
-    Inggris: require('@/assets/images/materi/Inggris.png'),
-    Matematika: require('@/assets/images/materi/Matematika.png'),
-    IPA: require('@/assets/images/materi/IPA.png'),
-    Indonesia: require('@/assets/images/materi/Indonesia.png'),
-  };
+  // const imageMap: any = {
+  //   Inggris: require('@/assets/images/materi/Inggris.png'),
+  //   Matematika: require('@/assets/images/materi/Matematika.png'),
+  //   IPA: require('@/assets/images/materi/IPA.png'),
+  //   Indonesia: require('@/assets/images/materi/Indonesia.png'),
+  // };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const user = auth.currentUser;
+      if (!user || !subjectName) return;
+
+      try {
+        setLoading(true);
+
+        // 1. Ambil data Subject (Gunakan field imageUrl agar sama dengan beranda)
+        // Kita cari berdasarkan name karena ID di firebase kamu adalah ID Random, bukan "Matematika"
+        const qSub = query(collection(db, 'subject'), where('name', '==', subjectName));
+        const subSnap = await getDocs(qSub);
+        if (!subSnap.empty) {
+          const subData = subSnap.docs[0].data();
+          setSubjectImage(subData.imageUrl || subData.image); 
+        }
+
+        
+        const q = query(
+          collection(db, 'quizResult'),
+          where('userId', '==', user.uid),
+          where('subjectId', '==', subjectName), // Jika ini ID, pastikan params yang dikirim juga ID
+          orderBy('timestamp', 'asc')
+        );
+
+        const querySnapshot = await getDocs(q);
+        
+        // 3. Ambil Nama Materi untuk setiap kuis secara paralel
+        const quizWithMaterialNames = await Promise.all(
+          querySnapshot.docs.map(async (quizDoc, index) => {
+            const data = quizDoc.data();
+            let materialName = "Materi Kuis";
+
+            
+            if (data.materialId) {
+              const matRef = doc(db, 'material', data.materialId);
+              const matSnap = await getDoc(matRef);
+              if (matSnap.exists()) {
+                materialName = matSnap.data().title; 
+              }
+            }
+
+            return {
+              id: quizDoc.id,
+              
+              title: `Quiz ${index + 1}: ${materialName}`, 
+              materialName: materialName,
+              score: data.score || 0,
+            };
+          })
+        );
+
+        setUserQuizzes(quizWithMaterialNames);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [subjectName]);
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Header Tetap Sama */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={24} color={COLORS.textMain} />
@@ -46,9 +113,7 @@ export default function DetailNilaiSiswa() {
 
         <View style={styles.card}>
           <View style={styles.sectionDivider}>
-            <View style={styles.line} />
-            <Text style={styles.sectionText}>Nilai</Text>
-            <View style={styles.line} />
+            <View style={styles.line} /><Text style={styles.sectionText}>Nilai</Text><View style={styles.line} />
           </View>
           <View style={styles.gradeRecapRow}>
             <View style={styles.gradeLeft}>
@@ -56,44 +121,48 @@ export default function DetailNilaiSiswa() {
               <Text style={styles.gradeLetterLarge}>{gradeLetter}</Text>
             </View>
             <View style={styles.gradeRight}>
-              <Image
-                source={imageMap[imageName as string]}
-                style={styles.subjectImage}
-              />
+              {subjectImage ? (
+                <Image source={{ uri: subjectImage }} style={styles.subjectImage} />
+              ) : (
+                <View style={[styles.subjectImage, { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }]}>
+                   <Ionicons name="image-outline" size={40} color="#CCC" />
+                </View>
+              )}
             </View>
           </View>
         </View>
 
-        {/* Quiz Section */}
         <Text style={styles.quizSectionTitle}>Quiz</Text>
-        <View style={styles.card}>
-          <View style={styles.topicRow}>
-            <View style={styles.topicLeft}>
-              <Text style={styles.topicTitle}>Topic 1</Text>
-              <Text style={styles.topicDesc}>{topicName}</Text>
-            </View>
-            <View style={styles.scoreRight}>
-              <Text style={styles.topicScoreText}>{topicScore}</Text>
-              <View style={styles.bar} />
-            </View>
-          </View>
-
-          {QUIZ_DATA.map((quiz, index) => (
-            <View key={index} style={styles.quizItem}>
-              <View style={styles.quizLeft}>
-                <Text style={styles.quizTitle}>{quiz.title}</Text>
-                {quiz.desc !== '' && (
-                  <Text style={styles.quizDesc}>{quiz.desc}</Text>
-                )}
+        
+        {loading ? (
+          <ActivityIndicator color={COLORS.primary} style={{ marginTop: 20 }} />
+        ) : (
+          <View style={styles.card}>
+            <View style={styles.topicRow}>
+              <View style={styles.topicLeft}>
+                <Text style={styles.topicTitle}>Topic 1</Text>
+                <Text style={styles.topicDesc}>{topicName}</Text>
               </View>
               <View style={styles.scoreRight}>
-                <Text style={styles.scoreText}>{quiz.score}</Text>
+                <Text style={styles.topicScoreText}>{topicScore}</Text>
                 <View style={styles.bar} />
               </View>
             </View>
-          ))}
-        </View>
 
+            {userQuizzes.map((quiz, index) => (
+              <View key={index} style={styles.quizItem}>
+                <View style={styles.quizLeft}>
+                  {/* Judul sekarang berisi "Quiz 1: [Nama Materi]" */}
+                  <Text style={styles.quizTitle}>{quiz.title}</Text>
+                </View>
+                <View style={styles.scoreRight}>
+                  <Text style={styles.scoreText}>{quiz.score}</Text>
+                  <View style={styles.bar} />
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
