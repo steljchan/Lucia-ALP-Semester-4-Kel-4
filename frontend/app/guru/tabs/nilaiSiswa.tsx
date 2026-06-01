@@ -125,9 +125,9 @@ export default function NilaiSiswa() {
                   userId: item.id,
                   name: item.name,
                   nis: item.nis,
-                  // Ambil field profilePicture dari Firestore
                   photoProfile: item.profilePicture || '', 
                   mapel: selectedMapel,
+                  materialId: item.materialId || '',
                 },
               })
             }

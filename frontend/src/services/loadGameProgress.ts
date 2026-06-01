@@ -27,20 +27,61 @@ export const loadGameProgress =
     const snap =
       await getDoc(gameRef);
 
-    if (!snap.exists()) {
+    /*
+      =========================
+      DEFAULT DATA
+      =========================
+    */
 
-      return {
-        currentLevel: 1,
+    const defaultData = {
+      currentLevel: 1,
 
-        levels: {
-          level_1: {
-            unlocked: true,
-            completed: false,
-            stars: 0,
-          },
+      levels: {
+        level_1: {
+          unlocked: true,
+
+          completed: false,
+
+          stars: 0,
+
+          xpClaimed: false,
         },
-      };
+      },
+    };
+
+    /*
+      =========================
+      FIRST TIME USER
+      =========================
+    */
+
+    if (!snap.exists()) {
+      return defaultData;
     }
 
-    return snap.data();
+    /*
+      =========================
+      EXISTING DATA
+      =========================
+    */
+
+    const data =
+      snap.data();
+
+    /*
+      =========================
+      SAFETY MERGE
+      =========================
+    */
+
+    return {
+      currentLevel:
+        data.currentLevel || 1,
+
+      levels: {
+        ...defaultData.levels,
+
+        ...(data.levels || {}),
+      },
+    };
   };

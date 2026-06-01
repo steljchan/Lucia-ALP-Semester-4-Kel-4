@@ -13,7 +13,22 @@ import {
   loadGameProgress,
 } from '../../../../src/services/loadGameProgress';
 
+import {
+  useUserGameData,
+} from '@/src/hooks/useUserGameData';
+
 export default function BerapakahJumlahKami() {
+
+  /*
+    =========================
+    USER GAME DATA
+    =========================
+  */
+
+  const {
+    heart,
+    coin,
+  } = useUserGameData();
 
   /*
     =========================
@@ -23,6 +38,9 @@ export default function BerapakahJumlahKami() {
 
   const [progress, setProgress] =
     useState<any>(null);
+
+  const [loading, setLoading] =
+    useState(true);
 
   /*
     =========================
@@ -50,6 +68,11 @@ export default function BerapakahJumlahKami() {
             'ERROR LOAD PROGRESS:',
             error
           );
+
+        } finally {
+
+          setLoading(false);
+
         }
       };
 
@@ -84,6 +107,10 @@ export default function BerapakahJumlahKami() {
             levelData?.completed ||
             false,
 
+          played:
+            levelData?.completed ||
+            false,
+
           stars:
             levelData?.stars || 0,
         };
@@ -101,9 +128,27 @@ export default function BerapakahJumlahKami() {
       (l) => l.unlocked
     )?.id || 1;
 
+  /*
+    =========================
+    LOADING
+    =========================
+  */
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <Roadmap
       title="Berapakah Jumlah Kami"
+
+      image={require(
+        '@/assets/images/games/berapakahJumlahKami.png'
+      )}
+
+      heart={heart}
+
+      coin={coin}
 
       levels={levels}
 
