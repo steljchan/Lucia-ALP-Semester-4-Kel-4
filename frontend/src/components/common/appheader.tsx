@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,9 +5,13 @@ import SearchBar from '@/src/components/common/searchbar';
 import { COLORS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 
-export default function AppHeader() {
+type Props = {
+  search: string;
+  setSearch: (text: string) => void;
+};
+
+export default function AppHeader({ search, setSearch }: Props) {
   const router = useRouter();
-  const [search, setSearch] = useState('');
 
   return (
     <LinearGradient
@@ -17,26 +20,30 @@ export default function AppHeader() {
       end={{ x: 0, y: 1 }}
       style={styles.container}
     >
-      
       <View style={styles.topRow}>
         <Image
           source={require('@/assets/images/lucia.png')}
           style={styles.logo}
         />
-        
-        <TouchableOpacity 
-        style={styles.shopBtn}
-        onPress={() => router.push('/siswa/toko')}>
-          <Ionicons name="storefront-outline" size={20} color={COLORS.white} />
+
+        <TouchableOpacity
+          style={styles.shopBtn}
+          onPress={() => router.push('/siswa/toko')}
+        >
+          <Ionicons
+            name="storefront-outline"
+            size={20}
+            color={COLORS.white}
+          />
         </TouchableOpacity>
       </View>
 
-       <SearchBar
+      <SearchBar
         value={search}
         onChangeText={setSearch}
-        placeholder="Cari..."
+        placeholder="Cari"
       />
-      
+
       <Image
         source={require('../../../assets/images/ViboBuku.png')}
         style={styles.robot}
