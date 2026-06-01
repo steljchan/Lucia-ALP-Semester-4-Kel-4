@@ -25,42 +25,45 @@ export default function DetailNilai() {
       try {
         setLoading(true);
 
-       
         const userSnap = await getDoc(doc(db, "users", userId as string));
         if (userSnap.exists()) setUserData(userSnap.data());
 
-        
         const q = materialId 
           ? query(collection(db, "quizResult"), where("userId", "==", userId), where("materialId", "==", materialId))
           : query(collection(db, "quizResult"), where("userId", "==", userId));
           
         const quizSnap = await getDocs(q);
         
-       
         const quizWithMaterialNames = await Promise.all(
           quizSnap.docs.map(async (quizDoc) => {
             const data = quizDoc.data();
             let materialName = "Materi tidak ditemukan";
+            let subjectIdOfMaterial = ""; // Tempat menyimpan nama mapel dari materi ini
 
-            
             if (data.materialId) {
               const matRef = doc(db, "material", data.materialId);
               const matSnap = await getDoc(matRef);
               if (matSnap.exists()) {
-               
                 materialName = matSnap.data().title || matSnap.data().description || "Tanpa Judul";
+                subjectIdOfMaterial = matSnap.data().subjectId || ""; // Mengambil subjectId (Contoh: "Matematika")
               }
             }
 
             return {
               id: quizDoc.id,
               ...data,
-              materialTitle: materialName // Simpan nama materi asli di sini
+              materialTitle: materialName,
+              subjectId: subjectIdOfMaterial // Masukkan properti ini untuk proses filter berikutnya
             };
           })
         );
 
-        setUserQuizzes(quizWithMaterialNames);
+        // PROSES FILTERING: Hanya simpan kuis yang memiliki subjectId sama dengan params mapel saat ini
+        const filteredQuizzes = quizWithMaterialNames.filter(
+          (quiz) => quiz.subjectId === mapel
+        );
+
+        setUserQuizzes(filteredQuizzes);
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -69,7 +72,7 @@ export default function DetailNilai() {
     };
 
     fetchData();
-  }, [userId, materialId]);
+  }, [userId, materialId, mapel]); // Pastikan efek berjalan ulang jika mapel berganti
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} color={COLORS.primary} />;
 
@@ -78,9 +81,7 @@ export default function DetailNilai() {
       
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
 
-        <DetailHeader
-          title="Detail Nilai"
-        />
+        <DetailHeader title="Detail Nilai" />
 
         <View style={styles.profile}>
           <Image
@@ -105,39 +106,51 @@ export default function DetailNilai() {
         <View style={styles.card}>
     
           <View style={styles.topicRow}>
-            <View>
-              <Text style={styles.topicTitle}>{mapel}</Text>
-              <Text style={styles.topicDesc}>Cara menghitung mata uang</Text>
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={styles.topicTitle}>{mapel}</Text>
+              </View>
+              <Text style={styles.topicDesc}>Akumulasi kuis dikerjakan</Text>
             </View>
 
             <View style={styles.scoreRight}>
-              <Text style={styles.score}>
+              <Text style={[styles.score, { fontSize: 20 }]}>
                 {userQuizzes.length > 0 
                   ? (userQuizzes.reduce((acc, curr) => acc + (curr.score || 0), 0) / userQuizzes.length).toFixed(0) 
                   : 0}
               </Text>
-              <View style={styles.bar}/>
+              <Text style={{ fontSize: 9, color: COLORS.textSub, fontWeight: '600', marginTop: -2 }}>
+                RATA-RATA
+              </Text>
+              <View style={[styles.bar, { width: 50, marginTop: 4 }]}/>
             </View>
           </View>
 
           <View style={styles.divider} />
 
-          {userQuizzes.map((quiz, i) => (
-            <View key={i} style={styles.quizItem}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.quizTitle}>
-                  {mapel} | {quiz.materialTitle}
-                </Text>
-                <Text style={styles.quizDesc}>
-                  Selesai pada: {quiz.timestamp?.toDate().toLocaleDateString('id-ID')}
-                </Text>
+          {/* Menampilkan pesan jika tidak ada kuis khusus di mata pelajaran ini */}
+          {userQuizzes.length > 0 ? (
+            userQuizzes.map((quiz, i) => (
+              <View key={i} style={styles.quizItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.quizTitle}>
+                    {quiz.materialTitle}
+                  </Text>
+                  <Text style={styles.quizDesc}>
+                    Selesai pada: {quiz.timestamp?.toDate().toLocaleDateString('id-ID')}
+                  </Text>
+                </View>
+                <View style={styles.scoreRight}>
+                  <Text style={styles.score}>{quiz.score}</Text>
+                  <View style={styles.bar}/>
+                </View>
               </View>
-              <View style={styles.scoreRight}>
-                <Text style={styles.score}>{quiz.score}</Text>
-                <View style={styles.bar}/>
-              </View>
+            ))
+          ) : (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <Text style={{ color: COLORS.textSub, fontSize: 14 }}>Belum ada riwayat kuis untuk mata pelajaran ini</Text>
             </View>
-          ))}
+          )}
         </View>
       </ScrollView>
     </View>
