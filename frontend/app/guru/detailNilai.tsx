@@ -1,22 +1,77 @@
-import React from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, ActivityIndicator} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 
-const QUIZ = [
-  {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90},
-  {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
-  {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
-  {title: 'Final Quiz', desc: '', score: 90},
-];
+//firebase
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { db, } from "@/src/config/firebase";
 
 export default function DetailNilai() {
-  const params = useLocalSearchParams();
-  const name = params.name || 'Nama Siswa';
-  const nis = params.nis || '000000';
-  const score = params.score || 0;
-  const mapel = params.mapel || 'Mapel';
+  const { userId, materialId, mapel } = useLocalSearchParams();
+  
+  const [userData, setUserData] = useState<any>(null);
+  const [userQuizzes, setUserQuizzes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+
+       
+        const userSnap = await getDoc(doc(db, "users", userId as string));
+        if (userSnap.exists()) setUserData(userSnap.data());
+
+        
+        const q = materialId 
+          ? query(collection(db, "quizResult"), where("userId", "==", userId), where("materialId", "==", materialId))
+          : query(collection(db, "quizResult"), where("userId", "==", userId));
+          
+        const quizSnap = await getDocs(q);
+        
+       
+        const quizWithMaterialNames = await Promise.all(
+          quizSnap.docs.map(async (quizDoc) => {
+            const data = quizDoc.data();
+            let materialName = "Materi tidak ditemukan";
+
+            
+            if (data.materialId) {
+              const matRef = doc(db, "material", data.materialId);
+              const matSnap = await getDoc(matRef);
+              if (matSnap.exists()) {
+               
+                materialName = matSnap.data().title || matSnap.data().description || "Tanpa Judul";
+              }
+            }
+
+            return {
+              id: quizDoc.id,
+              ...data,
+              materialTitle: materialName // Simpan nama materi asli di sini
+            };
+          })
+        );
+
+        setUserQuizzes(quizWithMaterialNames);
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [userId, materialId]);
+
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} color={COLORS.primary} />;
 
   return (
     <View style={styles.container}>
@@ -29,24 +84,26 @@ export default function DetailNilai() {
 
         <View style={styles.profile}>
           <Image
-            source={require('@/assets/images/maskotMTK.png')}
+            source={userData?.profilePicture ? { uri: userData.profilePicture } : { uri: 'https://via.placeholder.com/150' }}
             style={styles.avatar}
           />
 
           <View style={styles.classBadge}>
-            <Text style={styles.classText}>SMP 7</Text>
+            <Text style={styles.classText}>
+               {`${userData?.tingkat || "Tingkat"} ${userData?.kelas || "Kelas"}`} 
+            </Text>
           </View>
 
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.nis}>{nis}</Text>
+          <Text style={styles.name}>{userData?.name || "Nama Siswa"}</Text>
+          <Text style={styles.nis}>{userData?.nis || "NIS"}</Text>
 
           <View style={styles.emailBadge}>
-            <Text style={styles.emailText}>{name}@student.SLBN1.ac.id</Text>
+            <Text style={styles.emailText}>{userData?.email}</Text>
           </View>
         </View>
 
         <View style={styles.card}>
-          
+    
           <View style={styles.topicRow}>
             <View>
               <Text style={styles.topicTitle}>{mapel}</Text>
@@ -54,22 +111,29 @@ export default function DetailNilai() {
             </View>
 
             <View style={styles.scoreRight}>
-              <Text style={styles.score}>{score}</Text>
+              <Text style={styles.score}>
+                {userQuizzes.length > 0 
+                  ? (userQuizzes.reduce((acc, curr) => acc + (curr.score || 0), 0) / userQuizzes.length).toFixed(0) 
+                  : 0}
+              </Text>
               <View style={styles.bar}/>
             </View>
           </View>
 
           <View style={styles.divider} />
 
-          {QUIZ.map((q, i) => (
+          {userQuizzes.map((quiz, i) => (
             <View key={i} style={styles.quizItem}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.quizTitle}>{q.title}</Text>
-                <Text style={styles.quizDesc}>{q.desc}</Text>
+                <Text style={styles.quizTitle}>
+                  {mapel} | {quiz.materialTitle}
+                </Text>
+                <Text style={styles.quizDesc}>
+                  Selesai pada: {quiz.timestamp?.toDate().toLocaleDateString('id-ID')}
+                </Text>
               </View>
-
               <View style={styles.scoreRight}>
-                <Text style={styles.score}>{q.score}</Text>
+                <Text style={styles.score}>{quiz.score}</Text>
                 <View style={styles.bar}/>
               </View>
             </View>

@@ -3,7 +3,6 @@ import {ActivityIndicator, View, Text, ScrollView, TouchableOpacity,  StyleSheet
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-import { Ionicons } from '@expo/vector-icons';
 
 //firebase
 import { auth, db } from "../../../src/config/firebase";
@@ -24,34 +23,64 @@ export default function SubMateri() {
 
       try {
         setLoading(true);
+
+        const subjectDoc = await getDoc(doc(db, "subject", subjectId as string));
+        if (subjectDoc.exists()) {
+          setSubjectData(subjectDoc.data());
+        }
+
+        const auth = getAuth();
         const user = auth.currentUser;
-        if (!user) return;
+
+        if (!user) {
+          console.log("User tidak login");
+          setLoading(false);
+          return;
+        }
 
         const userDocSnap = await getDoc(doc(db, "users", user.uid));
         
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
-          const userClassId = userData.classId; 
-          const userKelasName = userData.kelas; 
+          const classDocId = userData.classId;
 
-          if (!userClassId) {
+          if (!classDocId) {
+            console.error("User ini tidak memiliki field classId di Firestore");
             setLoading(false);
             return;
           }
 
-          const q = query(
-            collection(db, "material"),
-            where("subjectId", "==", subjectName),
-            where("classId", "in", [userClassId, userKelasName]) 
-          );
+          const classDocSnap = await getDoc(doc(db, "class", classDocId));
+          
+          if (classDocSnap.exists()) {
+            const classData = classDocSnap.data();
+            
+            const className = classData.kelas || classData.nama; 
 
-          const querySnapshot = await getDocs(q);
-          const fetchedData = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
+            if (!className) {
+              console.error("Dokumen kelas ditemukan, tapi field 'name' kosong/undefined");
+              setLoading(false);
+              return;
+            }
 
-          setMaterials(fetchedData);
+            console.log("Mencari materi untuk kelas:", className);
+
+            const q = query(
+              collection(db, "material"),
+              where("subjectId", "==", subjectName),
+              where("classId", "==", className) 
+            );
+
+            const querySnapshot = await getDocs(q);
+            const fetchedData = querySnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+
+            setMaterials(fetchedData);
+          } else {
+            console.error("ID Kelas " + classDocId + " tidak terdaftar di koleksi 'class'");
+          }
         }
       } catch (error) {
         console.error("Error detail:", error);
@@ -92,37 +121,41 @@ export default function SubMateri() {
         </View>
         
         {loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
-          ) : materials.length === 0 ? (
-            <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
-              Belum ada materi untuk mata pelajaran ini.
-            </Text>
-          ) : (
-            materials.map((item) => (
-              <TouchableOpacity
-                  key={item.id}
-                  style={styles.card}
-                  activeOpacity={0.7}
-                  onPress={() => router.push({
-                    pathname: '/siswa/materi/detailMateri',
-                    params: { materialId: item.id }
-                  })}>
+          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 20 }} />
+        ) : materials.length === 0 ? (
+          <Text style={{ textAlign: 'center', color: COLORS.textSub, marginTop: 20 }}>
+            Belum ada materi untuk mata pelajaran ini.
+          </Text>
+        ) : (
+          materials.map((item) => (
+            <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                activeOpacity={0.7}
+                onPress={() => router.push({
+                  pathname: '/siswa/materi/detailMateri',
+                  params: { materialId: item.id }
+                })}>
 
-                  <Image 
-                    source={{ uri: item.fileUrl || 'https://via.placeholder.com/150' }} 
-                    style={styles.cardImage} 
-                  />
+                <Image 
+                  source={
+                    subjectData?.imageUrl 
+                      ? { uri: subjectData.imageUrl } 
+                      : require('@/assets/images/materi/Matematika.png') 
+                  } 
+                  style={styles.cardImage} 
+                />
 
-                  <View style={styles.cardContent}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                    
-                    <Text style={styles.cardDescription} numberOfLines={2}>
-                      {item.description}
-                    </Text>
-                  </View>
-              </TouchableOpacity>
-            ))
-          )}
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  
+                  <Text style={styles.cardDescription} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                </View>
+            </TouchableOpacity>
+          ))
+        )}
         <View style={{ height: SPACING.xl }} />
       </ScrollView>
     </View>
@@ -133,17 +166,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-
-  cardLeftAccent: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 6,
-    backgroundColor: COLORS.primary,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
   },
 
   scrollContainer: {

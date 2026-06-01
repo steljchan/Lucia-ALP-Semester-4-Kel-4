@@ -1,632 +1,277 @@
-import React, {
-  useState,
-  useEffect,
-} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Alert } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  StatusBar,
-  Image,
-} from 'react-native';
-
-import {
-  useRouter,
-  useLocalSearchParams,
-} from 'expo-router';
-
-import {
-  Ionicons,
-} from '@expo/vector-icons';
-
-import {
-  LinearGradient,
-} from 'expo-linear-gradient';
-
-import {
-  COLORS,
-  SPACING,
-  BORDER_RADIUS,
-} from '@/utils/theme';
+//firestore
+import { auth, db } from '@/src/config/firebase';
+import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function ScoreScreen() {
-
   const router = useRouter();
+  const { score, correct, wrong, skipped, total, answers } = useLocalSearchParams();
 
-  const {
-    score,
-    correct,
-    wrong,
-    skipped,
-    total,
-    answers,
-    earnedXp,
-    earnedCoin,
-  } = useLocalSearchParams();
+  const correctNum = parseInt(correct as string) || 0;
+  const wrongNum = parseInt(wrong as string) || 0;
+  const skippedNum = parseInt(skipped as string) || 0;
+  const totalNum = parseInt(total as string) || 1;
+  const scoreNum = parseInt(score as string) || 0;
+  const progress = totalNum ? (correctNum / totalNum) * 100 : 0;
 
-  /*
-    =========================
-    SCORE DATA
-    =========================
-  */
+  const [openPembahasan, setOpenPembahasan] = useState<Record<number, boolean>>({});
+  const [xpEarned, setXpEarned] = useState(0);
+  const [xpAwarded, setXpAwarded] = useState(false);
+  const awardingRef = useRef(false);
 
-  const correctNum =
-    parseInt(correct as string) || 0;
-
-  const wrongNum =
-    parseInt(wrong as string) || 0;
-
-  const skippedNum =
-    parseInt(skipped as string) || 0;
-
-  const totalNum =
-    parseInt(total as string) || 1;
-
-  const scoreNum =
-    parseInt(score as string) || 0;
-
-  const progress =
-    totalNum
-      ? (correctNum / totalNum) * 100
-      : 0;
-
-  /*
-    =========================
-    UI STATES
-    =========================
-  */
-
-  const [
-    openPembahasan,
-    setOpenPembahasan,
-  ] = useState<
-    Record<number, boolean>
-  >({});
-
-  const xpEarned =
-    parseInt(
-      earnedXp as string
-    ) || 0;
-
-  const coinEarned =
-    parseInt(
-      earnedCoin as string
-    ) || 0;
-  /*
-    =========================
-    TOGGLE PEMBAHASAN
-    =========================
-  */
-
-  const togglePembahasan =
-    (index: number) => {
-
-      setOpenPembahasan(
-        prev => ({
-          ...prev,
-          [index]:
-            !prev[index],
-        })
-      );
-    };
-
-  /*
-    =========================
-    PARSE ANSWERS
-    =========================
-  */
+  const togglePembahasan = (index: number) => {
+    setOpenPembahasan(prev => ({ ...prev, [index]: !prev[index] }));
+  };
 
   let parsedAnswers: any[] = [];
-
   try {
-
-    parsedAnswers =
-      answers
-        ? JSON.parse(
-            answers as string
-          )
-        : [];
-
-    if (
-      !Array.isArray(
-        parsedAnswers
-      )
-    ) {
-      parsedAnswers = [];
-    }
-
-  } catch {
-
+    parsedAnswers = answers ? JSON.parse(answers as string) : [];
+    if (!Array.isArray(parsedAnswers)) parsedAnswers = [];
+  } catch (e) {
     parsedAnswers = [];
-
   }
 
-  /*
-    =========================
-    OPTION COLOR
-    =========================
-  */
+  
+  const calculateXp = () => {
+    return correctNum * 10;
+  };
 
-  const getCircleColor = (
-    option: string,
-    correctAnswer: string,
-    userAnswer:
-      | string
-      | null,
-    isSkipped: boolean,
-    isCorrectAnswer: boolean
-  ) => {
+  
+  useEffect(() => {
+    const awardXp = async () => {
+      if (xpAwarded || awardingRef.current) return;
+      awardingRef.current = true;
 
-    if (
-      isSkipped &&
-      isCorrectAnswer
-    ) {
-      return COLORS.yellow;
-    }
-
-    if (
-      !isSkipped &&
-      userAnswer === option
-    ) {
-
-      if (
-        option ===
-        correctAnswer
-      ) {
-        return COLORS.success;
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('User tidak login');
+        return;
       }
 
+      const gainedXp = calculateXp();
+      setXpEarned(gainedXp);
+
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          xp: increment(gainedXp)
+        });
+
+        const {materialId, subjectId, classId, name} = useLocalSearchParams();
+
+        await addDoc(collection(db, 'quizResults'), {
+          userId: user.uid,
+          studentName: name || user.displayName || 'Siswa',
+          classId: classId,
+          subjectId: subjectId,
+          materialId: materialId,
+          score: scoreNum,
+          correct: correctNum,
+          total: totalNum,
+          timestamp: serverTimestamp(),
+        });
+        
+        setXpAwarded(true);
+      } catch (error) {
+        console.error('Gagal update XP:', error);
+        Alert.alert('Error', 'Gagal menyimpan XP, coba lagi nanti.');
+      }
+    };
+
+    awardXp();
+  }, []);
+
+  const getCircleColor = (option: string, correctAnswer: string, userAnswer: string | null, isSkipped: boolean, isCorrectAnswer: boolean) => {
+    if (isSkipped && isCorrectAnswer) return COLORS.yellow;
+    if (!isSkipped && userAnswer === option) {
+      if (option === correctAnswer) return COLORS.success;
       return COLORS.error;
     }
-
-    if (
-      option ===
-      correctAnswer
-    ) {
-      return COLORS.success;
-    }
-
+    if (option === correctAnswer) return COLORS.success;
     return COLORS.primary;
   };
 
   return (
     <View style={styles.root}>
-
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={
-          COLORS.white
-        }
-      />
-
-      {/* HEADER */}
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      
+      {/* Custom Header dengan tombol Leaderboard */}
       <LinearGradient
-        colors={[
-          '#FFFFFF',
-          '#ADDFFD',
-        ]}
+        colors={['#FFFFFF', '#ADDFFD']}
         style={styles.header}
       >
-        <View
-          style={
-            styles.headerRow
-          }
-        >
+        <View style={styles.headerRow}>
           <TouchableOpacity
-            onPress={() =>
-              router.back()
-            }
-            style={
-              styles.backButton
-            }
+            onPress={() => router.back()}
+            style={styles.backButton}
           >
-            <Ionicons
-              name="chevron-back"
-              size={28}
-              color={
-                COLORS.textMain
-              }
-            />
+            <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />
           </TouchableOpacity>
 
-          <Text
-            style={
-              styles.headerTitle
-            }
-          >
-            Score
-          </Text>
+          <Text style={styles.headerTitle}>Score</Text>
 
-          <TouchableOpacity
-            onPress={() =>
-              router.push(
-                '/siswa/tabs/leaderboard'
-              )
-            }
-            style={
-              styles.iconButton
-            }
-          >
-            <Ionicons
-              name="podium-outline"
-              size={24}
-              color={
-                COLORS.primary
-              }
-            />
+          <TouchableOpacity onPress={() => router.push('/siswa/tabs/leaderboard')}style={styles.iconButton}>
+            <Ionicons name="podium-outline" size={24} color={COLORS.primary} />
           </TouchableOpacity>
         </View>
-
-        <Text
-          style={styles.subtitle}
-        >
-          Hasil Quiz Kamu
-        </Text>
+        <Text style={styles.subtitle}>Hasil Quiz Kamu</Text>
       </LinearGradient>
 
-      <ScrollView
-        contentContainerStyle={
-          styles.content
-        }
-      >
-        {/* MASKOT */}
-        <View
-          style={
-            styles.mascotWrapper
-          }
-        >
-          <Image
-            source={require('@/assets/images/maskot1.png')}
-            style={
-              styles.mascot
-            }
-            resizeMode="contain"
-          />
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.mascotWrapper}>
+          <Image source={require('@/assets/images/maskot1.png')} style={styles.mascot} resizeMode="contain" />
         </View>
 
-        {/* SCORE CARD */}
         <View style={styles.card}>
-          <View
-            style={
-              styles.cardContent
-            }
-          >
-            <Text
-              style={styles.title}
-            >
-              CONGRATULATIONS 🎉
-            </Text>
-
-            {/* SCORE */}
-            <View
-              style={
-                styles.scoreHero
-              }
-            >
-              <Text
-                style={
-                  styles.scoreNumber
-                }
-              >
-                {scoreNum}
-              </Text>
-
-              <Text
-                style={
-                  styles.scoreLabel
-                }
-              >
-                Nilai Akhir
-              </Text>
+          <View style={styles.cardContent}>
+            <Text style={styles.title}>CONGRATULATIONS 🎉</Text>
+            
+            {/* Tampilan Skor di tengah */}
+            <View style={styles.scoreHero}>
+              <Text style={styles.scoreNumber}>{scoreNum}</Text>
+              <Text style={styles.scoreLabel}>Nilai Akhir</Text>
             </View>
 
-            {/* PROGRESS */}
-            <View
-              style={
-                styles.progressBar
-              }
-            >
-              <View
-                style={[
-                  styles.fill,
-                  {
-                    width:
-                      `${progress}%`,
-                  },
-                ]}
-              />
+            <View style={styles.progressBar}>
+              <View style={[styles.fill, { width: `${progress}%` }]} />
             </View>
+            <View style={styles.divider} />
 
-            <View
-              style={
-                styles.divider
-              }
-            />
-
-            {/* STATS */}
-            <View
-              style={
-                styles.statsRow
-              }
-            >
-              <View
-                style={
-                  styles.statBox
-                }
-              >
-                <Ionicons
-                  name="document-text-outline"
-                  size={28}
-                  color={
-                    COLORS.primary
-                  }
-                />
-
-                <Text
-                  style={
-                    styles.statNumber
-                  }
-                >
-                  {totalNum}
-                </Text>
-
-                <Text
-                  style={
-                    styles.statLabel
-                  }
-                >
-                  Total Soal
-                </Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Ionicons name="document-text-outline" size={28} color={COLORS.primary} />
+                <Text style={styles.statNumber}>{totalNum}</Text>
+                <Text style={styles.statLabel}>Total Soal</Text>
               </View>
 
-              <View
-                style={
-                  styles.verticalDivider
-                }
-              />
-
-              <View
-                style={
-                  styles.statBox
-                }
-              >
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={28}
-                  color={
-                    COLORS.success
-                  }
-                />
-
-                <Text
-                  style={[
-                    styles.statNumber,
-                    {
-                      color:
-                        COLORS.success,
-                    },
-                  ]}
-                >
-                  {correctNum}
-                </Text>
-
-                <Text
-                  style={
-                    styles.statLabel
-                  }
-                >
-                  Benar
-                </Text>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="checkmark-circle-outline" size={28} color={COLORS.success} />
+                <Text style={[styles.statNumber, { color: COLORS.success }]}>{correctNum}</Text>
+                <Text style={styles.statLabel}>Benar</Text>
               </View>
 
-              <View
-                style={
-                  styles.verticalDivider
-                }
-              />
-
-              <View
-                style={
-                  styles.statBox
-                }
-              >
-                <Ionicons
-                  name="close-circle-outline"
-                  size={28}
-                  color={
-                    COLORS.error
-                  }
-                />
-
-                <Text
-                  style={[
-                    styles.statNumber,
-                    {
-                      color:
-                        COLORS.error,
-                    },
-                  ]}
-                >
-                  {wrongNum}
-                </Text>
-
-                <Text
-                  style={
-                    styles.statLabel
-                  }
-                >
-                  Salah
-                </Text>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="close-circle-outline" size={28} color={COLORS.error} />
+                <Text style={[styles.statNumber, { color: COLORS.error }]}>{wrongNum}</Text>
+                <Text style={styles.statLabel}>Salah</Text>
               </View>
 
-              <View
-                style={
-                  styles.verticalDivider
-                }
-              />
-
-              <View
-                style={
-                  styles.statBox
-                }
-              >
-                <Ionicons
-                  name="hourglass-outline"
-                  size={28}
-                  color={
-                    COLORS.yellow
-                  }
-                />
-
-                <Text
-                  style={[
-                    styles.statNumber,
-                    {
-                      color:
-                        COLORS.yellow,
-                    },
-                  ]}
-                >
-                  {skippedNum}
-                </Text>
-
-                <Text
-                  style={
-                    styles.statLabel
-                  }
-                >
-                  Kosong
-                </Text>
+              <View style={styles.verticalDivider} />
+              <View style={styles.statBox}>
+                <Ionicons name="hourglass-outline" size={28} color={COLORS.yellow} />
+                <Text style={[styles.statNumber, { color: COLORS.yellow }]}>{skippedNum}</Text>
+                <Text style={styles.statLabel}>Kosong</Text>
               </View>
             </View>
 
-            {/* XP */}
-            <View
-              style={
-                styles.xpContainer
-              }
-            >
-              <Text
-                style={
-                  styles.xpLabel
-                }
-              >
-                Reward Diperoleh
-              </Text>
-
-              {/* XP */}
-              <View
-                style={
-                  styles.xpContainer
-                }
-              >
-                <Text
-                  style={
-                    styles.xpLabel
-                  }
-                >
-                  Reward Diperoleh
-                </Text>
-
-                <View
-                  style={
-                    styles.rewardRow
-                  }
-                >
-
-                  <View
-                    style={
-                      styles.xpBadge
-                    }
-                  >
-                    <Ionicons
-                      name="flash"
-                      size={20}
-                      color={
-                        COLORS.primary
-                      }
-                    />
-
-                    <Text
-                      style={
-                        styles.xpBadgeText
-                      }
-                    >
-                      +{xpEarned} XP
-                    </Text>
-                  </View>
-
-                  <View
-                    style={
-                      styles.coinBadge
-                    }
-                  >
-                    <Text
-                      style={
-                        styles.coinEmoji
-                      }
-                    >
-                      🪙
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.coinText
-                      }
-                    >
-                      +{coinEarned}
-                    </Text>
-                  </View>
-                </View>
+            {/* XP Badge diletakkan di bawah statistik */}
+            <View style={styles.xpContainer}>
+              <Text style={styles.xpLabel}>Reward Diperoleh</Text>
+              <View style={styles.xpBadge}>
+                <Ionicons name="flash" size={20} color={COLORS.primary} />
+                <Text style={styles.xpBadgeText}>+{xpEarned} XP</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* PEMBAHASAN */}
-        <Text
-          style={
-            styles.sectionTitle
-          }
-        >
-          Pembahasan Jawaban
-        </Text>
+        <Text style={styles.sectionTitle}>Pembahasan Jawaban</Text>
+        <View style={styles.quizContainer}>
+          {parsedAnswers.map((item, index) => {
+            const letter = (i: number) => String.fromCharCode(65 + i);
+            const isSkipped = item.status === 'skipped' || item.userAnswer === null;
 
-        <View
-          style={
-            styles.quizContainer
-          }
-        >
-          {parsedAnswers.map(
-            (item, index) => {
-
-              const letter =
-                (i: number) =>
-                  String.fromCharCode(
-                    65 + i
-                  );
-
-              const isSkipped =
-                item.status ===
-                  'skipped' ||
-                item.userAnswer ===
-                  null;
-
-              return (
-                <View
-                  key={index}
-                  style={
-                    styles.quizCard
-                  }
-                >
-                  {/* isi tetap sama */}
+            return (
+              <View key={index} style={styles.quizCard}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.questionNumber}>Soal {index + 1}</Text>
+                  {isSkipped && (
+                    <View style={styles.skippedBadge}>
+                      <Ionicons name="time-outline" size={16} color={COLORS.yellow} />
+                      <Text style={styles.skippedBadgeText}>Skip</Text>
+                    </View>
+                  )}
                 </View>
-              );
-            }
-          )}
+
+                <Text style={styles.questionText}>{item.question}</Text>
+                
+                {/* Gambar hanya ditampilkan jika ada */}
+                {item.image && (
+                  <Image
+                    source={item.image}
+                    style={styles.questionImage}
+                    resizeMode="contain"
+                  />
+                )}
+
+                {item.options.map((option: string, i: number) => {
+                  const isCorrectAnswer = option === item.correctAnswer;
+                  const isUserAnswer = !isSkipped && option === item.userAnswer;
+                  const isUserCorrect = isUserAnswer && item.isCorrect;
+                  const isUserWrong = isUserAnswer && !item.isCorrect;
+
+                  let optionBg = COLORS.white;
+                  let borderColor = '#E5E7EB'; 
+
+                  if (isUserCorrect) {
+                    optionBg = '#D8FAE5';
+                    borderColor = COLORS.success;
+                  } else if (isUserWrong) {
+                    optionBg = '#F9C3C4';
+                    borderColor = COLORS.error;
+                  } else if (isSkipped && isCorrectAnswer) {
+                    optionBg = '#FEF3C7';
+                    borderColor = COLORS.yellow;
+                  } else if (!isSkipped && !isUserAnswer && isCorrectAnswer) {
+                    optionBg = '#D8FAE5';
+                    borderColor = COLORS.success;
+                  }
+
+                  const circleColor = getCircleColor(option, item.correctAnswer, item.userAnswer, isSkipped, isCorrectAnswer);
+
+                  let rightIcon = null;
+                  if (isUserCorrect) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
+                  else if (isUserWrong) rightIcon = <Ionicons name="close-circle" size={22} color={COLORS.error} />;
+                  else if (!isSkipped && !isUserAnswer && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.success} />;
+                  else if (isSkipped && isCorrectAnswer) rightIcon = <Ionicons name="checkmark-circle" size={22} color={COLORS.yellow} />;
+
+                  return (
+                    <View key={i} style={[styles.option, { backgroundColor: optionBg, borderColor }]}>
+                      <View style={[styles.optionLetterBox, { backgroundColor: circleColor }]}>
+                        <Text style={styles.optionLetterText}>{letter(i)}</Text>
+                      </View>
+                      <Text style={styles.optionText}>{option}</Text>
+                      {rightIcon}
+                    </View>
+                  );
+                })}
+
+                <TouchableOpacity style={styles.dropdownButton} onPress={() => togglePembahasan(index)}>
+                  <Text style={styles.dropdownButtonText}>
+                    {openPembahasan[index] ? 'Sembunyikan Pembahasan' : 'Lihat Pembahasan'}
+                  </Text>
+                </TouchableOpacity>
+
+                {openPembahasan[index] && (
+                  <View style={styles.explanationBox}>
+                    <Text style={styles.explanationTitle}>Pembahasan:</Text>
+                    <Text style={styles.explanationText}>Jawaban benar: {item.correctAnswer}</Text>
+                    <Text style={styles.explanationText}>
+                      Jawaban kamu: {isSkipped ? 'Tidak dijawab' : (item.userAnswer ?? 'Tidak dijawab')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -796,41 +441,6 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginTop: 18,
-  },
-
-  rewardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-
-  coinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-
-    backgroundColor: '#FFF7D6',
-
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-
-    borderRadius: 18,
-
-    borderWidth: 1,
-    borderColor: '#F4C542',
-  },
-
-  coinEmoji: {
-    fontSize: 18,
-  },
-
-  coinText: {
-    marginLeft: 6,
-
-    fontSize: 16,
-    fontWeight: '700',
-
-    color: '#C58B00',
   },
 
   xpBadge: {
