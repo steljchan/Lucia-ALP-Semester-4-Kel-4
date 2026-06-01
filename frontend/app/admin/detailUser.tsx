@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
+import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 
 //firebase
 import { db } from '@/src/config/firebase';
@@ -13,6 +15,9 @@ import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 export default function DetailUser() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const userId = params.id as string;
   const role = params.role as string;
@@ -62,26 +67,22 @@ export default function DetailUser() {
     }
   };
 
-  const handleDelete = async () => {
-    Alert.alert(
-      "Hapus User",
-      "Apakah Anda yakin ingin menghapus user ini?",
-      [
-        { text: "Batal", style: "cancel" },
-        { 
-          text: "Hapus", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteDoc(doc(db, "users", userId));
-              router.back();
-            } catch (error) {
-              Alert.alert("Error", "Gagal menghapus user");
-            }
-          }
-        }
-      ]
-    );
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteDoc(doc(db, "users", userId));
+
+      setShowDeleteModal(false);
+
+      setSuccessMessage("User berhasil dihapus");
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Gagal menghapus user");
+    }
   };
 
   if (loading) {
@@ -167,8 +168,13 @@ export default function DetailUser() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Hapus User</Text>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+          >
+            <Text style={styles.deleteButtonText}>
+              Hapus User
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -177,6 +183,23 @@ export default function DetailUser() {
         visible={showModal}
         onClose={() => setShowModal(false)}
         onSubmit={handleAddPair}
+      />
+
+      <DeleteUserModal
+        visible={showDeleteModal}
+        userId={userId}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+      />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Berhasil"
+        message={successMessage}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace('/admin');
+        }}
       />
     </View>
   );

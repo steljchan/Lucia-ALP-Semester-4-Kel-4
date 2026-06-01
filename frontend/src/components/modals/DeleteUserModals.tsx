@@ -20,7 +20,6 @@ export default function DeleteUserModal({
 
     try {
       await deleteDoc(doc(db, "users", userId));
-      Alert.alert("Berhasil", "User telah dihapus.");
       
       onClose(); 
       if (onConfirm) onConfirm(); 

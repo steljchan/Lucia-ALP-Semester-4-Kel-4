@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, A
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, BORDER_RADIUS } from '@/utils/theme';
 import { useRouter } from 'expo-router';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 
 // FIREBASE 
 import { db } from '@/src/config/firebase'; 
@@ -14,6 +15,8 @@ import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
 
 export default function AdminPanel() {
   const router = useRouter();
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const [roleFilter, setRoleFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -169,7 +172,16 @@ export default function AdminPanel() {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={() => {
           setShowDeleteModal(false);
+          setSuccessMessage('User berhasil dihapus');
+          setShowSuccessModal(true);
         }}
+      />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Berhasil"
+        message={successMessage}
+        onClose={() => setShowSuccessModal(false)}
       />
     </View>
   );
