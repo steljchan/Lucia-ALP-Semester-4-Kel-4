@@ -11,7 +11,7 @@ import { doc, updateDoc, increment, collection, addDoc, serverTimestamp } from '
 
 export default function ScoreScreen() {
   const router = useRouter();
-  const { score, correct, wrong, skipped, total, answers } = useLocalSearchParams();
+  const { score, correct, wrong, skipped, total, answers, materialId, subjectId, classId, name } = useLocalSearchParams();
 
   const correctNum = parseInt(correct as string) || 0;
   const wrongNum = parseInt(wrong as string) || 0;
@@ -63,9 +63,9 @@ export default function ScoreScreen() {
           xp: increment(gainedXp)
         });
 
-        const {materialId, subjectId, classId, name} = useLocalSearchParams();
+        // const {materialId, subjectId, classId, name} = useLocalSearchParams();
 
-        await addDoc(collection(db, 'quizResults'), {
+        await addDoc(collection(db, 'quizResult'), {
           userId: user.uid,
           studentName: name || user.displayName || 'Siswa',
           classId: classId,
@@ -203,7 +203,6 @@ export default function ScoreScreen() {
 
                 <Text style={styles.questionText}>{item.question}</Text>
                 
-                {/* Gambar hanya ditampilkan jika ada */}
                 {item.image && (
                   <Image
                     source={item.image}
