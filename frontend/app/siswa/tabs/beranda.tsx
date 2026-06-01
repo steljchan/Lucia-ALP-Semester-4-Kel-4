@@ -15,6 +15,7 @@ export default function DashboardSiswa() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastSeen, setLastSeen] = useState<any>(null);
+  const [search, setSearch] = useState('');
 
 
   useEffect(() => {
@@ -64,22 +65,40 @@ export default function DashboardSiswa() {
 
     fetchUserAndSubjects();
   }, []);
+
+  const filteredSubjects = subjects.filter((item) =>
+    item.name?.toLowerCase().includes(search.toLowerCase())
+  );
   
 
   return (
     <View style={styles.container}>
-      <AppHeader />
+      <AppHeader
+        search={search}
+        setSearch={setSearch}
+      />
 
       {loading ? (
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 50 }} />
       ) : (
         <FlatList
-          data={subjects}
+          data={filteredSubjects}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.grid}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={scrollContent}
+          ListEmptyComponent={
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 30,
+                color: COLORS.darkGray,
+              }}
+            >
+              Mata pelajaran tidak ditemukan
+            </Text>
+          }
           ListHeaderComponent={
             <>
               <Text style={styles.sectionTitle}>Terakhir Dilihat</Text>

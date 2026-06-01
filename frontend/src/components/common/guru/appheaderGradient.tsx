@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { View, StyleSheet, Image} from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import SearchBar from '@/src/components/common/searchbar';
 
-export default function AppHeader() {
-  const [search, setSearch] = useState('');
+type Props = {
+  search: string;
+  setSearch: (text: string) => void;
+};
 
+export default function AppHeader({
+  search,
+  setSearch,
+}: Props) {
   return (
     <LinearGradient
       colors={['#FFFFFF', '#C4E8FF']}
