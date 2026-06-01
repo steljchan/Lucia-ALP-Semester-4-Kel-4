@@ -1,20 +1,38 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+
+interface LastSeenCardProps {
+  title: string;
+  subtitle: string;
+  image: any;
+  onPress?: () => void;
+}
 
 export default function LastSeenCard({
-  title = "Belajar Menghitung Satuan",
-  subtitle = "Berat, Jarak dan Waktu",
-  image = { uri: 'https://cdn-icons-png.flaticon.com/512/2721/2721297.png' },
-}: any) {
-
+  title,
+  subtitle,
+  image,
+  onPress,
+}: LastSeenCardProps) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
       <Image source={image} style={styles.image} />
 
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

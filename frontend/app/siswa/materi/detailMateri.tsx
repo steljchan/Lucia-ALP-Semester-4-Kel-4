@@ -9,6 +9,8 @@ import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 //fireabase
 import { db } from '@/src/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { updateDoc } from "firebase/firestore";
+import { auth } from "@/src/config/firebase";
 
 //pdf 
 // import Pdf from 'react-native-pdf';
@@ -30,18 +32,29 @@ export default function DetailMateri() {
   useEffect(() => {
     const fetchFullData = async () => {
       if (!materialId) return;
+
       try {
         const docRef = doc(db, "material", materialId as string);
         const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
-          setMaterialData(docSnap.data());
+          const material = docSnap.data();
+          setMaterialData(material);
+
+          const user = auth.currentUser;
+          if (user) {
+            await updateDoc(doc(db, "users", user.uid), {
+              lastSeenMaterialId: materialId,
+            });
+          }
         }
       } catch (error) {
-        console.error("Error fetching detail:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchFullData();
   }, [materialId]);
 
