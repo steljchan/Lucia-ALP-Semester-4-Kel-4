@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 import ClassSelector from '@/src/components/common/admin/classSelector';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 
 // firebase
 import { db } from '@/src/config/firebase'; 
@@ -15,11 +16,16 @@ export default function EditUser() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const userId = params.id as string; 
+  const [showPassword, setShowPassword] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState(''); 
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [nis, setNis] = useState('');
   const [nik, setNik] = useState(''); 
@@ -30,8 +36,8 @@ export default function EditUser() {
   const [pairs, setPairs] = useState<any[]>([]);
 
   const [editingName, setEditingName] = useState(false);
-  const [editingNis, setEditingNis] = useState(false); // State baru untuk NIS
-  const [editingAcademic, setEditingAcademic] = useState(false); // State untuk toggle ClassSelector
+  const [editingNis, setEditingNis] = useState(false); // tidak digunakan lagi, tapi tetap ada agar tidak mengubah logic
+  const [editingAcademic, setEditingAcademic] = useState(false);
   const [showWali, setShowWali] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [allClasses, setAllClasses] = useState<any[]>([]);
@@ -45,15 +51,14 @@ export default function EditUser() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setName(data.name || '');
+          setEmail(data.email || ''); 
+          setPassword(data.password || '');
           setRole(data.role || '');
           setNis(data.nis || '');
           setNik(data.nik || '');
           setTingkat(data.tingkat || 'SMP');
-          
-          // PERBAIKAN: Ambil Nama Kelas (string) dan ID-nya
           setKelas(data.kelas || ''); 
           setClassId(data.classId || '');
-          
           setWaliKelas(data.waliKelas || 'None');
           setPairs(data.pairs || []);
         } else {
@@ -80,8 +85,9 @@ export default function EditUser() {
   }, []);
   
   const handleSave = async () => {
-    // 1. Sanitasi Dasar
     const cleanName = name.trim();
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
     const cleanNis = nis.trim();
     const cleanNik = nik.trim();
 
@@ -101,10 +107,7 @@ export default function EditUser() {
           where(fieldToCheck, "==", valueToCheck)
         );
         const duplicateSnap = await getDocs(duplicateQuery);
-
-        // Cari apakah ada dokumen lain yang punya NIS/NIK ini
         const isDuplicate = duplicateSnap.docs.some(d => d.id !== userId);
-
         if (isDuplicate) {
           Alert.alert("Error", `${role === 'siswa' ? 'NIS' : 'NIK'} sudah digunakan oleh user lain!`);
           setSaving(false);
@@ -115,6 +118,8 @@ export default function EditUser() {
       const userRef = doc(db, "users", userId);
       const updatedData: any = { 
         name: cleanName, 
+        email: cleanEmail,
+        password: cleanPassword,
         updatedAt: new Date() 
       };
 
@@ -130,10 +135,8 @@ export default function EditUser() {
       }
 
       await updateDoc(userRef, updatedData);
-      
-      Alert.alert("Berhasil", "Data user telah diperbarui", [
-        { text: "OK", onPress: () => router.back() }
-      ]);
+      setSuccessMessage(`Data ${cleanName} berhasil diperbarui`);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Gagal memperbarui data");
@@ -153,35 +156,56 @@ export default function EditUser() {
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
         <AppHeaderSimple title="Edit User" />
 
-
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
-          {!editingName ? (
-            <TouchableOpacity onPress={() => setEditingName(true)}>
-              <Row label="Nama" value={name} icon="create-outline" />
-            </TouchableOpacity>
-          ) : (
-            <EditableRow label="Nama" value={name} onChange={setName} onBlur={() => setEditingName(false)} />
-          )}
           
-          <Row label="Email" value={params.email} />
-          <Row label="Role" value={role.toUpperCase()} />
+          <Text style={styles.label}>Nama</Text>
+          <TextInput
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+          />
+
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+          />
+          
+          <Text style={styles.label}>Role</Text>
+          <Text style={[styles.value, { marginBottom: 10, marginLeft: 12 }]}>
+            {role.toUpperCase()}
+          </Text>
 
           {role === 'siswa' && (
-            !editingNis ? (
-              <TouchableOpacity onPress={() => setEditingNis(true)}>
-                <Row label="NIS" value={nis} icon="create-outline" />
-              </TouchableOpacity>
-            ) : (
-              <EditableRow 
-                label="NIS" 
-                value={nis} 
-                onChange={setNis} 
-                keyboardType="numeric" 
-                onBlur={() => setEditingNis(false)} 
+            <>
+              <Text style={styles.label}>NIS</Text>
+              <TextInput
+                value={nis}
+                onChangeText={setNis}
+                keyboardType="numeric"
+                style={styles.input}
               />
-            )
+            </>
           )}
+
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              style={styles.passwordInput}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {role === 'siswa' && (
@@ -216,46 +240,47 @@ export default function EditUser() {
           <View style={styles.card}>
             <Text style={styles.section}>Teaching</Text>
             <EditableRow label="NIK" value={nik} onChange={setNik} />
+            
+            <TouchableOpacity onPress={() => setShowWali(!showWali)}>
+              <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
+            </TouchableOpacity> 
 
-           {role === 'guru' && (
-              <View style={styles.card}>
-                <Text style={styles.section}>Teaching</Text>
-                <EditableRow label="NIK" value={nik} onChange={setNik} />
-                <TouchableOpacity onPress={() => setShowWali(!showWali)}>
-                  <Row label="Wali Kelas" value={waliKelas} icon={showWali ? 'chevron-up' : 'chevron-down'} />
-                </TouchableOpacity> 
+            {showWali && ['None', ...allClasses.map((c) => c.kelas)].map((c) => (
+              <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
+                <Text style={styles.dropdownItem}>{c}</Text>
+              </TouchableOpacity>
+            ))}
 
-                {showWali && ['None', ...allClasses.map((c) => c.kelas)].map((c) => (
-                  <TouchableOpacity key={c} onPress={() => { setWaliKelas(c); setShowWali(false); }}>
-                    <Text style={styles.dropdownItem}>{c}</Text>
-                  </TouchableOpacity>
-                ))}
-
-                <Text style={styles.subTitle}>Kelas & Subject</Text>
-                {pairs.map((p, i) => (
-                  <View key={i} style={styles.pairCard}>
-                    <Text style={styles.pairText}>{p.kelas} - {p.subject}</Text>
-                      <TouchableOpacity onPress={() => setPairs(pairs.filter((_, index) => index !== i))}>
-                        <Ionicons name="close-circle" size={20} color={COLORS.error} />
-                      </TouchableOpacity>
-                  </View>
-                ))}
-
-                <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
-                  <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
-                  <Text style={styles.addText}>Tambah Pair</Text>
+            <Text style={styles.subTitle}>Kelas & Subject</Text>
+            {pairs.map((p, i) => (
+              <View key={i} style={styles.pairCard}>
+                <Text style={styles.pairText}>{p.kelas} - {p.subject}</Text>
+                <TouchableOpacity onPress={() => setPairs(pairs.filter((_, index) => index !== i))}>
+                  <Ionicons name="close-circle" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               </View>
-            )}
+            ))}
+
+            <TouchableOpacity style={styles.addButton} onPress={() => setShowModal(true)}>
+              <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.addText}>Tambah Pair</Text>
+            </TouchableOpacity>
           </View>
         )}
 
-        <TouchableOpacity 
-          style={[styles.button, saving && { opacity: 0.7 }]} 
+        <TouchableOpacity
+          style={[
+            styles.button,
+            saving && { opacity: 0.7 }
+          ]}
           onPress={handleSave}
           disabled={saving}
         >
-          <Text style={styles.buttonText}>{saving ? "Menyimpan..." : "Simpan Perubahan"}</Text>
+          {saving ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={styles.buttonText}>Simpan Perubahan</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -264,11 +289,21 @@ export default function EditUser() {
         onClose={() => setShowModal(false)}
         onSubmit={(data: any) => setPairs([...pairs, data])}
       />
+
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Berhasil"
+        message={successMessage}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.replace('/admin');
+        }}
+      />
     </View>
   );
 }
 
-// FUNGSI KOMPONEN TETAP DI BAWAH
+// Komponen pembantu (tidak diubah)
 function Row({ label, value, icon }: any) {
   return (
     <View style={styles.row}>
@@ -297,13 +332,11 @@ function EditableRow({ label, value, onChange, onBlur, keyboardType }: any) {
   );
 }
 
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-
   card: {
     marginHorizontal: 20,
     marginTop: 16,
@@ -312,51 +345,61 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
   },
-
   section: {
     backgroundColor: COLORS.primary,
     color: COLORS.white,
     padding: 12,
     fontWeight: '700',
   },
-
   subTitle: {
     marginTop: 10,
     marginLeft: 14,
     fontWeight: '600',
     color: COLORS.primary,
   },
-
   row: {
     padding: 14,
     borderBottomWidth: 1,
-    borderColor: COLORS.gray, 
+    borderColor: COLORS.gray,
   },
-
   label: {
     fontSize: 12,
     color: COLORS.textSub,
+    marginBottom: 4,
+    marginLeft: 12,
+    marginTop: 8,
   },
-
   value: {
     fontSize: 14,
     fontWeight: '600',
   },
-
   input: {
-    marginTop: 6,
+    marginHorizontal: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: COLORS.smoothBlue,
     borderRadius: BORDER_RADIUS.s,
-    padding: 8,
+    padding: 10,
   },
-
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.smoothBlue,
+    borderRadius: BORDER_RADIUS.s,
+    paddingHorizontal: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingVertical: 10,
+  },
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
     borderColor: COLORS.gray,
   },
-
   pairCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -366,25 +409,21 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.s,
     borderWidth: 1,
-    borderColor:COLORS.smoothBlue,
+    borderColor: COLORS.smoothBlue,
   },
-
   pairText: {
     fontWeight: '600',
   },
-
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     margin: 12,
   },
-
   addText: {
     margin: 12,
     color: COLORS.primary,
     fontWeight: '600',
   },
-
   button: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -393,7 +432,6 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
-
   buttonText: {
     color: COLORS.white,
     fontWeight: '700',

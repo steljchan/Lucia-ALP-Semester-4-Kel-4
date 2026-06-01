@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS } from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import * as DocumentPicker from 'expo-document-picker';
+import SuccessModal from '@/src/components/modals/SuccessModal';
 import { router } from 'expo-router';
 
 // firebase
@@ -31,6 +32,10 @@ export default function UploadMateri() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [teacherPairs, setTeacherPairs] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [uploadedMaterialId, setUploadedMaterialId] = useState('');
+  
 
   const uniqueSubjects = [...new Set(teacherPairs.map(p => p.subject))];
   const availableClasses = teacherPairs.filter(p => p.subject === subject);
@@ -120,9 +125,12 @@ export default function UploadMateri() {
         await addDoc(stepsRef, { order: i, pageNumber: i, description: i === 1 ? desc : "", imageUrl: downloadURL });
       }
 
-      Alert.alert('Sukses', `Materi berhasil diupload!`);
+      setUploadedMaterialId(materialRef.id);
+      setSuccessMessage(
+        `Materi "${title}" berhasil diupload`
+      );
+      setShowSuccessModal(true);
       resetUpload();
-      router.push({ pathname: "../detailMateri", params: { materialId: materialRef.id } });
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Gagal mengupload materi');
@@ -216,13 +224,27 @@ export default function UploadMateri() {
             disabled={isDisabled || isUploading} 
             onPress={handleUpload}
           >
-            <Text style={styles.buttonText}>{isUploading ? 'Sedang Mengupload...' : 'Konfirmasi'}</Text>
+            <Text style={styles.buttonText}> {isUploading ? 'Mengupload...' : 'Konfirmasi'} </Text>
           </TouchableOpacity>
         </ScrollView>
 
       </KeyboardAvoidingView>
 
-      
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Upload Berhasil"
+        message={successMessage}
+        onClose={() => {
+          setShowSuccessModal(false);
+
+          router.push({
+            pathname: "../detailMateri",
+            params: {
+              materialId: uploadedMaterialId
+            }
+          });
+        }}
+      />
     </View>
   );
 }
