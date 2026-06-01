@@ -386,6 +386,8 @@ export default function BerapakahAkuLevel() {
       if (isSubmitting)
         return;
 
+      setIsSubmitting(true);
+
       const selectedAnswer =
         selectedAnswers[
           currentQuestionIndex
@@ -395,6 +397,10 @@ export default function BerapakahAkuLevel() {
         selectedAnswer ===
         question.answer;
 
+      // ========================================
+      // SHOW RESULT UI
+      // ========================================
+
       setShowAnswerResult(true);
 
       setAnswerStatus(
@@ -402,6 +408,10 @@ export default function BerapakahAkuLevel() {
           ? 'correct'
           : 'wrong'
       );
+
+      // ========================================
+      // ANIMATION
+      // ========================================
 
       if (isCorrect) {
 
@@ -413,35 +423,98 @@ export default function BerapakahAkuLevel() {
       }
 
       // ========================================
-      // NEXT QUESTION
+      // HEART
       // ========================================
 
-      if (
-        currentQuestionIndex <
-        level.questions.length - 1
-      ) {
+      let updatedHeart =
+        heart;
+
+      if (!isCorrect) {
+
+        try {
+
+          updatedHeart =
+            await decrementHeart();
+
+          setHeart(
+            updatedHeart
+          );
+
+        } catch {
+
+          updatedHeart = 0;
+        }
+      }
+
+      // ========================================
+      // CHECK CONDITION
+      // ========================================
+
+      const isLastQuestion =
+        currentQuestionIndex ===
+        level.questions.length - 1;
+
+      const isGameOver =
+        !isCorrect &&
+        updatedHeart <= 0;
+
+      // ========================================
+      // CASE 1:
+      // WRONG + HEART HABIS
+      // => GAME OVER
+      // ========================================
+
+      if (isGameOver) {
+
+        setTimeout(() => {
+
+          handleGameEnd({
+
+            isWrong: true,
+
+            heart: 0,
+          });
+
+          setIsSubmitting(false);
+
+        }, 700);
+
+        return;
+      }
+
+      // ========================================
+      // CASE 2:
+      // BUKAN LAST QUESTION
+      // => NEXT QUESTION
+      // ========================================
+
+      if (!isLastQuestion) {
 
         setTimeout(() => {
 
           setCurrentQuestionIndex(
-            (prev) => prev + 1
+            (prev) =>
+              prev + 1
           );
 
           setAnswerStatus(null);
 
           setShowAnswerResult(false);
 
+          scaleAnim.setValue(1);
+
+          shakeAnim.setValue(0);
+
+          setIsSubmitting(false);
+
         }, 700);
 
         return;
-  
       }
 
       // ========================================
-      // FINAL SUBMIT
+      // FINAL RESULT
       // ========================================
-
-      setIsSubmitting(true);
 
       const answers =
         level.questions.map(
@@ -481,28 +554,10 @@ export default function BerapakahAkuLevel() {
         rewards.coin
       );
 
-      let updatedHeart =
-        heart;
-
-      if (
-        resultData.wrongCount >
-        0
-      ) {
-
-        try {
-
-          updatedHeart =
-            await decrementHeart();
-
-          setHeart(
-            updatedHeart
-          );
-
-        } catch (error) {
-
-          updatedHeart = 0;
-        }
-      }
+      // ========================================
+      // LAST QUESTION
+      // => RESULT
+      // ========================================
 
       setTimeout(
         async () => {
@@ -529,8 +584,7 @@ export default function BerapakahAkuLevel() {
 
             handleGameEnd({
 
-              isWrong:
-                updatedHeart <= 0,
+              isWrong: false,
 
               heart:
                 updatedHeart,

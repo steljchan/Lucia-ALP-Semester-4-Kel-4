@@ -1,3 +1,7 @@
+import {
+  Difficulty,
+} from '../../utils/calculatedGameReward';
+
 export type Question = {
   answer: string;
   image: string;
@@ -6,16 +10,28 @@ export type Question = {
 export type SiapakahAkuLevel = {
   id: number;
   questions: Question[];
+
   unlocked: boolean;
   stars: number;
+
+  difficulty: Difficulty;
+  totalQuestions: number;
 };
 
-export const siapakahAkuLevels: SiapakahAkuLevel[] = [
-  // LEVEL 1
+export const siapakahAkuLevels:
+SiapakahAkuLevel[] = [
+
+  // ========================================
+  // EASY
+  // ========================================
+
   {
     id: 1,
     unlocked: true,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'SAPI', image: 'sapi' },
       { answer: 'KUDA', image: 'kuda' },
@@ -25,11 +41,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 2
   {
     id: 2,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'ZEBRA', image: 'zebra' },
       { answer: 'PANDA', image: 'panda' },
@@ -39,11 +57,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 3
   {
     id: 3,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'GAJAH', image: 'gajah' },
       { answer: 'SINGA', image: 'singa' },
@@ -53,11 +73,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 4
   {
     id: 4,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'HARIMAU', image: 'harimau' },
       { answer: 'KANGURU', image: 'kanguru' },
@@ -67,11 +89,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 5
   {
     id: 5,
     unlocked: false,
     stars: 0,
+    difficulty: 'easy',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'ORANGUTAN', image: 'orangutan' },
       { answer: 'KUDANIL', image: 'kudanil' },
@@ -81,11 +105,17 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 6
+  // ========================================
+  // MEDIUM
+  // ========================================
+
   {
     id: 6,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'JERAPAH', image: 'jerapah' },
       { answer: 'PENGUIN', image: 'penguin' },
@@ -95,11 +125,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 7
   {
     id: 7,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'CHEETAH', image: 'cheetah' },
       { answer: 'FLAMINGO', image: 'flamingo' },
@@ -109,11 +141,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 8
   {
     id: 8,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'KALAJENGKING', image: 'kalajengking' },
       { answer: 'BUNGLON', image: 'bunglon' },
@@ -123,11 +157,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 9
   {
     id: 9,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'CUMICUMI', image: 'cumicumi' },
       { answer: 'GORILA', image: 'gorila' },
@@ -137,11 +173,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 10
   {
     id: 10,
     unlocked: false,
     stars: 0,
+    difficulty: 'medium',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'ARMADILLO', image: 'armadillo' },
       { answer: 'KUDALAUT', image: 'kudalaut' },
@@ -151,11 +189,17 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 11
+  // ========================================
+  // HARD
+  // ========================================
+
   {
     id: 11,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'TRENGGILING', image: 'trenggiling' },
       { answer: 'KAKATUA', image: 'kakatua' },
@@ -165,11 +209,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 12
   {
     id: 12,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'PAUS', image: 'paus' },
       { answer: 'LELE', image: 'lele' },
@@ -179,11 +225,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 13
   {
     id: 13,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'CAPUNG', image: 'capung' },
       { answer: 'SEMUT', image: 'semut' },
@@ -193,11 +241,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 14
   {
     id: 14,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'PIRANHA', image: 'piranha' },
       { answer: 'MUSANG', image: 'musang' },
@@ -207,11 +257,13 @@ export const siapakahAkuLevels: SiapakahAkuLevel[] = [
     ],
   },
 
-  // LEVEL 15
   {
     id: 15,
     unlocked: false,
     stars: 0,
+    difficulty: 'hard',
+    totalQuestions: 5,
+
     questions: [
       { answer: 'KECOAK', image: 'kecoak' },
       { answer: 'HAMSTER', image: 'hamster' },

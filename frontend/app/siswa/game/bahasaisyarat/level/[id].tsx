@@ -432,10 +432,15 @@ export default function BahasaIsyaratLevel() {
   // SUBMIT
   // ========================================
 
+    // ========================================
+  // SUBMIT
+  // ========================================
+
   const onSubmit =
     async () => {
 
-      if (!isFull) return;
+      if (!isFull)
+        return;
 
       if (isSubmitting)
         return;
@@ -449,6 +454,10 @@ export default function BahasaIsyaratLevel() {
 
       const result =
         resultData.isCorrect;
+
+      // ========================================
+      // REWARDS
+      // ========================================
 
       const rewards =
         calculateGameRewards({
@@ -480,6 +489,10 @@ export default function BahasaIsyaratLevel() {
         rewards.coin
       );
 
+      // ========================================
+      // HEART
+      // ========================================
+
       let updatedHeart =
         heart;
 
@@ -500,11 +513,48 @@ export default function BahasaIsyaratLevel() {
             updatedHeart
           );
 
-        } catch (err: any) {
+        } catch {
 
           updatedHeart = 0;
         }
       }
+
+      // ========================================
+      // CHECK CONDITION
+      // ========================================
+
+      const isGameOver =
+        !result &&
+        updatedHeart <= 0;
+
+      // ========================================
+      // CASE 1:
+      // WRONG + HEART HABIS
+      // => GAME OVER
+      // ========================================
+
+      if (isGameOver) {
+
+        setTimeout(() => {
+
+          handleGameEnd({
+
+            isWrong: true,
+
+            heart: 0,
+          });
+
+          setIsSubmitting(false);
+
+        }, 700);
+
+        return;
+      }
+
+      // ========================================
+      // CASE 2:
+      // RESULT
+      // ========================================
 
       setTimeout(
         async () => {
@@ -530,8 +580,9 @@ export default function BahasaIsyaratLevel() {
             });
 
             handleGameEnd({
-              isWrong:
-                !result,
+
+              isWrong: false,
+
               heart:
                 updatedHeart,
             });
@@ -548,7 +599,7 @@ export default function BahasaIsyaratLevel() {
         700
       );
     };
-
+    
   return (
     <>
 
