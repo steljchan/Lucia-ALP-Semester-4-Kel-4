@@ -8,16 +8,11 @@ import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
 import { useRouter } from 'expo-router';
 
+//firebase
 import { auth, db } from "../../../src/config/firebase";
-import { doc, onSnapshot, updateDoc, query, collection, where, getCountFromServer } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, query, collection, where, getCountFromServer, getDocs } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const REPORT_DATA = [
-  {id: '1', title: "Bahasa Inggris", score: 96, grade: "A+", image: require('@/assets/images/materi/Inggris.png'), imageName: 'Inggris'},
-  {id: '2', title: "Matematika", score: 96, grade: "A+", image: require('@/assets/images/materi/Matematika.png'), imageName: 'Matematika'},
-  {id: '3', title: "IPA", score: 96, grade: "A+", image: require('@/assets/images/materi/IPA.png'), imageName: 'IPA'},
-  {id: '4', title: "Indonesia", score: 96, grade: "A+", image: require('@/assets/images/materi/Indonesia.png'), imageName: 'Indonesia'},
-];
 
 interface ReportCardProps {
   subject: string;
@@ -56,41 +51,97 @@ export default function ProfilSiswa() {
   const [showLogout, setShowLogout] = useState(false);
   const [rank, setRank] = useState<number | string>('...');
 
+  const [completedQuizzes, setCompletedQuizzes] = useState(0);
+  const [reports, setReports] = useState<any[]>([]);
+
   const router = useRouter();
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
+      
       const unsubscribeUser = onSnapshot(doc(db, "users", user.uid), (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
           setUserData(data);
           if (data.profilePicture) setImage(data.profilePicture);
-          
           if (data.xp !== undefined && data.tingkat) {
             calculateRank(data.xp, data.tingkat);
+            fetchSyncReports(user.uid, data.tingkat); 
           }
         }
       });
+
+      
+      const fetchQuizCount = async () => {
+        const q = query(collection(db, "quizResult"), where("userId", "==", user.uid));
+        const snapshot = await getCountFromServer(q);
+        setCompletedQuizzes(snapshot.data().count);
+      };
+
+      fetchQuizCount();
       return () => unsubscribeUser();
     }
   }, []);
 
+  const fetchSyncReports = async (userId: string, userTingkat: string) => {
+    try {
+      const qSubject = query(
+        collection(db, "subject"), 
+        where("tingkat", "==", userTingkat)
+      );
+      const subSnapshot = await getDocs(qSubject);
+      const allSubjects = subSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      const qResults = query(collection(db, "quizResult"), where("userId", "==", userId));
+      const resSnapshot = await getDocs(qResults);
+      const allResults = resSnapshot.docs.map(d => d.data());
+
+      const syncData = allSubjects.map((sub: any) => {
+        
+        const subResults = allResults.filter(r => r.subjectId === sub.id);
+        
+        let avgScore = 0;
+        if (subResults.length > 0) {
+          const total = subResults.reduce((acc, curr) => acc + curr.score, 0);
+          avgScore = total / subResults.length;
+        }
+
+        return {
+          id: sub.id,
+          title: sub.name, 
+          score: avgScore,
+          grade: avgScore > 0 ? calculateGrade(avgScore) : "-",
+          image: sub.imageUrl, 
+        };
+      });
+
+      setReports(syncData);
+    } catch (error) {
+      console.error("Gagal sinkronisasi report:", error);
+    }
+  };
+
+  const calculateGrade = (score: number) => {
+    if (score >= 90) return "A+";
+    if (score >= 80) return "A";
+    if (score >= 70) return "B";
+    return "C";
+  };
+
   const calculateRank = async (currentXp: number, currentTingkat: string) => {
     try {
-      
       const q = query(
         collection(db, "users"),
         where("role", "==", "siswa"),
-        where("tingkat", "==", currentTingkat), 
-        where("xp", ">", currentXp)            
+        where("tingkat", "==", currentTingkat),
+        where("xp", ">", currentXp)
       );
-      
-      
       const snapshot = await getCountFromServer(q);
-      const higherXpCount = snapshot.data().count;
-      
-      setRank(higherXpCount + 1);
+      setRank(snapshot.data().count + 1);
     } catch (error) {
       console.error("Error calculating rank:", error);
       setRank("-");
@@ -200,7 +251,7 @@ export default function ProfilSiswa() {
           <View style={styles.statBox}>
             <Ionicons name="document-text" size={24} color={COLORS.textMain} />
             <Text style={styles.statLabel}>Quiz Selesai</Text>
-            <Text style={styles.statValue}>{userData?.completedQuizzes || 0}</Text>
+            <Text style={styles.statValue}>{completedQuizzes}</Text>
           </View>
         </View>
 
@@ -228,21 +279,21 @@ export default function ProfilSiswa() {
         </View>
 
         <View style={styles.reportGrid}>
-          {REPORT_DATA.map((item) => (
+          {reports.map((item) => (
             <ReportCard
               key={item.id}
               subject={item.title}
               score={item.score}
               grade={item.grade}
-              image={item.image}
+              image={item.image ? { uri: item.image } : require('@/assets/images/materi/Matematika.png')}
               onPress={() =>
                 router.push({
                   pathname: '/siswa/detailNilaiSiswa',
                   params: {
                     subject: item.title,
-                    score: item.score,
+                    score: Math.round(item.score).toString(),
                     grade: item.grade,
-                    imageName: item.imageName,
+                    imageName: item.title,
                   },
                 })
               }
