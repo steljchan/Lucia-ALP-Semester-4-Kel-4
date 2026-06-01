@@ -22,13 +22,12 @@ const TEMPLATES = [
 
   { 
     id: '2', 
-    title: 'Template Matematika', 
+    title: 'Template IPA', 
     previewUrl: 'https://www.canva.com/design/DAHIA-DChvU/BQZq4CsonCBtvDWNy1ZurQ/view?embed', 
     tmpltUrl: 'https://canva.link/pfa2sjxja01knjl', 
     category: 'IPA', 
     imageUrl: Hewan
   },
-  
 ];
 
 const CATEGORIES = ['Semua', 'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'IPA', 'IPS'];
@@ -37,6 +36,7 @@ export default function DashboardGuru() {
   const router = useRouter();
   const [isGridView, setIsGridView] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [search, setSearch] = useState('');
 
   const handleGoToPreview = (item: any) => {
     router.push({
@@ -49,13 +49,24 @@ export default function DashboardGuru() {
     });
   };
 
-  const filteredTemplates = selectedCategory === 'Semua' 
-    ? TEMPLATES 
-    : TEMPLATES.filter(item => item.category === selectedCategory);
+  const filteredTemplates = TEMPLATES.filter((item) => {
+    const matchCategory =
+      selectedCategory === 'Semua' ||
+      item.category === selectedCategory;
+
+    const matchSearch =
+      item.title.toLowerCase().includes(search.toLowerCase()) ||
+      item.category.toLowerCase().includes(search.toLowerCase());
+
+    return matchCategory && matchSearch;
+  });
 
   return (
     <View style={[containerHeader, { flex: 1 }]}>
-      <AppHeader/>
+      <AppHeader
+        search={search}
+        setSearch={setSearch}
+      />
       <View style={{ marginHorizontal: MARGIN_HORIZONTAL }}>
         <Text style={[title, { fontSize: 16, marginTop: 20 }]}>Jelajahi Template Materi</Text>
         <FilterChips
@@ -80,14 +91,27 @@ export default function DashboardGuru() {
         </View>
 
         <View style={styles.listWrapper}>
-          {filteredTemplates.map((item) => (
-            <TemplateCard 
-              key={item.id}
-              item={item}
-              isGridView={isGridView}
-              onPress={handleGoToPreview} 
-            />
-          ))}
+          {filteredTemplates.length > 0 ? (
+            filteredTemplates.map((item) => (
+              <TemplateCard
+                key={item.id}
+                item={item}
+                isGridView={isGridView}
+                onPress={handleGoToPreview}
+              />
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="search-outline"
+                size={40}
+                color={COLORS.darkGray}
+              />
+              <Text style={styles.emptyText}>
+                Template tidak ditemukan
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -107,4 +131,15 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between', 
   },  
+
+  emptyContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 40,
+  },
+
+  emptyText: {
+    marginTop: 8,
+    color: COLORS.darkGray,
+  },
 });

@@ -4,6 +4,7 @@ import AppHeader from '../../../src/components/common/guru/appheaderGradient';
 import {BORDER_RADIUS, COLORS} from '@/utils/theme';
 import {useRouter} from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
+import { Ionicons } from '@expo/vector-icons';
 
 const DATA = [
   { name: 'Renata Ramadhani', nis: '230101', score: 90, mapel: 'Matematika', image: require('@/assets/images/avatar1.jpeg')},
@@ -15,6 +16,7 @@ const DATA = [
 
 export default function NilaiSiswa() {
   const router = useRouter();
+  const [search, setSearch] = useState('');
 
   const [selectedMapel, setSelectedMapel] = useState('Semua');
   const [showSemester, setShowSemester] = useState(false);
@@ -23,14 +25,24 @@ export default function NilaiSiswa() {
   const [showClass, setShowClass] = useState(false);
   const [selectedClass, setSelectedClass] = useState('Select a Class');
 
-  const filteredData =
-    selectedMapel === 'Semua'
-      ? DATA
-      : DATA.filter(item => item.mapel === selectedMapel);
+  const filteredData = DATA.filter((item) => {
+    const matchMapel =
+      selectedMapel === 'Semua' ||
+      item.mapel === selectedMapel;
+
+    const matchSearch =
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.nis.toLowerCase().includes(search.toLowerCase());
+
+    return matchMapel && matchSearch;
+  });
 
   return (
     <View style={styles.container}>
-      <AppHeader />
+      <AppHeader
+        search={search}
+        setSearch={setSearch}
+      />
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={{ position: 'relative', marginBottom: 12 }}>
@@ -96,41 +108,55 @@ export default function NilaiSiswa() {
           </View>
         </View>
 
-        {filteredData.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.card}
-            onPress={() =>
-              router.push({
-                pathname: '/guru/detailNilai',
-                params: {
-                  name: item.name,
-                  nis: item.nis,
-                  score: item.score,
-                  mapel: item.mapel,
-                },
-              })
-            }
-          >
-            <Image
-              source={item.image}
-              style={styles.avatar}
-            />
+        {filteredData.length > 0 ? (
+          filteredData.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: '/guru/detailNilai',
+                  params: {
+                    name: item.name,
+                    nis: item.nis,
+                    score: item.score,
+                    mapel: item.mapel,
+                  },
+                })
+              }
+            >
+              <Image
+                source={item.image}
+                style={styles.avatar}
+              />
 
-            <View style={{ flex: 1 }}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.nis}>NIS: {item.nis}</Text>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.mapel}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.nis}>NIS: {item.nis}</Text>
               </View>
-              <Text style={styles.score}>{item.score}</Text>
-              <Text style={styles.scoreLabel}>Score</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+
+              <View style={{ alignItems: 'flex-end' }}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.mapel}</Text>
+                </View>
+
+                <Text style={styles.score}>{item.score}</Text>
+                <Text style={styles.scoreLabel}>Score</Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons
+              name="search-outline"
+              size={40}
+              color={COLORS.darkGray}
+            />
+            <Text style={styles.emptyText}>
+              Siswa tidak ditemukan
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -265,5 +291,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary,
     zIndex: 10,
+  },
+
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+  },
+
+  emptyText: {
+    marginTop: 8,
+    color: COLORS.darkGray,
+    fontSize: 14,
   },
 }); 
