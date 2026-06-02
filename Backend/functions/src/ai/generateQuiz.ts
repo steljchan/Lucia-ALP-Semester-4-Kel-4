@@ -3,11 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 export async function generateQuizFromText(
   text: string
 ) {
-
-  // =========================
-  // API KEY
-  // =========================
-
   const apiKey =
     process.env.GEMINI_API_KEY;
 
@@ -18,18 +13,10 @@ export async function generateQuizFromText(
     );
   }
 
-  // =========================
-  // INIT AI
-  // =========================
-
   const ai =
     new GoogleGenAI({
       apiKey
     });
-
-  // =========================
-  // PROMPT
-  // =========================
 
   const prompt = `
 Buatkan 10 soal pilihan ganda berdasarkan materi berikut.
@@ -71,10 +58,6 @@ MATERI:
 ${text}
 `;
 
-  // =========================
-  // GENERATE
-  // =========================
-
   console.log(
     "Generating quiz..."
   );
@@ -95,19 +78,11 @@ ${text}
     "Quiz generated"
   );
 
-  // =========================
-  // CLEAN RESPONSE
-  // =========================
-
   const cleaned =
     response
       ?.replace(/```json/g, '')
       ?.replace(/```/g, '')
       ?.trim();
-
-  // =========================
-  // PARSE JSON
-  // =========================
 
   let parsedQuiz;
 
@@ -127,10 +102,6 @@ ${text}
       "Failed parsing Gemini JSON"
     );
   }
-
-  // =========================
-  // VALIDATE
-  // =========================
 
   if (
     !Array.isArray(parsedQuiz)

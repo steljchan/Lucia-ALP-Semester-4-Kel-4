@@ -1,16 +1,7 @@
 import * as admin from 'firebase-admin';
-
-import {
-  extractPdfText
-} from '../ocr/extractPDFText';
-
-import {
-  cleanupOCRResult
-} from '../ocr/cleanupOCRResult';
-
-import {
-  generateQuizFromText
-} from '../ai/generateQuiz';
+import {extractPdfText} from '../ocr/extractPDFText';
+import {cleanupOCRResult} from '../ocr/cleanupOCRResult';
+import {generateQuizFromText} from '../ai/generateQuiz';
 
 export async function processMaterial(
   materialId: string,
@@ -18,7 +9,6 @@ export async function processMaterial(
 ) {
 
   try {
-
     console.log(
       '================================='
     );
@@ -32,10 +22,6 @@ export async function processMaterial(
       materialId
     );
 
-    // =========================
-    // 1. CLEAN OLD OCR FILES
-    // =========================
-
     console.log(
       'Cleaning old OCR files...'
     );
@@ -45,11 +31,6 @@ export async function processMaterial(
     console.log(
       'Old OCR cleaned'
     );
-
-    // =========================
-    // 2. CONVERT STORAGE PATH
-    //    TO GCS URI
-    // =========================
 
     const bucketName =
       'lucia-4b190.firebasestorage.app';
@@ -61,10 +42,6 @@ export async function processMaterial(
       'GCS URI:',
       gcsUri
     );
-
-    // =========================
-    // 3. START OCR PROCESS
-    // =========================
 
     await admin
       .firestore()
@@ -93,10 +70,6 @@ export async function processMaterial(
       fullText.length
     );
 
-    // =========================
-    // 4. SAVE OCR RESULT
-    // =========================
-
     await admin
       .firestore()
       .collection('material')
@@ -112,10 +85,6 @@ export async function processMaterial(
         aiStatus:
           'ocr-completed'
       });
-
-    // =========================
-    // 5. GENERATE QUIZ
-    // =========================
 
     console.log(
       'Generating quiz with Gemini...'
@@ -135,19 +104,11 @@ export async function processMaterial(
         fullText
       );
 
-    // =========================
-    // 6. CLEAN GEMINI RESPONSE
-    // =========================
-
     const cleanedQuiz =
       rawQuiz
         .replace(/```json/g, '')
         .replace(/```/g, '')
         .trim();
-
-    // =========================
-    // 7. PARSE QUIZ JSON
-    // =========================
 
     let quizData;
 
@@ -168,10 +129,6 @@ export async function processMaterial(
       );
     }
 
-    // =========================
-    // 8. VALIDATE QUIZ ARRAY
-    // =========================
-
     if (
       !Array.isArray(quizData)
     ) {
@@ -180,10 +137,6 @@ export async function processMaterial(
         'Quiz result is not an array'
       );
     }
-
-    // =========================
-    // 9. SAVE QUIZ
-    // =========================
 
     await admin
       .firestore()

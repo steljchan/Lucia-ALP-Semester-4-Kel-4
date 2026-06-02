@@ -7,16 +7,8 @@ export async function cleanupOCRResult() {
     const bucket =
       admin.storage().bucket();
 
-    // =========================
-    // OCR Output Folder
-    // =========================
-
     const prefix =
       'ocr-output/';
-
-    // =========================
-    // Get OCR Files
-    // =========================
 
     const [files] =
       await bucket.getFiles({
@@ -35,11 +27,7 @@ export async function cleanupOCRResult() {
     console.log(
       `Cleaning ${files.length} OCR files`
     );
-
-    // =========================
-    // Delete Every File
-    // =========================
-
+    
     for (const file of files) {
 
       try {
