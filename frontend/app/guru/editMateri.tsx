@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, TextInput, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
 import * as ImagePicker from 'expo-image-picker';
+
+// Firebase imports
+import { db } from '@/src/config/firebase';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 
 interface FileItem {
   id: string;
@@ -16,26 +20,50 @@ interface FileItem {
 export default function EditMateriGuru() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { id, title, subtitle, subject, class: classParam, date, files: filesParam } = params;
+  const { id } = params; 
 
-  const [materiTitle, setMateriTitle] = useState(title as string || '');
-  const [materiSubtitle, setMateriSubtitle] = useState(subtitle as string || '');
-  const [materiSubject, setMateriSubject] = useState(subject as string || 'Matematika');
-  const [materiClass, setMateriClass] = useState(classParam as string || 'Kelas 7');
+  
+  const [materiTitle, setMateriTitle] = useState('');
+  const [materiSubtitle, setMateriSubtitle] = useState('');
+  const [materiSubject, setMateriSubject] = useState('Matematika');
+  const [materiClass, setMateriClass] = useState('Kelas 7');
   const [fileList, setFileList] = useState<FileItem[]>([]);
+  
+  const [loading, setLoading] = useState(true); // State loading saat fetch data firebase
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
   const [showClassPicker, setShowClassPicker] = useState(false);
 
   useEffect(() => {
-    if (filesParam) {
-      try {
-        const parsed = JSON.parse(filesParam as string);
-        setFileList(parsed);
-      } catch (e) {
-        setFileList([]);
+    const fetchMateriDetail = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
       }
-    }
-  }, [filesParam]);
+      try {
+        
+        const docRef = doc(db, "material", id as string);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setMateriTitle(data.title || '');
+          setMateriSubtitle(data.description || ''); 
+          setMateriSubject(data.subjectId || 'Matematika');
+          setMateriClass(data.classId || 'Kelas 7');
+          setFileList(data.files || []);
+        } else {
+          Alert.alert("Error", "Data materi tidak ditemukan di server.");
+        }
+      } catch (error) {
+        console.error("Gagal mengambil detail materi untuk edit:", error);
+        Alert.alert("Error", "Gagal memuat data materi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMateriDetail();
+  }, [id]);
 
   const pickImageFile = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -77,6 +105,32 @@ export default function EditMateriGuru() {
     ]);
   };
 
+  const deleteMateri = () => {
+    Alert.alert(
+      "Hapus Materi",
+      `Apakah Anda yakin ingin menghapus materi "${materiTitle}" secara permanen?`,
+      [
+        { text: "Batal", style: "cancel" },
+        { 
+          text: "Hapus", 
+          style: "destructive", 
+          onPress: async () => {
+            try {
+              if (id) {
+                await deleteDoc(doc(db, "material", id as string));
+                Alert.alert("Berhasil", "Materi telah berhasil dihapus.");
+                router.dismiss(2);
+              }
+            } catch (error) {
+              console.error("Gagal menghapus materi:", error);
+              Alert.alert("Error", "Gagal menghapus materi dari server.");
+            }
+          } 
+        }
+      ]
+    );
+  };
+
   const saveChanges = () => {
     if (!materiTitle.trim()) {
       Alert.alert("Error", "Judul materi tidak boleh kosong");
@@ -86,24 +140,16 @@ export default function EditMateriGuru() {
     router.back();
   };
 
-  const renderFileItem = ({ item }: { item: FileItem }) => (
-    <View style={styles.fileCard}>
-      {item.type === 'image' && item.url && (
-        <Image source={{ uri: item.url }} style={styles.fileImage} />
-      )}
-      {item.type === 'pdf' && (
-        <View style={styles.pdfPreview}>
-          <Ionicons name="document-text" size={40} color={COLORS.primary} />
-          <Text style={styles.pdfText}>PDF ({item.pages?.length || 0} halaman)</Text>
-        </View>
-      )}
-      <TouchableOpacity style={styles.deleteButton} onPress={() => removeFile(item.id)}>
-        <Ionicons name="trash-outline" size={20} color="#FF383C" />
-      </TouchableOpacity>
-    </View>
-  );
-
   const classOptions = ['Kelas 7', 'Kelas 8', 'Kelas 9'];
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={{ marginTop: 10, color: COLORS.textSub }}>Memuat data materi...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -157,31 +203,39 @@ export default function EditMateriGuru() {
         </View>
 
         <Text style={styles.sectionTitle}>File Materi (Gambar / PDF)</Text>
-        <FlatList
-          data={fileList}
-          keyExtractor={(item) => item.id}
-          renderItem={renderFileItem}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.fileList}
-        />
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.fileList}>
+          {fileList.map((item) => (
+            <View key={item.id} style={styles.fileCard}>
+              {item.type === 'image' && item.url && (
+                <Image source={{ uri: item.url }} style={styles.fileImage} />
+              )}
+              {item.type === 'pdf' && (
+                <View style={styles.pdfPreview}>
+                  <Ionicons name="document-text" size={40} color={COLORS.primary} />
+                  <Text style={styles.pdfText}>PDF ({item.pages?.length || 0} halaman)</Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.deleteButton} onPress={() => removeFile(item.id)}>
+                <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.addButton} onPress={pickImageFile}>
-            <Ionicons name="image-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.addButtonText}>Tambah Gambar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={addPdfPlaceholder}>
+          <TouchableOpacity style={[styles.addButton, { marginBottom: SPACING.md }]} onPress={addPdfPlaceholder}>
             <Ionicons name="document-text-outline" size={24} color={COLORS.primary} />
             <Text style={styles.addButtonText}>Tambah PDF</Text>
-          </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity style={styles.deleteMateriButton}>
+          </TouchableOpacity>
+        
+
+        <TouchableOpacity style={styles.deleteMateriButton} onPress={deleteMateri}>
           <Text style={styles.deleteMateriText}>Hapus Materi Ini</Text>
         </TouchableOpacity>
       </ScrollView>
 
+      
       <Modal visible={showSubjectPicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -205,6 +259,7 @@ export default function EditMateriGuru() {
         </View>
       </Modal>
 
+      
       <Modal visible={showClassPicker} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
