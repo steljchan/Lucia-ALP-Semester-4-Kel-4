@@ -38,14 +38,14 @@ export default function DetailNilai() {
           quizSnap.docs.map(async (quizDoc) => {
             const data = quizDoc.data();
             let materialName = "Materi tidak ditemukan";
-            let subjectIdOfMaterial = ""; // Tempat menyimpan nama mapel dari materi ini
+            let subjectIdOfMaterial = ""; 
 
             if (data.materialId) {
               const matRef = doc(db, "material", data.materialId);
               const matSnap = await getDoc(matRef);
               if (matSnap.exists()) {
                 materialName = matSnap.data().title || matSnap.data().description || "Tanpa Judul";
-                subjectIdOfMaterial = matSnap.data().subjectId || ""; // Mengambil subjectId (Contoh: "Matematika")
+                subjectIdOfMaterial = matSnap.data().subjectId || ""; 
               }
             }
 
@@ -53,12 +53,12 @@ export default function DetailNilai() {
               id: quizDoc.id,
               ...data,
               materialTitle: materialName,
-              subjectId: subjectIdOfMaterial // Masukkan properti ini untuk proses filter berikutnya
+              subjectId: subjectIdOfMaterial 
             };
           })
         );
 
-        // PROSES FILTERING: Hanya simpan kuis yang memiliki subjectId sama dengan params mapel saat ini
+        
         const filteredQuizzes = quizWithMaterialNames.filter(
           (quiz) => quiz.subjectId === mapel
         );
@@ -72,8 +72,7 @@ export default function DetailNilai() {
     };
 
     fetchData();
-  }, [userId, materialId, mapel]); // Pastikan efek berjalan ulang jika mapel berganti
-
+  }, [userId, materialId, mapel]);
   if (loading) return <ActivityIndicator style={{ flex: 1 }} color={COLORS.primary} />;
 
   return (
@@ -128,7 +127,6 @@ export default function DetailNilai() {
 
           <View style={styles.divider} />
 
-          {/* Menampilkan pesan jika tidak ada kuis khusus di mata pelajaran ini */}
           {userQuizzes.length > 0 ? (
             userQuizzes.map((quiz, i) => (
               <View key={i} style={styles.quizItem}>
