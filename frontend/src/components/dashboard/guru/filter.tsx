@@ -1,17 +1,15 @@
 import React from 'react';
 import {ScrollView, TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle} from 'react-native';
 
-import { COLORS, subtitle } from '@/utils/theme';
+import {COLORS, subtitle} from '@/utils/theme';
 
 interface FilterChipsProps {
   data: string[];
   selected: string;
   onSelect: (value: string) => void;
-
   containerStyle?: ViewStyle;
   chipStyle?: ViewStyle;
   activeChipStyle?: ViewStyle;
-
   textStyle?: TextStyle;
   activeTextStyle?: TextStyle;
 }

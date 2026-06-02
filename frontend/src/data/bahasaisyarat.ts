@@ -1,6 +1,4 @@
-import {
-  Difficulty,
-} from '../../utils/calculatedGameReward';
+import {Difficulty} from '../../utils/calculatedGameReward';
 
 export type BahasaIsyaratLevel = {
   id: number;
@@ -12,17 +10,7 @@ export type BahasaIsyaratLevel = {
   totalQuestions: number;
 };
 
-// ========================================
-// LEVEL DATA
-// ========================================
-
-export const bahasaIsyaratLevels:
-BahasaIsyaratLevel[] = [
-
-  // ========================================
-  // EASY
-  // ========================================
-
+export const bahasaIsyaratLevels: BahasaIsyaratLevel[] = [
   {
     id: 1,
     word: 'BAJU',
@@ -32,7 +20,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'easy',
     totalQuestions: 1,
   },
-
   {
     id: 2,
     word: 'MEJA',
@@ -42,7 +29,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'easy',
     totalQuestions: 1,
   },
-
   {
     id: 3,
     word: 'PENSIL',
@@ -52,7 +38,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'easy',
     totalQuestions: 1,
   },
-
   {
     id: 4,
     word: 'LAPTOP',
@@ -62,7 +47,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'easy',
     totalQuestions: 1,
   },
-
   {
     id: 5,
     word: 'KAMERA',
@@ -73,10 +57,6 @@ BahasaIsyaratLevel[] = [
     totalQuestions: 1,
   },
 
-  // ========================================
-  // MEDIUM
-  // ========================================
-
   {
     id: 6,
     word: 'JENDELA',
@@ -86,7 +66,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'medium',
     totalQuestions: 1,
   },
-
   {
     id: 7,
     word: 'SEPATU',
@@ -96,7 +75,6 @@ BahasaIsyaratLevel[] = [
     difficulty: 'medium',
     totalQuestions: 1,
   },
-
   {
     id: 8,
     word: 'GELAS',
@@ -106,149 +84,65 @@ BahasaIsyaratLevel[] = [
     difficulty: 'medium',
     totalQuestions: 1,
   },
-
   {
     id: 9,
     word: 'KOMPUTER',
-    letters: [
-      'K',
-      'O',
-      'M',
-      'P',
-      'U',
-      'T',
-      'E',
-      'R',
-    ],
+    letters: ['K', 'O', 'M', 'P', 'U', 'T', 'E', 'R'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
   {
     id: 10,
     word: 'TELEVISI',
-    letters: [
-      'T',
-      'E',
-      'L',
-      'E',
-      'V',
-      'I',
-      'S',
-      'I',
-    ],
+    letters: ['T', 'E', 'L', 'E', 'V', 'I', 'S', 'I'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
-  // ========================================
-  // HARD
-  // ========================================
 
   {
     id: 11,
     word: 'HANDPHONE',
-    letters: [
-      'H',
-      'A',
-      'N',
-      'D',
-      'P',
-      'H',
-      'O',
-      'N',
-      'E',
-    ],
+    letters: ['H', 'A', 'N', 'D', 'P', 'H', 'O', 'N', 'E'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
   {
     id: 12,
     word: 'KALKULATOR',
-    letters: [
-      'K',
-      'A',
-      'L',
-      'K',
-      'U',
-      'L',
-      'A',
-      'T',
-      'O',
-      'R',
-    ],
+    letters: ['K', 'A', 'L', 'K', 'U', 'L', 'A', 'T', 'O', 'R'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
   {
     id: 13,
     word: 'PERPUSTAKAAN',
-    letters: [
-      'P',
-      'E',
-      'R',
-      'P',
-      'U',
-      'S',
-      'T',
-      'A',
-      'K',
-      'A',
-      'A',
-      'N',
-    ],
+    letters: ['P', 'E', 'R', 'P', 'U', 'S', 'T', 'A', 'K', 'A', 'A', 'N'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
   {
     id: 14,
     word: 'MIKROSKOP',
-    letters: [
-      'M',
-      'I',
-      'K',
-      'R',
-      'O',
-      'S',
-      'K',
-      'O',
-      'P',
-    ],
+    letters: ['M', 'I', 'K', 'R', 'O', 'S', 'K', 'O', 'P'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 1,
   },
-
   {
     id: 15,
     word: 'UNIVERSITAS',
-    letters: [
-      'U',
-      'N',
-      'I',
-      'V',
-      'E',
-      'R',
-      'S',
-      'I',
-      'T',
-      'A',
-      'S',
-    ],
+    letters: ['U', 'N', 'I', 'V', 'E', 'R', 'S', 'I', 'T', 'A', 'S'],
     unlocked: false,
     stars: 0,
     difficulty: 'hard',

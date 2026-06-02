@@ -1,19 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { COLORS } from '@/utils/theme';
-import { Ionicons } from '@expo/vector-icons';
-
-//firebase
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator} from 'react-native';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {COLORS} from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
 import {auth, db} from '@/src/config/firebase';
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from 'firebase/firestore';
-
-// const QUIZ_DATA = [
-//   {title: 'Quiz 1:', desc: 'Mengenal Mata Uang yang terdapat di Indonesia', score: 90,},
-//   {title: 'Quiz 2:', desc: 'Mempelajari Perhitungan Mata Uang Indonesia', score: 100},
-//   {title: 'Quiz 3:', desc: 'Mahir dalam Menghitung Mata Uang Indonesia', score: 80},
-//   {title: 'Final Quiz', desc: '', score: 90},
-// ];
+import {collection, query, where, getDocs, orderBy, doc, getDoc} from 'firebase/firestore';
 
 export default function DetailNilaiSiswa() {
   const router = useRouter();
@@ -29,13 +20,6 @@ export default function DetailNilaiSiswa() {
   const topicName = userQuizzes.length > 0 ? userQuizzes[0].materialName : 'Belum ada kuis';
   const topicScore = userQuizzes.length > 0 ? userQuizzes[0].score : 0;
 
-  // const imageMap: any = {
-  //   Inggris: require('@/assets/images/materi/Inggris.png'),
-  //   Matematika: require('@/assets/images/materi/Matematika.png'),
-  //   IPA: require('@/assets/images/materi/IPA.png'),
-  //   Indonesia: require('@/assets/images/materi/Indonesia.png'),
-  // };
-
   useEffect(() => {
     const fetchData = async () => {
       const user = auth.currentUser;
@@ -43,9 +27,6 @@ export default function DetailNilaiSiswa() {
 
       try {
         setLoading(true);
-
-        // 1. Ambil data Subject (Gunakan field imageUrl agar sama dengan beranda)
-        // Kita cari berdasarkan name karena ID di firebase kamu adalah ID Random, bukan "Matematika"
         const qSub = query(collection(db, 'subject'), where('name', '==', subjectName));
         const subSnap = await getDocs(qSub);
         if (!subSnap.empty) {
@@ -57,18 +38,15 @@ export default function DetailNilaiSiswa() {
         const q = query(
           collection(db, 'quizResult'),
           where('userId', '==', user.uid),
-          where('subjectId', '==', subjectName), // Jika ini ID, pastikan params yang dikirim juga ID
+          where('subjectId', '==', subjectName), 
           orderBy('timestamp', 'asc')
         );
 
         const querySnapshot = await getDocs(q);
-        
-        // 3. Ambil Nama Materi untuk setiap kuis secara paralel
         const quizWithMaterialNames = await Promise.all(
           querySnapshot.docs.map(async (quizDoc, index) => {
             const data = quizDoc.data();
             let materialName = "Materi Kuis";
-
             
             if (data.materialId) {
               const matRef = doc(db, 'material', data.materialId);
@@ -80,7 +58,6 @@ export default function DetailNilaiSiswa() {
 
             return {
               id: quizDoc.id,
-              
               title: `Quiz ${index + 1}: ${materialName}`, 
               materialName: materialName,
               score: data.score || 0,
@@ -102,7 +79,6 @@ export default function DetailNilaiSiswa() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Tetap Sama */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={24} color={COLORS.textMain} />
@@ -152,7 +128,6 @@ export default function DetailNilaiSiswa() {
             {userQuizzes.map((quiz, index) => (
               <View key={index} style={styles.quizItem}>
                 <View style={styles.quizLeft}>
-                  {/* Judul sekarang berisi "Quiz 1: [Nama Materi]" */}
                   <Text style={styles.quizTitle}>{quiz.title}</Text>
                 </View>
                 <View style={styles.scoreRight}>
@@ -174,9 +149,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   scrollContent: {
     paddingBottom: 40,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -185,11 +162,13 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     marginBottom: 20,
   },
+
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.textMain,
   },
+
   card: {
     marginHorizontal: 16,
     backgroundColor: COLORS.white,
@@ -204,52 +183,62 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginBottom: 8,
   },
+
   sectionDivider: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
+
   line: {
     flex: 1,
     height: 1,
     backgroundColor: COLORS.textMain,
   },
+
   sectionText: {
     marginHorizontal: 12,
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textMain,
   },
+
   gradeRecapRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+
   gradeLeft: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
+
   gradeNumberLarge: {
     fontSize: 36,
     fontWeight: 'bold',
     color: COLORS.primary,
     marginRight: 12,
   },
+
   gradeLetterLarge: {
     fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.primary,
   },
+
   gradeRight: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   subjectImage: {
     width: 100,
     height: 100,
     resizeMode: 'contain',
     borderRadius: 15,
   },
+
   quizSectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -257,6 +246,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 12,
   },
+
   topicRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -266,52 +256,63 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: COLORS.gray,
   },
+
   topicLeft: {
     flex: 1,
   },
+
   topicTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     color: COLORS.textMain,
   },
+
   topicDesc: {
     fontSize: 13,
     color: COLORS.textSub,
     marginTop: 2,
   },
+
   topicScoreText: {
     fontWeight: 'bold',
     fontSize: 16,
     color: COLORS.primary,
   },
+
   quizItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 14,
   },
+
   quizLeft: {
     flex: 1,
   },
+
   quizTitle: {
     fontWeight: 'bold',
     fontSize: 14,
     color: COLORS.textMain,
   },
+
   quizDesc: {
     fontSize: 12,
     color: COLORS.textSub,
     marginTop: 2,
   },
+
   scoreRight: {
     alignItems: 'flex-end',
     marginLeft: 12,
   },
+
   scoreText: {
     fontWeight: 'bold',
     fontSize: 14,
     color: COLORS.textMain,
   },
+
   bar: {
     width: 40,
     height: 5,
@@ -319,6 +320,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 4,
   },
+  
   bottomSpacing: {
     height: 20,
   },

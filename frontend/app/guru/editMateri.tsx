@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, TextInput, Modal, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, TextInput, Modal, ActivityIndicator} from 'react-native';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
+import {COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import * as ImagePicker from 'expo-image-picker';
 
-// Firebase imports
-import { db } from '@/src/config/firebase';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import {db} from '@/src/config/firebase';
+import {doc, getDoc, deleteDoc} from 'firebase/firestore';
 
 interface FileItem {
   id: string;
@@ -29,7 +28,7 @@ export default function EditMateriGuru() {
   const [materiClass, setMateriClass] = useState('Kelas 7');
   const [fileList, setFileList] = useState<FileItem[]>([]);
   
-  const [loading, setLoading] = useState(true); // State loading saat fetch data firebase
+  const [loading, setLoading] = useState(true);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
   const [showClassPicker, setShowClassPicker] = useState(false);
 
@@ -153,7 +152,7 @@ export default function EditMateriGuru() {
 
   return (
     <View style={styles.root}>
-      <LinearGradient colors={['#FFFFFF', '#ADDFFD']} style={styles.header}>
+      <LinearGradient colors={['#FFFFFF', '#C4E8FF']} style={styles.header}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />

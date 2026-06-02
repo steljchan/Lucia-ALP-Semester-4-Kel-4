@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { COLORS, BTN, containerHeader, scrollContent } from '@/utils/theme';
+import {View, Text, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {router, useLocalSearchParams} from 'expo-router';
+import {COLORS, BTN, containerHeader, scrollContent} from '@/utils/theme';
 
 export default function ReceiptScreen() {
   const params = useLocalSearchParams();
@@ -46,14 +46,12 @@ export default function ReceiptScreen() {
               </View>
             </View>
 
-            
             <View style={styles.dashedLineContainer}>
                 <View style={styles.cutoutLeft} />
                 <View style={styles.dashedLine} />
                 <View style={styles.cutoutRight} />
             </View>
 
-            
             <View style={styles.section}>
               {[
                 { label: 'No. Pemesanan', value: orderId },

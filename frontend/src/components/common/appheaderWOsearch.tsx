@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {useState} from 'react';
+import {View, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
 import SearchBar from '@/src/components/common/searchbar';
-import { COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
+import {COLORS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
 
 export default function AppHeader() {
   const router = useRouter();

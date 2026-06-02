@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BTN } from '@/utils/theme';
-import { Background } from '@react-navigation/elements';
+import {View, Text, Image, ActivityIndicator, StyleSheet} from 'react-native';
+import {Ionicons } from '@expo/vector-icons';
+import {COLORS} from '@/utils/theme';
 
 export default function StepStatus({ step, onClose }: any) {
   return (

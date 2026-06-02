@@ -1,9 +1,9 @@
-import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import {View, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
 import SearchBar from '@/src/components/common/searchbar';
-import { COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
+import {COLORS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
 
 type Props = {
   search: string;

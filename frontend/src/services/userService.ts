@@ -1,7 +1,7 @@
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/src/config/firebase";
-import { User } from "@/src/types/user";
-import { refreshHeart } from "./heartRegen";
+import {doc, getDoc} from "firebase/firestore";
+import {auth, db} from "@/src/config/firebase";
+import {User} from "@/src/types/user";
+import {refreshHeart} from "./heartRegen";
 
 export const getCurrentUserData = async (): Promise<User> => {
   const currentUser = auth.currentUser;

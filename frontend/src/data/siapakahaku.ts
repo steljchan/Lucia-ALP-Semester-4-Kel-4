@@ -1,6 +1,4 @@
-import {
-  Difficulty,
-} from '../../utils/calculatedGameReward';
+import {Difficulty} from '../../utils/calculatedGameReward';
 
 export type Question = {
   answer: string;
@@ -10,28 +8,20 @@ export type Question = {
 export type SiapakahAkuLevel = {
   id: number;
   questions: Question[];
-
   unlocked: boolean;
   stars: number;
-
   difficulty: Difficulty;
   totalQuestions: number;
 };
 
 export const siapakahAkuLevels:
 SiapakahAkuLevel[] = [
-
-  // ========================================
-  // EASY
-  // ========================================
-
   {
     id: 1,
     unlocked: true,
     stars: 0,
     difficulty: 'easy',
     totalQuestions: 5,
-
     questions: [
       { answer: 'SAPI', image: 'sapi' },
       { answer: 'KUDA', image: 'kuda' },
@@ -47,7 +37,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'easy',
     totalQuestions: 5,
-
     questions: [
       { answer: 'ZEBRA', image: 'zebra' },
       { answer: 'PANDA', image: 'panda' },
@@ -63,7 +52,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'easy',
     totalQuestions: 5,
-
     questions: [
       { answer: 'GAJAH', image: 'gajah' },
       { answer: 'SINGA', image: 'singa' },
@@ -79,7 +67,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'easy',
     totalQuestions: 5,
-
     questions: [
       { answer: 'HARIMAU', image: 'harimau' },
       { answer: 'KANGURU', image: 'kanguru' },
@@ -95,7 +82,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'easy',
     totalQuestions: 5,
-
     questions: [
       { answer: 'ORANGUTAN', image: 'orangutan' },
       { answer: 'KUDANIL', image: 'kudanil' },
@@ -105,17 +91,12 @@ SiapakahAkuLevel[] = [
     ],
   },
 
-  // ========================================
-  // MEDIUM
-  // ========================================
-
   {
     id: 6,
     unlocked: false,
     stars: 0,
     difficulty: 'medium',
     totalQuestions: 5,
-
     questions: [
       { answer: 'JERAPAH', image: 'jerapah' },
       { answer: 'PENGUIN', image: 'penguin' },
@@ -131,7 +112,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'medium',
     totalQuestions: 5,
-
     questions: [
       { answer: 'CHEETAH', image: 'cheetah' },
       { answer: 'FLAMINGO', image: 'flamingo' },
@@ -147,7 +127,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'medium',
     totalQuestions: 5,
-
     questions: [
       { answer: 'KALAJENGKING', image: 'kalajengking' },
       { answer: 'BUNGLON', image: 'bunglon' },
@@ -163,7 +142,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'medium',
     totalQuestions: 5,
-
     questions: [
       { answer: 'CUMICUMI', image: 'cumicumi' },
       { answer: 'GORILA', image: 'gorila' },
@@ -179,7 +157,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'medium',
     totalQuestions: 5,
-
     questions: [
       { answer: 'ARMADILLO', image: 'armadillo' },
       { answer: 'KUDALAUT', image: 'kudalaut' },
@@ -189,17 +166,12 @@ SiapakahAkuLevel[] = [
     ],
   },
 
-  // ========================================
-  // HARD
-  // ========================================
-
   {
     id: 11,
     unlocked: false,
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 5,
-
     questions: [
       { answer: 'TRENGGILING', image: 'trenggiling' },
       { answer: 'KAKATUA', image: 'kakatua' },
@@ -215,7 +187,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 5,
-
     questions: [
       { answer: 'PAUS', image: 'paus' },
       { answer: 'LELE', image: 'lele' },
@@ -231,7 +202,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 5,
-
     questions: [
       { answer: 'CAPUNG', image: 'capung' },
       { answer: 'SEMUT', image: 'semut' },
@@ -247,7 +217,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 5,
-
     questions: [
       { answer: 'PIRANHA', image: 'piranha' },
       { answer: 'MUSANG', image: 'musang' },
@@ -263,7 +232,6 @@ SiapakahAkuLevel[] = [
     stars: 0,
     difficulty: 'hard',
     totalQuestions: 5,
-
     questions: [
       { answer: 'KECOAK', image: 'kecoak' },
       { answer: 'HAMSTER', image: 'hamster' },

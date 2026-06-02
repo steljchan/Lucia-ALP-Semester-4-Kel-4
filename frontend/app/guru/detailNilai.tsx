@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, ActivityIndicator} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { BORDER_RADIUS, COLORS } from '@/utils/theme';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Image, ScrollView, ActivityIndicator} from 'react-native';
+import {useLocalSearchParams} from 'expo-router';
+import {BORDER_RADIUS, COLORS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 
-//firebase
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { db, } from "@/src/config/firebase";
+import {collection, query, where, getDocs, doc, getDoc} from "firebase/firestore";
+import {db} from "@/src/config/firebase";
 
 export default function DetailNilai() {
   const { userId, materialId, mapel } = useLocalSearchParams();
@@ -77,9 +76,7 @@ export default function DetailNilai() {
 
   return (
     <View style={styles.container}>
-      
       <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
-
         <DetailHeader title="Detail Nilai" />
 
         <View style={styles.profile}>

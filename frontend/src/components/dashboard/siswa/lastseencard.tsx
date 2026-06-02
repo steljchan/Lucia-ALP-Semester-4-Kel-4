@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, StyleSheet,  Image, TouchableOpacity} from 'react-native';
+import {COLORS} from '@/utils/theme';
 
 interface LastSeenCardProps {
   title: string;
@@ -41,13 +36,12 @@ export default function LastSeenCard({
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     padding: 14,
     borderRadius: 18,
     marginTop: 10,
-
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
@@ -69,11 +63,11 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '600',
     fontSize: 15,
-    color: '#1A3B5D',
+    color: COLORS.textMain,
   },
 
   subtitle: {
-    color: '#6B7280',
+    color: COLORS.textSub,
     fontSize: 13,
     marginTop: 4,
   },

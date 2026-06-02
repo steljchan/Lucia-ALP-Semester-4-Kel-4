@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BTN } from '@/utils/theme';
-import { db } from "@/src/config/firebase";
-import { collection, getDocs, doc, setDoc } from "firebase/firestore";
+import React, {useState, useEffect} from 'react';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, BTN} from '@/utils/theme';
+import {db} from "@/src/config/firebase";
+import {collection, getDocs, doc, setDoc} from "firebase/firestore";
 
 interface ClassSelectorProps {
   selectedTingkat: 'SMP' | 'SMA';
@@ -24,7 +24,6 @@ export default function ClassSelector({
   const [isAddingNewClass, setIsAddingNewClass] = useState(false);
   const [newClassName, setNewClassName] = useState('');
 
-  // 1. Ambil Data Master Kelas
   const fetchClasses = async () => {
     try {
       const classSnap = await getDocs(collection(db, "class"));
@@ -93,8 +92,7 @@ export default function ClassSelector({
               <TouchableOpacity 
                 key={i} 
                 style={styles.dropdownItem} 
-                onPress={() => { onClassSelect(c.kelas, c.id); setShowDropdown(false); }}
-              >
+                onPress={() => { onClassSelect(c.kelas, c.id); setShowDropdown(false); }}>
                 <Text>{c.kelas}</Text>
               </TouchableOpacity>
             ))}
@@ -136,52 +134,59 @@ export default function ClassSelector({
 }
 
 const styles = StyleSheet.create({
-    label: { 
-        fontSize: 13, 
-        fontWeight: '600', 
-        marginBottom: 6, 
-        color: COLORS.textMain 
-    },
-    input: { 
-        borderWidth: 1, 
-        borderColor: COLORS.smoothBlue, 
-        borderRadius: 10, 
-        padding: 12, 
-        marginBottom: 14 
-    },
-    roleContainer: { 
-        flexDirection: 'row', 
-        gap: 10, 
-        marginBottom: 14 
-    },
-    roleButton: { 
-        flex: 1, 
-        flexDirection: 'row', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        padding: 12, 
-        borderRadius: 10, 
-        borderWidth: 1, 
-        borderColor: COLORS.primary 
-    },
-    roleActive: { 
-        backgroundColor: COLORS.primary 
-    },
-    roleText: { 
-        fontWeight: '600', 
-        color: COLORS.primary 
-    },
-    dropdownBox: { 
-        borderWidth: 1, 
-        borderColor: COLORS.smoothBlue, 
-        borderRadius: 10, 
-        marginTop: -10, 
-        marginBottom: 14, 
-        backgroundColor: COLORS.background 
-    },
-    dropdownItem: { 
-        padding: 12,
-        borderBottomWidth: 1, 
-        borderBottomColor: '#EDF2F7' 
-    },
+  label: { 
+      fontSize: 13, 
+      fontWeight: '600', 
+      marginBottom: 6, 
+      color: COLORS.textMain 
+  },
+
+  input: { 
+      borderWidth: 1, 
+      borderColor: COLORS.smoothBlue, 
+      borderRadius: 10, 
+      padding: 12, 
+      marginBottom: 14 
+  },
+
+  roleContainer: { 
+      flexDirection: 'row', 
+      gap: 10, 
+      marginBottom: 14 
+  },
+
+  roleButton: { 
+      flex: 1, 
+      flexDirection: 'row', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      padding: 12, 
+      borderRadius: 10, 
+      borderWidth: 1, 
+      borderColor: COLORS.primary 
+  },
+
+  roleActive: { 
+      backgroundColor: COLORS.primary 
+  },
+
+  roleText: { 
+      fontWeight: '600', 
+      color: COLORS.primary 
+  },
+
+  dropdownBox: { 
+      borderWidth: 1, 
+      borderColor: COLORS.smoothBlue, 
+      borderRadius: 10, 
+      marginTop: -10, 
+      marginBottom: 14, 
+      backgroundColor: COLORS.background 
+  },
+  
+  dropdownItem: { 
+      padding: 12,
+      borderBottomWidth: 1, 
+      borderBottomColor: '#EDF2F7' 
+  },
 });

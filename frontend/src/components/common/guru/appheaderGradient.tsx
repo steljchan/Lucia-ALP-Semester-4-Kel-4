@@ -1,5 +1,5 @@
-import { View, StyleSheet, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import {View, StyleSheet, Image} from 'react-native';
+import {LinearGradient} from 'expo-linear-gradient';
 import SearchBar from '@/src/components/common/searchbar';
 
 type Props = {

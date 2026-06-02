@@ -1,19 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, BORDER_RADIUS, BTN } from '@/utils/theme';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity} from 'react-native';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, SPACING, BORDER_RADIUS, BTN} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 
-//fireabase
-import { db } from '@/src/config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { updateDoc } from "firebase/firestore";
-import { auth } from "@/src/config/firebase";
-
-//pdf 
-// import Pdf from 'react-native-pdf';
+import {db} from '@/src/config/firebase';
+import {doc, getDoc} from 'firebase/firestore';
+import {updateDoc} from "firebase/firestore";
+import {auth} from "@/src/config/firebase";
 
 export default function DetailMateri() {
   const router = useRouter();
@@ -70,9 +66,7 @@ export default function DetailMateri() {
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
         <Text style={styles.sectionTitle}>Isi Materi</Text>
-        
         <PdfDetailMateri materialId={materialId as string} />
 
         <View style={styles.infoContainer}>
@@ -102,7 +96,6 @@ export default function DetailMateri() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   root: {
