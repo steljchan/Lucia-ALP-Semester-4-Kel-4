@@ -35,10 +35,6 @@ export const onMaterialCreated =
           materialId
         );
 
-        // =========================
-        // VALIDATION
-        // =========================
-
         if (!data.storagePath) {
 
           console.log(
@@ -58,10 +54,6 @@ export const onMaterialCreated =
           return;
         }
 
-        // =========================
-        // UPDATE STATUS
-        // =========================
-
         await admin
           .firestore()
           .collection('material')
@@ -72,18 +64,10 @@ export const onMaterialCreated =
               admin.firestore.FieldValue.serverTimestamp()
           });
 
-        // =========================
-        // PROCESS MATERIAL
-        // =========================
-
         await processMaterial(
           materialId,
           data.storagePath
         );
-
-        // =========================
-        // SUCCESS
-        // =========================
 
         await admin
           .firestore()

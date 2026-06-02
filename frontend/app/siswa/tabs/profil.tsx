@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, containerHeader, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
 import AppHeaderWOsearch from '../../../src/components/common/appheaderWOsearch';
 import LogoutModal from '@/src/components/common/logout';
 import Card from '../../../src/components/common/card';
-import { useRouter } from 'expo-router';
+import {useRouter} from 'expo-router';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
-//firebase
-import { auth, db } from "../../../src/config/firebase";
-import { doc, onSnapshot, updateDoc, query, collection, where, getCountFromServer, getDocs } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
+import {auth, db} from "../../../src/config/firebase";
+import {doc, onSnapshot, updateDoc, query, collection, where, getCountFromServer, getDocs} from "firebase/firestore";
+import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage';
 
 interface ReportCardProps {
   subject: string;
@@ -73,7 +71,6 @@ export default function ProfilSiswa() {
           }
         }
       });
-
       
       const fetchQuizCount = async () => {
         const q = query(collection(db, "quizResult"), where("userId", "==", user.uid));
@@ -162,10 +159,8 @@ export default function ProfilSiswa() {
       const fileRef = ref(storage, `profilePictures/${user.uid}`);
       
       await uploadBytes(fileRef, blob);
-
     
       const photoURL = await getDownloadURL(fileRef);
-
       
       await updateDoc(doc(db, "users", user.uid), {
         profilePicture: photoURL
@@ -178,7 +173,6 @@ export default function ProfilSiswa() {
     }
   };
 
-  
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -192,7 +186,6 @@ export default function ProfilSiswa() {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      // mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5, 
@@ -208,9 +201,7 @@ export default function ProfilSiswa() {
   return (
     <View style={[containerHeader, { justifyContent: 'flex-start', alignItems: 'stretch' }]}>
       <AppHeaderWOsearch />
-
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[scrollContent, { paddingTop: 50 }]}>
-        
         <View style={styles.profileHeader}>
           <View style={styles.avatarWrapper}>
             <Image

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, KeyboardAvoidingView, Platform, ScrollView, GestureResponderEvent, ActivityIndicator} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BTN, BORDER_RADIUS } from '@/utils/theme';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Alert, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, BTN, BORDER_RADIUS} from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
-import { useRouter } from 'expo-router';
+import {useRouter} from 'expo-router';
 import ClassSelector from '@/src/components/common/admin/classSelector';
-// firebase
-import { initializeApp, deleteApp, getApp } from "firebase/app"; 
-import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
-import { db, firebaseConfig } from "../../src/config/firebase";
-import { collection, getDocs, query, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
+import {initializeApp, deleteApp, getApp} from "firebase/app"; 
+import {getAuth, createUserWithEmailAndPassword, signOut} from "firebase/auth";
+import {db, firebaseConfig} from "../../src/config/firebase";
+import {collection, getDocs, query, where, doc, setDoc, serverTimestamp} from "firebase/firestore";
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
@@ -152,8 +151,6 @@ export default function AddUser() {
         Alert.alert('Error', `${role === 'siswa' ? 'NIS' : 'NIK'} sudah terdaftar di sistem.`);
         return;
       }
-
-      // Cegah error duplicate app
       try {
         secondaryApp = getApp('Secondary');
       } catch {
@@ -380,6 +377,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -388,9 +386,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     marginRight: 8,
   },
+
   chipActive: {
     backgroundColor: COLORS.primary,
   },
+
   dropdownBox: {
     borderWidth: 1,
     borderColor: COLORS.smoothBlue,
@@ -399,11 +399,13 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     backgroundColor: '#F9FAFB'
   },
+
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#EDF2F7'
   },
+
   card: {
     marginTop: 16, 
     marginHorizontal: 20,
@@ -415,12 +417,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
+
   label: {
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 6,
     color: COLORS.textMain,
   },
+
   input: {
     borderWidth: 1,
     borderColor: COLORS.smoothBlue,
@@ -428,11 +432,13 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 14,
   },
+
   roleContainer: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: 14,
   },
+
   roleButton: {
     flex: 1,
     flexDirection: 'row',
@@ -444,17 +450,21 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     gap: 6,
   },
+
   roleActive: {
     backgroundColor: COLORS.primary,
   },
+  
   roleText: {
     fontWeight: '600',
     color: COLORS.primary,
   },
+
   passwordRow: {
     flexDirection: 'row',
     marginBottom: 14,
   },
+
   passwordInput: {
     flex: 1,
     borderWidth: 1,
@@ -463,6 +473,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 10,
     padding: 12,
   },
+
   generateButton: {
     width: 50,
     backgroundColor: COLORS.primary,
@@ -471,20 +482,24 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
   },
+
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
     alignItems: 'center',
   },
+
   switchText: {
     fontSize: 13,
     color: COLORS.textMain,
   },
+
   inputError: {
     borderColor: COLORS.error,
     borderWidth: 1.5,
   },
+
   errorText: {
     color: COLORS.error,
     fontSize: 12,

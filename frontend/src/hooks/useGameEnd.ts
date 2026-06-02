@@ -1,9 +1,6 @@
-import { useState } from 'react';
+import {useState} from 'react';
 
-import {
-  determineEndState,
-  EndState,
-} from '../../utils/determindeEndStates';
+import {determineEndState, EndState} from '../../utils/determindeEndStates';
 
 type HandleGameEndParams = {
   isWrong: boolean;
@@ -11,20 +8,13 @@ type HandleGameEndParams = {
 };
 
 export default function useGameEnd() {
+  const [endState, setEndState] = useState<EndState>('none');
 
-  const [endState, setEndState] =
-    useState<EndState>('none');
-
-  const handleGameEnd = ({
-    isWrong,
-    heart,
-  }: HandleGameEndParams) => {
-
-    const state =
-      determineEndState({
-        isWrong,
-        heart,
-      });
+  const handleGameEnd = ({ isWrong, heart }: HandleGameEndParams) => {
+    const state = determineEndState({
+      isWrong,
+      heart,
+    });
 
     setEndState(state);
   };

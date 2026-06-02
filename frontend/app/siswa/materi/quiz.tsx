@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import React, {useState, useEffect, useRef} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet, StatusBar, ScrollView, Image, ActivityIndicator} from 'react-native';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
+import {AnimatedCircularProgress} from 'react-native-circular-progress';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-import { auth, db } from '@/src/config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import {auth, db} from '@/src/config/firebase';
+import {doc, getDoc} from 'firebase/firestore';
 
 export default function QuizScreen() {
   const router = useRouter();
   const { id: materialId } = useLocalSearchParams<{ id: string }>();
 
-  // State untuk soal dari Firestore
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +31,6 @@ export default function QuizScreen() {
   const [showResult, setShowResult] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  // Ambil soal dari Firestore
   useEffect(() => {
     const fetchQuiz = async () => {
       if (!materialId) {
@@ -198,7 +196,6 @@ export default function QuizScreen() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // State loading & error
   if (loading) {
     return (
       <View style={styles.root}>
@@ -266,7 +263,6 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        {/* Container gambar: hanya tampil jika ada gambar (dari hardcode dulu ada, sekarang tidak ada) */}
         {questionData.image && (
           <View style={styles.imageQuestionContainer}>
             <Image
@@ -324,7 +320,6 @@ export default function QuizScreen() {
   );
 }
 
-// Styles sama persis dengan asli (tidak ada perubahan)
 const styles = StyleSheet.create({
   root: { 
     flex: 1, 

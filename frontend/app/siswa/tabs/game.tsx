@@ -1,16 +1,12 @@
-import { View, FlatList, Image, TouchableOpacity, ScrollView, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet } from 'react-native';
-
+import {View, FlatList, Text} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {StyleSheet} from 'react-native';
 import GameCard from '../../../src/components/game/gameCard';
-// import SearchBar from '../../../src/components/common/searchbar';
-
-import { COLORS, containerHeader, scrollContent} from '@/utils/theme';
+import {COLORS, containerHeader, scrollContent} from '@/utils/theme';
 import AppHeader from '../../../src/components/common/appheader';
 import React, { useState } from 'react';
-
 
 export default function GameMenu() {
   const router = useRouter();
@@ -85,17 +81,6 @@ export default function GameMenu() {
               </Text>
             </View>
           }
-          
-          
-         
-          // ListHeaderComponent={
-          //   <>
-          //     <AppHeader/>
-          //     <View style={{ marginBottom: 10 }}>
-          //        <SearchBar/>
-          //     </View>
-          //   </>
-          // }
 
           renderItem={({ item }) => (
             <GameCard
@@ -109,8 +94,6 @@ export default function GameMenu() {
     </SafeAreaView>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   safeArea: {

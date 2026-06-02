@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useRouter, useRootNavigationState } from 'expo-router';
-import { View } from 'react-native';
+import {useEffect} from 'react';
+import {useRouter, useRootNavigationState} from 'expo-router';
+import {View} from 'react-native';
 
 export default function Index() {
   const router = useRouter();

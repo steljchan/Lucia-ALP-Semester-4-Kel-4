@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import {Tabs} from 'expo-router';
 import NavbarAdmin from '../../src/components/navigation/navbarAdmin';
 
 export default function AdminLayout() {
@@ -20,7 +20,6 @@ export default function AdminLayout() {
       }}
     >
       <Tabs.Screen name="index" />
-
       <Tabs.Screen name="addUser" />
       <Tabs.Screen name="editUser" />
       <Tabs.Screen name="detailUser" />

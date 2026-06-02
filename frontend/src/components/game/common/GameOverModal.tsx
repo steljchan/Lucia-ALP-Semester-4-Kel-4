@@ -1,22 +1,12 @@
 import React from 'react';
-
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {COLORS} from '@/utils/theme';
 
 type Props = {
   visible: boolean;
-
   onShop: () => void;
-
   onBack: () => void;
-
   title?: string;
-
   description?: string;
 };
 
@@ -35,54 +25,26 @@ export default function GameOverModal({
       animationType="fade"
     >
       <View style={styles.overlay}>
-
         <View style={styles.card}>
-
-          <Text style={styles.title}>
-            {title}
-          </Text>
-
-          <Text style={styles.description}>
-            {description}
-          </Text>
-
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.description}>{description}</Text>
           <View style={styles.buttonContainer}>
 
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.shopButton,
-              ]}
-              onPress={onShop}
-            >
-              <Text style={styles.buttonText}>
-                Toko
-              </Text>
+            <TouchableOpacity style={[styles.button, styles.shopButton]}onPress={onShop}>
+              <Text style={styles.buttonText}>Toko</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.backButton,
-              ]}
-              onPress={onBack}
-            >
-              <Text style={styles.buttonText}>
-                Kembali
-              </Text>
+            <TouchableOpacity style={[styles.button, styles.backButton,]}onPress={onBack}>
+              <Text style={styles.buttonText}>Kembali</Text>
             </TouchableOpacity>
-
           </View>
-
         </View>
-
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -92,7 +54,7 @@ const styles = StyleSheet.create({
 
   card: {
     width: '82%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 22,
     padding: 24,
     alignItems: 'center',
@@ -102,7 +64,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF6B6B',
+    color: COLORS.error,
     marginBottom: 12,
   },
 
@@ -132,11 +94,11 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    backgroundColor: '#5CBEFA',
+    backgroundColor: COLORS.primary,
   },
 
   buttonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 14,
   },

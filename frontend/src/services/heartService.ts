@@ -1,10 +1,6 @@
-import { doc, updateDoc, getDoc, increment } from 'firebase/firestore';
-import { db, auth } from '@/src/config/firebase';
+import {doc, updateDoc, getDoc, increment} from 'firebase/firestore';
+import {db, auth} from '@/src/config/firebase';
 
-/**
- * Kurangi heart user sebanyak 1 (untuk jawaban salah)
- * @returns sisa heart setelah dikurangi
- */
 export const decrementHeart = async (): Promise<number> => {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('User not logged in');
@@ -24,9 +20,6 @@ export const decrementHeart = async (): Promise<number> => {
   return currentHeart - 1;
 };
 
-/**
- * Ambil data heart dan coin user saat ini
- */
 export const getUserHeartAndCoin = async (): Promise<{ heart: number; coin: number }> => {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('User not logged in');

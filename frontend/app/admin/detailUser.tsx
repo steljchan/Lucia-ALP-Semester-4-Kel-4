@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { BORDER_RADIUS, COLORS } from '@/utils/theme';
+import {useLocalSearchParams, useRouter} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {BORDER_RADIUS, COLORS} from '@/utils/theme';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 import DeleteUserModal from '@/src/components/modals/DeleteUserModals';
 import SuccessModal from '@/src/components/modals/SuccessModal';
-
-//firebase
-import { db } from '@/src/config/firebase';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import {db} from '@/src/config/firebase';
+import {doc, getDoc, updateDoc, deleteDoc} from 'firebase/firestore';
 
 export default function DetailUser() {
   const router = useRouter();
@@ -102,7 +100,7 @@ export default function DetailUser() {
           rightText="Edit"
           onRightPress={() => router.push({
             pathname: '/admin/editUser',
-            params: { ...userData, id: userId } // Mengirimkan data terbaru
+            params: { ...userData, id: userId }
           })}
         />
 

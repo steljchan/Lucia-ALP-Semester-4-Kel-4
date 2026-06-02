@@ -5,18 +5,10 @@ export async function readOCRResult(
   materialId: string
 ): Promise<string> {
 
-  // =========================
-  // OCR OUTPUT BUCKET
-  // =========================
-
   const bucket =
     admin.storage().bucket(
       'lucia-ocr-output'
     );
-
-  // =========================
-  // OCR FOLDER PREFIX
-  // =========================
 
   const prefix =
     `${materialId}/`;
@@ -25,10 +17,6 @@ export async function readOCRResult(
     'Reading OCR files from:',
     prefix
   );
-
-  // =========================
-  // GET FILES
-  // =========================
 
   const [files] =
     await bucket.getFiles({
@@ -50,10 +38,6 @@ export async function readOCRResult(
     files.map(f => f.name)
   );
 
-  // =========================
-  // FIND JSON FILES
-  // =========================
-
   const jsonFiles =
     files.filter(file =>
       file.name.endsWith('.json')
@@ -67,10 +51,6 @@ export async function readOCRResult(
       'No OCR JSON files found'
     );
   }
-
-  // =========================
-  // READ ALL JSON FILES
-  // =========================
 
   let fullText = '';
 
@@ -104,10 +84,6 @@ export async function readOCRResult(
       }
     }
   }
-
-  // =========================
-  // VALIDATION
-  // =========================
 
   if (
     fullText.trim().length === 0

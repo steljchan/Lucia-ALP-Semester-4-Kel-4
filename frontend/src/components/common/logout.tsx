@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text, Modal, StyleSheet, TouchableOpacity,} from 'react-native';
-import { COLORS, BORDER_RADIUS } from '@/utils/theme';
+import {View, Text, Modal, StyleSheet, TouchableOpacity} from 'react-native';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
 
 interface LogoutModalProps {
   visible: boolean;

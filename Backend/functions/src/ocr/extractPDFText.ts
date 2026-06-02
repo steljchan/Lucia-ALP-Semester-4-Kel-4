@@ -5,10 +5,6 @@ import {
   readOCRResult
 } from './readOCRResult';
 
-// =========================
-// GLOBAL CLIENT
-// =========================
-
 let client: any = null;
 
 function getVisionClient() {
@@ -27,36 +23,20 @@ export async function extractPdfText(
   gcsSourceUri: string
 ): Promise<string> {
 
-  // =========================
-  // GET CLIENT
-  // =========================
-
   const visionClient =
     getVisionClient();
 
-  // =========================
-  // OCR OUTPUT BUCKET
-  // =========================
-
   const outputUri =
     `gs://lucia-ocr-output/${materialId}/`;
-
-  // =========================
-  // OCR REQUEST
-  // =========================
 
   const request = {
 
     requests: [
       {
-
         inputConfig: {
-
           mimeType:
             'application/pdf',
-
           gcsSource: {
-
             uri:
               gcsSourceUri
           }
@@ -70,13 +50,10 @@ export async function extractPdfText(
         ],
 
         outputConfig: {
-
           gcsDestination: {
-
             uri:
               outputUri
           },
-
           batchSize: 1
         }
       }
@@ -106,10 +83,6 @@ export async function extractPdfText(
     outputUri
   );
 
-  // =========================
-  // START OCR
-  // =========================
-
   console.log(
     'Sending OCR request...'
   );
@@ -123,10 +96,6 @@ export async function extractPdfText(
     'OCR operation started'
   );
 
-  // =========================
-  // WAIT OCR COMPLETE
-  // =========================
-
   console.log(
     'Waiting OCR completion...'
   );
@@ -136,10 +105,6 @@ export async function extractPdfText(
   console.log(
     'OCR completed successfully'
   );
-
-  // =========================
-  // READ OCR RESULT
-  // =========================
 
   console.log(
     'Reading OCR JSON result...'
@@ -162,10 +127,6 @@ export async function extractPdfText(
   console.log(
     '================================='
   );
-
-  // =========================
-  // VALIDATION
-  // =========================
 
   if (
     !extractedText ||

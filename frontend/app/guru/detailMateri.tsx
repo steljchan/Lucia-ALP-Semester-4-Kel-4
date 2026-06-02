@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, BORDER_RADIUS } from '@/utils/theme';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, ScrollView, ActivityIndicator} from 'react-native';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
 import PdfDetailMateri from '@/src/components/common/PDFDetailMateri';
 
-//fireabase
-import { db } from '@/src/config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-
-//pdf 
-// import Pdf from 'react-native-pdf';
+import {db} from '@/src/config/firebase';
+import {doc, getDoc} from 'firebase/firestore';
 
 export default function DetailMateriGuru() {
   const router = useRouter();
@@ -82,7 +78,6 @@ export default function DetailMateriGuru() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   root: {

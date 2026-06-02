@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { COLORS, BORDER_RADIUS } from '@/utils/theme';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, ActivityIndicator, Dimensions} from 'react-native';
+import {WebView } from 'react-native-webview';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
 
-// firebase
 import { db } from '@/src/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -87,11 +86,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.smoothBlue,
     marginBottom: 12,
   },
+
   pdfPreview: {
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  
   pdfText: {
     fontSize: 14,
     color: COLORS.textSub,

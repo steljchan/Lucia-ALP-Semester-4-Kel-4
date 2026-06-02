@@ -12,12 +12,8 @@ export const determineEndState = ({
   isWrong,
   heart,
 }: DetermineEndStateParams): EndState => {
-
-  // kalau salah DAN heart habis
   if (isWrong && heart <= 0) {
     return 'gameover';
   }
-
-  // selain itu tampil result
   return 'result';
 };

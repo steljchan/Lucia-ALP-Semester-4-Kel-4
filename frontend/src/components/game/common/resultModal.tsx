@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import {View, Text, Modal, TouchableOpacity, StyleSheet, Animated, Easing,} from 'react-native';
-import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, {useEffect, useRef} from 'react';
+import {View, Text, Modal, TouchableOpacity, StyleSheet, Animated, Easing} from 'react-native';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
 
 export default function ResultModal({
   visible,
@@ -23,7 +23,7 @@ export default function ResultModal({
   onNext: () => void;
   onLeaderboard: () => void;
 }) {
-  // Animations
+
   const cardScale = useRef(new Animated.Value(0)).current;
   const starScales = [
     useRef(new Animated.Value(0)).current,
@@ -44,7 +44,6 @@ export default function ResultModal({
         return;
     }
 
-    // Card pop
     Animated.spring(cardScale, {
         toValue: 1,
         tension: 60,
@@ -52,7 +51,6 @@ export default function ResultModal({
         useNativeDriver: true,
     }).start();
 
-    // Stars
     const starDelays = [300, 500, 400];
     starScales.forEach((scale, i) => {
         Animated.sequence([
@@ -107,7 +105,7 @@ export default function ResultModal({
     ]).start();
 
   return () => {
-    loopAnim?.stop(); // 🔥 penting!
+    loopAnim?.stop(); 
   };
 }, [visible]);
 
@@ -116,7 +114,6 @@ export default function ResultModal({
     outputRange: ['0deg', '360deg'],
   });
 
-  // Star sizes: side stars smaller, center star biggest
   const starConfig = [
     { size: 44, index: 0, offsetY: 6, offsetX: 6 },
     { size: 58, index: 1, offsetY: 0, offsetX: 0 },
@@ -135,7 +132,6 @@ export default function ResultModal({
         <Animated.View
           style={[styles.cardWrapper, { transform: [{ scale: cardScale }] }]}
         >
-          {/* ⭐ STARS ROW */}
           <View style={styles.starsRow}>
             {starConfig.map(({ size, index, offsetY, offsetX }) => (
               <View
@@ -166,24 +162,18 @@ export default function ResultModal({
             ))}
           </View>
 
-          {/* RIBBON HEADER */}
           <View style={styles.ribbonContainer}>
-            {/* Header utama */}
             <View style={styles.ribbonMain}>
               <Text style={styles.title}>COMPLETE</Text>
               <Text style={styles.gameTitle}>{gameTitle}</Text>
             </View>
           </View>
 
-          {/* BODY */}
           <LinearGradient colors={['#ffffff', '#f8fbff']} style={styles.body}>
-            {/* Score */}
             <Text style={styles.label}>SCORE</Text>
             <Text style={styles.score}>{xp}xp</Text>
-
             <View style={styles.divider} />
 
-            {/* Reward */}
             <Animated.View style={{ opacity: rewardOpacity, width: '100%', alignItems: 'center' }}>
               <Text style={styles.label}>🎁 REWARD</Text>
               <View style={styles.rewardRow}>
@@ -198,7 +188,6 @@ export default function ResultModal({
               </View>
             </Animated.View>
 
-            {/* Action Buttons */}
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.btnOutline} onPress={onRetry} activeOpacity={0.8}>
                 <Ionicons name="refresh" size={18} color={COLORS.primary} />
@@ -267,7 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     zIndex: 3,
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 6,

@@ -1,9 +1,9 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { COLORS } from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
+import {LinearGradient} from 'expo-linear-gradient';
+import {useRouter} from 'expo-router';
+import {COLORS} from '@/utils/theme';
 
 interface DetailHeaderProps {
   title: string;
@@ -22,7 +22,7 @@ export default function DetailHeader({
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#ADDFFD']}
+      colors={['#FFFFFF', '#C4E8FF']}
       style={styles.header}
     >
       <View style={styles.headerRow}>

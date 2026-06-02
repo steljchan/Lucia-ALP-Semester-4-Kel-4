@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Modal } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, MARGIN_HORIZONTAL, BTN, TEXT } from '../../utils/theme';
+import React, {useState} from 'react';
+import {View, Text, StyleSheet, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Modal} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, MARGIN_HORIZONTAL, BTN, TEXT} from '../../utils/theme';
 import Card from '../../src/components/common/card';
-import { useRouter } from 'expo-router';
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../src/config/firebase";
-import { login } from "../../src/services/authservices";
+import {useRouter} from 'expo-router';
+import {doc, getDoc} from "firebase/firestore";
+import {db} from "../../src/config/firebase";
+import {login} from "../../src/services/authservices";
 
 export default function LoginScreen() {
   const router = useRouter();

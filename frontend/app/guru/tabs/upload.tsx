@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BORDER_RADIUS, COLORS } from '@/utils/theme';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, KeyboardAvoidingView, Platform} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {BORDER_RADIUS, COLORS} from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import * as DocumentPicker from 'expo-document-picker';
 import SuccessModal from '@/src/components/modals/SuccessModal';
-import { router } from 'expo-router';
+import {router} from 'expo-router';
 
-// firebase
-import { db, storage, auth } from "@/src/config/firebase"
-import { collection, addDoc, serverTimestamp, getDoc, doc } from "firebase/firestore"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import {db, storage, auth} from "@/src/config/firebase"
+import {collection, addDoc, serverTimestamp, getDoc, doc} from "firebase/firestore"
+import {ref, uploadBytes, getDownloadURL} from "firebase/storage"
 
-// pdf & preview
 import { PDFDocument } from 'pdf-lib';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -35,7 +33,6 @@ export default function UploadMateri() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [uploadedMaterialId, setUploadedMaterialId] = useState('');
-  
 
   const uniqueSubjects = [...new Set(teacherPairs.map(p => p.subject))];
   const availableClasses = teacherPairs.filter(p => p.subject === subject);
@@ -297,20 +294,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSub,
   },
 
-  // fileImage: {
-  //   width: '100%',
-  //   height: '100%',
-  // },
-
-  // deleteBtn: {
-  //   position: 'absolute',
-  //   top: 4,
-  //   right: 4,
-  //   backgroundColor: COLORS.white,
-  //   borderRadius: 10,
-  //   padding: 2,
-  // },
-
   form: {
     paddingHorizontal: 20,
     marginTop: 5,
@@ -372,11 +355,6 @@ const styles = StyleSheet.create({
   dropdownItemContainer: {
     paddingVertical: 10,
   },
-
-  // dropdownDivider: {
-  //   borderBottomWidth: 1,
-  //   borderBottomColor: COLORS.smoothBlue,
-  // },
 
   checkboxRow: {
     flexDirection: 'row',
