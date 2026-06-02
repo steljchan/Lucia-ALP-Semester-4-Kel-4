@@ -9,8 +9,10 @@ import ClassSelector from '@/src/components/common/admin/classSelector';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
 // firebase
-import { db } from '@/src/config/firebase'; 
+import { db, firebaseConfig } from '@/src/config/firebase'; 
 import { doc, updateDoc, getDoc, getDocs, collection, where, query } from 'firebase/firestore';
+import { initializeApp, deleteApp, getApp } from "firebase/app"; 
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, signOut } from "firebase/auth";
 
 export default function EditUser() {
   const router = useRouter();
@@ -25,7 +27,9 @@ export default function EditUser() {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState(''); 
+  const [oldEmail, setOldEmail] = useState(''); 
   const [password, setPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState(''); 
   const [role, setRole] = useState('');
   const [nis, setNis] = useState('');
   const [nik, setNik] = useState(''); 
@@ -35,8 +39,6 @@ export default function EditUser() {
   const [waliKelas, setWaliKelas] = useState('None');
   const [pairs, setPairs] = useState<any[]>([]);
 
-  const [editingName, setEditingName] = useState(false);
-  const [editingNis, setEditingNis] = useState(false); // tidak digunakan lagi, tapi tetap ada agar tidak mengubah logic
   const [editingAcademic, setEditingAcademic] = useState(false);
   const [showWali, setShowWali] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -52,7 +54,9 @@ export default function EditUser() {
           const data = docSnap.data();
           setName(data.name || '');
           setEmail(data.email || ''); 
+          setOldEmail((data.email || '').trim()); 
           setPassword(data.password || '');
+          setOldPassword((data.password || '').trim()); 
           setRole(data.role || '');
           setNis(data.nis || '');
           setNik(data.nik || '');
@@ -95,9 +99,20 @@ export default function EditUser() {
       Alert.alert("Error", "Nama tidak boleh kosong");
       return;
     }
+    if (!cleanEmail) {
+      Alert.alert("Error", "Email tidak boleh kosong");
+      return;
+    }
+    if (cleanPassword.length < 6) {
+      Alert.alert("Error", "Password minimal 6 karakter");
+      return;
+    }
 
     setSaving(true);
+    let secondaryApp = null;
+
     try {
+      // 1. Validasi Duplikasi NIS / NIK di Firestore
       const fieldToCheck = role === 'siswa' ? "nis" : "nik";
       const valueToCheck = role === 'siswa' ? cleanNis : cleanNik;
 
@@ -115,6 +130,56 @@ export default function EditUser() {
         }
       }
 
+      // ========================================================
+      // SINKRONISASI KE FIREBASE AUTHENTICATION (DENGAN BYPASS SAFETY)
+      // ========================================================
+      if (cleanEmail !== oldEmail || cleanPassword !== oldPassword) {
+        try {
+          secondaryApp = getApp('SecondaryEdit');
+        } catch {
+          secondaryApp = initializeApp(firebaseConfig, 'SecondaryEdit');
+        }
+
+        const secondaryAuth = getAuth(secondaryApp);
+        
+        try {
+          // LANGKAH A: Coba login dengan kredensial lama terlebih dahulu
+          const userCredential = await signInWithEmailAndPassword(secondaryAuth, oldEmail, oldPassword);
+          
+          if (cleanEmail !== oldEmail) {
+            await updateEmail(userCredential.user, cleanEmail);
+          }
+          if (cleanPassword !== oldPassword) {
+            await updatePassword(userCredential.user, cleanPassword);
+          }
+          await signOut(secondaryAuth);
+
+        } catch (authError: any) {
+          console.log("Auth Error Code Terdeteksi:", authError.code);
+          
+          // LANGKAH B: Jika error invalid-credential / user-not-found, lakukan force register ulang ke Auth
+          if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found') {
+            try {
+              console.log("Kredensial lama tidak sinkron di Auth. Memulai pembuatan ulang akun...");
+              await createUserWithEmailAndPassword(secondaryAuth, cleanEmail, cleanPassword);
+              await signOut(secondaryAuth);
+            } catch (createError: any) {
+              if (createError.code === 'auth/email-already-in-use') {
+                throw new Error("Email sudah terikat di data Autentikasi dengan password berbeda. Harap ganti email atau kelola langsung di Firebase Console.");
+              }
+              throw createError;
+            }
+          } else {
+            throw authError;
+          }
+        }
+
+        await deleteApp(secondaryApp);
+        secondaryApp = null;
+      }
+      // ========================================================
+
+      // 2. Simpan Pembaruan Data ke Firestore
       const userRef = doc(db, "users", userId);
       const updatedData: any = { 
         name: cleanName, 
@@ -135,12 +200,20 @@ export default function EditUser() {
       }
 
       await updateDoc(userRef, updatedData);
-      setSuccessMessage(`Data ${cleanName} berhasil diperbarui`);
+      
+      // SINKRONISASI STATE LOKAL AGAR KHUSUS TOMBOL SAVE SELANJUTNYA TIDAK ERROR
+      setOldEmail(cleanEmail);
+      setOldPassword(cleanPassword);
+
+      setSuccessMessage(`Data ${cleanName} berhasil diperbarui di Auth & Database`);
       setShowSuccessModal(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      Alert.alert("Error", "Gagal memperbarui data");
+      Alert.alert("Error", error.message || "Gagal memperbarui data");
     } finally {
+      if (secondaryApp) {
+        try { await deleteApp(secondaryApp); } catch (e) { console.warn(e); }
+      }
       setSaving(false);
     }
   };
@@ -166,11 +239,13 @@ export default function EditUser() {
             style={styles.input}
           />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email (Sinkron ke Auth)</Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
             style={styles.input}
+            autoCapitalize="none"
+            keyboardType="email-address"
           />
           
           <Text style={styles.label}>Role</Text>
@@ -190,13 +265,14 @@ export default function EditUser() {
             </>
           )}
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Password (Sinkron ke Auth)</Text>
           <View style={styles.passwordContainer}>
             <TextInput
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               style={styles.passwordInput}
+              autoCapitalize="none"
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
               <Ionicons
@@ -303,7 +379,6 @@ export default function EditUser() {
   );
 }
 
-// Komponen pembantu (tidak diubah)
 function Row({ label, value, icon }: any) {
   return (
     <View style={styles.row}>
