@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Image,
   Animated,
+  Dimensions,
 } from 'react-native';
 
 import {
@@ -80,6 +81,12 @@ export default function GamePlay() {
   const router =
     useRouter();
 
+  const { width } =
+    Dimensions.get('window');
+
+  const isSmallDevice =
+    width < 360;
+
   const levelIndex =
     Number(id) - 1;
 
@@ -87,7 +94,7 @@ export default function GamePlay() {
     siapakahAkuLevels[levelIndex];
 
   // ========================================
-  // STATES
+  // STATE
   // ========================================
 
   const [questionIndex, setQuestionIndex] =
@@ -205,7 +212,7 @@ export default function GamePlay() {
   }, [question]);
 
   // ========================================
-  // RESPONSIVE ANSWER BOX
+  // ANSWER CONFIG
   // ========================================
 
   const answerLetters =
@@ -214,9 +221,23 @@ export default function GamePlay() {
   const answerLength =
     answerLetters.length;
 
-  // >= 12 otomatis 2 row
+  /*
+    <= 6
+    ukuran normal
+  */
+
+  /*
+    7 - 8
+    ukuran kecil 1 row
+  */
+
+  /*
+    > 8
+    2 row ukuran kecil
+  */
+
   const isTwoRows =
-    answerLength >= 12;
+    answerLength > 8;
 
   const splitAnswerIndex =
     Math.ceil(answerLength / 2);
@@ -236,72 +257,49 @@ export default function GamePlay() {
         )
       : [];
 
-  // ========================================
-  // SCALE JAWABAN
-  // ========================================
-
-  // >6 mulai mengecil
-  // >=12 balik normal karena sudah 2 row
+  // ukuran box jawaban
 
   const answerBoxScale =
-    answerLength >= 12
+    answerLength <= 6
       ? 1
-      : answerLength >= 10
-      ? 0.72
-      : answerLength >= 8
+      : answerLength <= 8
       ? 0.82
-      : answerLength > 6
-      ? 0.9
-      : 1;
+      : 0.82;
 
-  // spacing menyesuaikan ukuran
+  // spacing jawaban
+
   const answerSpacing =
-    answerLength >= 12
-      ? 2
-      : answerLength >= 10
-      ? -10
-      : answerLength >= 8
-      ? -6
-      : answerLength > 6
-      ? -2
-      : 2;
+    answerLength <= 6
+      ? 4
+      : answerLength <= 8
+      ? -5
+      : -4;
 
   // ========================================
-  // RESPONSIVE OPTION BUTTON
+  // OPTION BUTTON CONFIG
   // ========================================
 
   const optionsLength =
     options.length;
 
-  // >12 jauh lebih kecil
-  const optionButtonSize =
-    optionsLength > 12
-      ? 38
-      : optionsLength >= 11
-      ? 48
-      : 55;
+  /*
+    NORMAL DEVICE
+    max 5 per row
 
-  const optionFontSize =
-    optionsLength > 12
-      ? 15
-      : optionsLength >= 11
-      ? 18
-      : 20;
+    SMALL DEVICE
+    max 7 per row
+  */
 
-  // spacing dibedakan jelas
-  const optionGap =
-    optionsLength > 12
-      ? 4
-      : optionsLength >= 11
-      ? 8
-      : 10;
+  const maxPerRow =
+    isSmallDevice
+      ? 7
+      : 5;
 
-  // max 2 row
   const splitIndex =
-    options.length <= 6
-      ? options.length
+    optionsLength <= maxPerRow
+      ? optionsLength
       : Math.ceil(
-          options.length / 2
+          optionsLength / 2
         );
 
   const topRow =
@@ -312,6 +310,45 @@ export default function GamePlay() {
 
   const bottomRow =
     options.slice(splitIndex);
+
+  /*
+    tombol opsi
+  */
+
+  const optionButtonSize =
+    optionsLength <= 5
+      ? isSmallDevice
+        ? 50
+        : 58
+      : optionsLength <= 8
+      ? isSmallDevice
+        ? 46
+        : 52
+      : optionsLength <= 12
+      ? isSmallDevice
+        ? 40
+        : 46
+      : isSmallDevice
+      ? 34
+      : 40;
+
+  const optionFontSize =
+    optionsLength <= 5
+      ? 22
+      : optionsLength <= 8
+      ? 20
+      : optionsLength <= 12
+      ? 17
+      : 15;
+
+  const optionGap =
+    optionsLength <= 5
+      ? 12
+      : optionsLength <= 8
+      ? 10
+      : optionsLength <= 12
+      ? 8
+      : 5;
 
   // ========================================
   // LOAD USER
@@ -733,29 +770,45 @@ export default function GamePlay() {
               question.image as keyof typeof siapakahAkuImages
             ]
           }
-          style={styles.image}
+
+          style={[
+            styles.image,
+
+            {
+              width:
+                isSmallDevice
+                  ? 180
+                  : width * 0.55,
+
+              height:
+                isSmallDevice
+                  ? 180
+                  : width * 0.55,
+            },
+          ]}
         />
 
         {/* ANSWER */}
 
         <Animated.View
           key={questionIndex}
-          style={[
-            {
-              transform: [
-                {
-                  scale:
-                    scaleAnim,
-                },
-              ],
-            },
-          ]}
+          style={{
+            transform: [
+              {
+                scale:
+                  scaleAnim,
+              },
+            ],
+          }}
         >
 
           {/* ROW 1 */}
+
           <View style={styles.answerRow}>
+
             {firstRowAnswer.map(
               (_, i) => (
+
                 <TouchableOpacity
                   key={`answer-top-${i}`}
                   activeOpacity={0.7}
@@ -763,6 +816,7 @@ export default function GamePlay() {
                     remove(i)
                   }
                 >
+
                   <View
                     style={{
                       transform: [
@@ -771,25 +825,32 @@ export default function GamePlay() {
                             answerBoxScale,
                         },
                       ],
+
                       marginHorizontal:
                         answerSpacing,
                     }}
                   >
+
                     <LetterBox
                       letter={
                         selected[i]
                       }
                       status={status}
                     />
+
                   </View>
+
                 </TouchableOpacity>
               )
             )}
           </View>
 
           {/* ROW 2 */}
+
           {isTwoRows && (
+
             <View style={styles.answerRow}>
+
               {secondRowAnswer.map(
                 (_, idx) => {
 
@@ -798,6 +859,7 @@ export default function GamePlay() {
                     firstRowAnswer.length;
 
                   return (
+
                     <TouchableOpacity
                       key={`answer-bottom-${realIndex}`}
                       activeOpacity={0.7}
@@ -807,6 +869,7 @@ export default function GamePlay() {
                         )
                       }
                     >
+
                       <View
                         style={{
                           transform: [
@@ -815,10 +878,12 @@ export default function GamePlay() {
                                 answerBoxScale,
                             },
                           ],
+
                           marginHorizontal:
                             answerSpacing,
                         }}
                       >
+
                         <LetterBox
                           letter={
                             selected[
@@ -829,7 +894,9 @@ export default function GamePlay() {
                             status
                           }
                         />
+
                       </View>
+
                     </TouchableOpacity>
                   );
                 }
@@ -847,11 +914,14 @@ export default function GamePlay() {
           }
         >
 
+          {/* TOP ROW */}
+
           <View
             style={[
               styles.row,
               {
-                gap: optionGap,
+                gap:
+                  optionGap,
               },
             ]}
           >
@@ -872,6 +942,7 @@ export default function GamePlay() {
                   <TouchableOpacity
                     key={`top-${index}-${l}`}
                     activeOpacity={0.7}
+
                     style={[
 
                       styles.optionBtn,
@@ -928,6 +999,8 @@ export default function GamePlay() {
             )}
           </View>
 
+          {/* BOTTOM ROW */}
+
           {bottomRow.length >
             0 && (
 
@@ -935,7 +1008,8 @@ export default function GamePlay() {
               style={[
                 styles.row,
                 {
-                  gap: optionGap,
+                  gap:
+                    optionGap,
                 },
               ]}
             >
@@ -959,6 +1033,7 @@ export default function GamePlay() {
                     <TouchableOpacity
                       key={`bottom-${index}-${l}`}
                       activeOpacity={0.7}
+
                       style={[
 
                         styles.optionBtn,
@@ -1040,16 +1115,22 @@ export default function GamePlay() {
           endState ===
           'result'
         }
+
         gameTitle="Siapakah Aku?"
+
         stars={earnedStars}
+
         xp={xp}
+
         coin={rewardCoin}
+
         onRetry={() => {
 
           resetEndState();
 
           resetGame();
         }}
+
         onNext={() => {
 
           resetEndState();
@@ -1058,6 +1139,7 @@ export default function GamePlay() {
 
           goNextLevel();
         }}
+
         onLeaderboard={() => {
 
           resetEndState();
@@ -1073,6 +1155,7 @@ export default function GamePlay() {
           endState ===
           'gameover'
         }
+
         onShop={() => {
 
           resetEndState();
@@ -1081,6 +1164,7 @@ export default function GamePlay() {
             '/siswa/toko'
           );
         }}
+
         onBack={() => {
 
           resetEndState();
@@ -1099,32 +1183,48 @@ const styles =
     title: {
       textAlign:
         'center',
+
       fontSize: 24,
+
       fontWeight: '700',
+
       marginTop: 40,
+
       color: '#1A3B5D',
     },
 
     image: {
-      width: 220,
-      height: 220,
       alignSelf:
         'center',
+
       marginVertical: 20,
+
       resizeMode:
         'contain',
+
+      maxWidth: 220,
+
+      maxHeight: 220,
     },
 
     answerRow: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+      flexDirection:
+        'row',
+
+      justifyContent:
+        'center',
+
+      alignItems:
+        'center',
+
       marginBottom: 10,
-      flexWrap: 'nowrap',
+
+      paddingHorizontal: 10,
     },
 
     optionsContainer: {
-      marginBottom: 20,
+      marginBottom: 25,
+      paddingHorizontal: 10,
     },
 
     row: {
@@ -1138,6 +1238,9 @@ const styles =
         'center',
 
       marginBottom: 10,
+
+      flexWrap:
+        'nowrap',
     },
 
     optionBtn: {
