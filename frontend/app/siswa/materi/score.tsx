@@ -68,9 +68,13 @@ export default function ScoreScreen() {
         return;
       }
       awardingRef.current = true;
+      
+      const currentUser = auth.currentUser;
+      const finalUserId = currentUser?.uid || (params.userId as string);
 
-      const user = auth.currentUser;
-      if (!user) {
+      if (!finalUserId) {
+        console.error("Gagal menyimpan hasil: UID User tidak ditemukan.");
+        awardingRef.current = false;
         return;
       }
 
@@ -97,12 +101,13 @@ export default function ScoreScreen() {
         setEarnedStars(result.bestStars);
         setIsReplay(!result.firstCompletion);
 
-        await addDoc(collection(db, 'quizResults'), {
-          userId: user.uid,
-          studentName: name || user.displayName || 'Siswa',
-          classId,
-          subjectId,
-          materialId,
+        
+        await addDoc(collection(db, 'quizResult'), {
+          userId: finalUserId, 
+          studentName: name || currentUser?.displayName || 'Siswa',
+          classId: classId || 'None',
+          subjectId: subjectId || 'None',
+          materialId: materialId || 'None',
           score: scoreNum,
           correct: correctNum,
           wrong: wrongNum,
@@ -115,15 +120,17 @@ export default function ScoreScreen() {
           timestamp: serverTimestamp(),
         });
 
+        console.log("SUKSES: Data kuis berhasil masuk ke Firestore!");
         setRewardSaved(true);
       } catch (error) {
         console.error('SAVE RESULT ERROR:', error);
         Alert.alert('Error', 'Gagal menyimpan progress.');
+        awardingRef.current = false; // Izinkan mencoba kembali jika error jaringan
       }
     };
 
     saveResult();
-  }, []);
+  }, [gameId, levelId]);
 
   const getCircleColor = (
     option: string,
