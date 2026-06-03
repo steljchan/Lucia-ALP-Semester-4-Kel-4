@@ -123,9 +123,18 @@ export default function AdminPanel() {
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.card} onPress={() => handleDetailUser(item)}>
               <View style={styles.cardLeft}>
+
                 <View style={[styles.avatarContainer, { backgroundColor: `${getRoleColor(item.role)}20` }]}>
+                {item.profilePicture ? (
+                  <Image 
+                    source={{ uri: item.profilePicture }} 
+                    style={{ width: '100%', height: '100%', borderRadius: 26 }} 
+                  />
+                ) : (
                   <Ionicons name={getRoleIcon(item.role)} size={28} color={getRoleColor(item.role)} />
-                </View>
+                )}
+              </View>
+
                 <View style={styles.userInfo}>
                   <Text style={styles.email}>{item.name || 'No Name'}</Text>
                   <Text style={{ fontSize: 12, color: COLORS.textSub }}>{item.email}</Text>
