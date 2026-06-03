@@ -1,109 +1,32 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Animated,
-  Dimensions,
-} from 'react-native';
-
-import {
-  useLocalSearchParams,
-  useRouter,
-  useFocusEffect,
-} from 'expo-router';
-
-import {
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
-
-import {
-  saveGameProgress,
-} from '../../../../../src/services/gameProgress';
-
-import {
-  siapakahAkuLevels,
-} from '../../../../../src/data/siapakahaku';
-
-import {
-  siapakahAkuImages,
-} from '../../../../../src/constants/siapakahAku';
-
-import useSiapakahAku
-from '../../../../../src/hooks/usesiapakahaku';
-
-import LetterBox
-from '../../../../../src/components/game/siapakahAku/LetterBox';
-
-import GameLayout
-from '../../../../../src/components/game/layout/GameLayout';
-
-import HintModal
-from '../../../../../src/components/game/common/hintModal';
-
-import ResultModal
-from '../../../../../src/components/game/common/resultModal';
-
-import GameOverModal
-from '../../../../../src/components/game/common/GameOverModal';
-
-import useGameEnd
-from '../../../../../src/hooks/useGameEnd';
-
-import {
-  calculateGameRewards,
-} from '../../../../../utils/calculatedGameReward';
-
-import {
-  refreshHeart,
-  decrementHeart,
-} from '../../../../../src/services/heartRegen';
-
-import {
-  doc,
-  getDoc,
-} from 'firebase/firestore';
-
-import {
-  db,
-  auth,
-} from '../../../../../src/config/firebase';
+import {View, Text, TouchableOpacity, StyleSheet, Image, Animated, Dimensions} from 'react-native';
+import {useLocalSearchParams, useRouter, useFocusEffect} from 'expo-router';
+import {useMemo, useRef, useState, useCallback} from 'react';
+import {saveGameProgress} from '../../../../../src/services/gameProgress';
+import {siapakahAkuLevels} from '../../../../../src/data/siapakahaku';
+import {siapakahAkuImages} from '../../../../../src/constants/siapakahAku';
+import useSiapakahAku from '../../../../../src/hooks/usesiapakahaku';
+import LetterBox from '../../../../../src/components/game/siapakahAku/LetterBox';
+import GameLayout from '../../../../../src/components/game/layout/GameLayout';
+import HintModal from '../../../../../src/components/game/common/hintModal';
+import ResultModal from '../../../../../src/components/game/common/resultModal';
+import GameOverModal from '../../../../../src/components/game/common/GameOverModal';
+import useGameEnd from '../../../../../src/hooks/useGameEnd';
+import {calculateGameRewards} from '../../../../../utils/calculatedGameReward';
+import {refreshHeart, decrementHeart} from '../../../../../src/services/heartRegen';
+import {doc, getDoc} from 'firebase/firestore';
+import {db, auth} from '../../../../../src/config/firebase';
 
 export default function GamePlay() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { width } = Dimensions.get('window');
+  const isSmallDevice = width < 360;
 
-  const { id } =
-    useLocalSearchParams();
+  const levelIndex = Number(id) - 1;
+  const level = siapakahAkuLevels[levelIndex];
 
-  const router =
-    useRouter();
-
-  const { width } =
-    Dimensions.get('window');
-
-  const isSmallDevice =
-    width < 360;
-
-  const levelIndex =
-    Number(id) - 1;
-
-  const level =
-    siapakahAkuLevels[levelIndex];
-
-  // ========================================
-  // STATE
-  // ========================================
-
-  const [questionIndex, setQuestionIndex] =
-    useState(0);
-
-  const question =
-    level.questions[questionIndex];
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const question = level.questions[questionIndex];
 
   const {
     selected,
@@ -129,6 +52,7 @@ export default function GamePlay() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintStep, setHintStep] = useState(0);
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const options = useMemo(() => {
@@ -141,103 +65,21 @@ export default function GamePlay() {
     return [...answerLetters, ...extra].sort(() => Math.random() - 0.5);
   }, [question]);
 
+  const answerLetters = question.answer.split('');
+  const answerLength = answerLetters.length;
+  const isTwoRows = answerLength > 8;
+  const splitAnswerIndex = Math.ceil(answerLength / 2);
+  const firstRowAnswer = isTwoRows ? answerLetters.slice(0, splitAnswerIndex) : answerLetters;
+  const secondRowAnswer = isTwoRows ? answerLetters.slice(splitAnswerIndex) : [];
 
-  const answerLetters =
-    question.answer.split('');
+  const answerBoxScale = answerLength <= 6 ? 1 : answerLength <= 8 ? 0.82 : 0.82;
+  const answerSpacing = answerLength <= 6 ? 4 : answerLength <= 8 ? -5 : -4;
+  const optionsLength = options.length;
 
-  const answerLength =
-    answerLetters.length;
-
-  /*
-    <= 6
-    ukuran normal
-  */
-
-  /*
-    7 - 8
-    ukuran kecil 1 row
-  */
-
-  /*
-    > 8
-    2 row ukuran kecil
-  */
-
-  const isTwoRows =
-    answerLength > 8;
-
-  const splitAnswerIndex =
-    Math.ceil(answerLength / 2);
-
-  const firstRowAnswer =
-    isTwoRows
-      ? answerLetters.slice(
-          0,
-          splitAnswerIndex
-        )
-      : answerLetters;
-
-  const secondRowAnswer =
-    isTwoRows
-      ? answerLetters.slice(
-          splitAnswerIndex
-        )
-      : [];
-
-  // ukuran box jawaban
-
-  const answerBoxScale =
-    answerLength <= 6
-      ? 1
-      : answerLength <= 8
-      ? 0.82
-      : 0.82;
-
-  // spacing jawaban
-
-  const answerSpacing =
-    answerLength <= 6
-      ? 4
-      : answerLength <= 8
-      ? -5
-      : -4;
-
-
-  const optionsLength =
-    options.length;
-
-  /*
-    NORMAL DEVICE
-    max 5 per row
-
-    SMALL DEVICE
-    max 7 per row
-  */
-
-  const maxPerRow =
-    isSmallDevice
-      ? 7
-      : 5;
-
-  const splitIndex =
-    optionsLength <= maxPerRow
-      ? optionsLength
-      : Math.ceil(
-          optionsLength / 2
-        );
-
-  const topRow =
-    options.slice(
-      0,
-      splitIndex
-    );
-
-  const bottomRow =
-    options.slice(splitIndex);
-
-  /*
-    tombol opsi
-  */
+  const maxPerRow = isSmallDevice ? 7 : 5;
+  const splitIndex = optionsLength <= maxPerRow ? optionsLength : Math.ceil(optionsLength / 2);
+  const topRow = options.slice(0, splitIndex);
+  const bottomRow = options.slice(splitIndex);
 
   const optionButtonSize =
     optionsLength <= 5
@@ -274,51 +116,15 @@ export default function GamePlay() {
       ? 8
       : 5;
 
-  // ========================================
-  // LOAD USER
-  // ========================================
-
-  const loadUserStats =
-    async () => {
-
-      try {
-
-        const heartAfterRegen =
-          await refreshHeart();
-
-        const uid =
-          auth.currentUser?.uid;
-
-        if (uid) {
-
-          const userSnap =
-            await getDoc(
-              doc(
-                db,
-                'users',
-                uid
-              )
-            );
-
-          const coin =
-            userSnap.data()
-              ?.coin ?? 0;
-
-          setUserHeart(
-            heartAfterRegen
-          );
-
-          setUserCoin(
-            coin
-          );
-        }
-
-      } catch (error) {
-
-        console.log(
-          'Gagal load heart/coin:',
-          error
-        );
+  const loadUserStats = async () => {
+    try {
+      const heartAfterRegen = await refreshHeart();
+      const uid = auth.currentUser?.uid;
+      if (uid) {
+        const userSnap = await getDoc(doc(db, 'users', uid));
+        const coin = userSnap.data()?.coin ?? 0;
+        setUserHeart(heartAfterRegen);
+        setUserCoin(coin);
       }
     } catch (error) {
       console.log('Gagal load heart/coin:', error);
@@ -501,25 +307,12 @@ export default function GamePlay() {
         <Text style={styles.title}>Siapakah Aku?</Text>
 
         <Image
-          source={
-            siapakahAkuImages[
-              question.image as keyof typeof siapakahAkuImages
-            ]
-          }
-
+          source={siapakahAkuImages[question.image as keyof typeof siapakahAkuImages]}
           style={[
             styles.image,
-
             {
-              width:
-                isSmallDevice
-                  ? 180
-                  : width * 0.55,
-
-              height:
-                isSmallDevice
-                  ? 180
-                  : width * 0.55,
+              width: isSmallDevice ? 180 : width * 0.55,
+              height: isSmallDevice ? 180 : width * 0.55,
             },
           ]}
         />
@@ -527,148 +320,79 @@ export default function GamePlay() {
         <Animated.View
           key={questionIndex}
           style={{
-            transform: [
-              {
-                scale:
-                  scaleAnim,
-              },
-            ],
+            transform: [{ scale: scaleAnim }],
           }}
         >
 
-         
-
           <View style={styles.answerRow}>
-
-            {firstRowAnswer.map(
-              (_, i) => (
-
-                <TouchableOpacity
-                  key={`answer-top-${i}`}
-                  activeOpacity={0.7}
-                  onPress={() =>
-                    remove(i)
-                  }
+            {firstRowAnswer.map((_, i) => (
+              <TouchableOpacity key={`answer-top-${i}`} activeOpacity={0.7} onPress={() => remove(i)}>
+                <View
+                  style={{
+                    transform: [{ scale: answerBoxScale }],
+                    marginHorizontal: answerSpacing,
+                  }}
                 >
-
-                  <View
-                    style={{
-                      transform: [
-                        {
-                          scale:
-                            answerBoxScale,
-                        },
-                      ],
-
-                      marginHorizontal:
-                        answerSpacing,
-                    }}
-                  >
-
-                    <LetterBox
-                      letter={
-                        selected[i]
-                      }
-                      status={status}
-                    />
-
-                  </View>
-
-                </TouchableOpacity>
-              )
-            )}
+                  <LetterBox letter={selected[i]} status={status} />
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
 
-        
-
           {isTwoRows && (
-
             <View style={styles.answerRow}>
-
-              {secondRowAnswer.map(
-                (_, idx) => {
-
-                  const realIndex =
-                    idx +
-                    firstRowAnswer.length;
-
-                  return (
-
-                    <TouchableOpacity
-                      key={`answer-bottom-${realIndex}`}
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        remove(
-                          realIndex
-                        )
-                      }
+              {secondRowAnswer.map((_, idx) => {
+                const realIndex = idx + firstRowAnswer.length;
+                return (
+                  <TouchableOpacity
+                    key={`answer-bottom-${realIndex}`}
+                    activeOpacity={0.7}
+                    onPress={() => remove(realIndex)}
+                  >
+                    <View
+                      style={{
+                        transform: [{ scale: answerBoxScale }],
+                        marginHorizontal: answerSpacing,
+                      }}
                     >
-
-                      <View
-                        style={{
-                          transform: [
-                            {
-                              scale:
-                                answerBoxScale,
-                            },
-                          ],
-
-                          marginHorizontal:
-                            answerSpacing,
-                        }}
-                      >
-
-                        <LetterBox
-                          letter={
-                            selected[
-                              realIndex
-                            ]
-                          }
-                          status={
-                            status
-                          }
-                        />
-
-                      </View>
-
-                    </TouchableOpacity>
-                  );
-                }
-              )}
+                      <LetterBox letter={selected[realIndex]} status={status} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
         </Animated.View>
 
-      
-
-        <View
-          style={
-            styles.optionsContainer
-          }
-        >
-
-      
-
-          <View
-            style={[
-              styles.row,
-              {
-                gap:
-                  optionGap,
-              },
-            ]}
-          >
-
-            {topRow.map(
-              (l, i) => {
-
-                const index =
-                  i;
-
-                const isUsed =
-                  usedIndexes.includes(
-                    index
-                  );
+        <View style={styles.optionsContainer}>
+          <View style={[styles.row, { gap: optionGap }]}>
+            {topRow.map((l, i) => {
+              const index = i;
+              const isUsed = usedIndexes.includes(index);
+              return (
+                <TouchableOpacity
+                  key={`top-${index}-${l}`}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.optionBtn,
+                    {
+                      width: optionButtonSize,
+                      height: optionButtonSize,
+                      borderRadius: optionButtonSize / 4,
+                    },
+                    isUsed && styles.optionDisabled,
+                  ]}
+                  onPress={() => {
+                    if (isUsed) return;
+                    select(l, index);
+                  }}
+                  disabled={isUsed}
+                >
+                  <Text style={[styles.optionText, { fontSize: optionFontSize }]}>{l}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           {bottomRow.length > 0 && (
             <View style={[styles.row, { gap: optionGap }]}>
@@ -679,7 +403,6 @@ export default function GamePlay() {
                   <TouchableOpacity
                     key={`bottom-${index}-${l}`}
                     activeOpacity={0.7}
-
                     style={[
                       styles.optionBtn,
                       {
@@ -698,99 +421,7 @@ export default function GamePlay() {
                     <Text style={[styles.optionText, { fontSize: optionFontSize }]}>{l}</Text>
                   </TouchableOpacity>
                 );
-              }
-            )}
-          </View>
-
-        
-
-          {bottomRow.length >
-            0 && (
-
-            <View
-              style={[
-                styles.row,
-                {
-                  gap:
-                    optionGap,
-                },
-              ]}
-            >
-
-              {bottomRow.map(
-                (
-                  l,
-                  i
-                ) => {
-
-                  const index =
-                    i + splitIndex;
-
-                  const isUsed =
-                    usedIndexes.includes(
-                      index
-                    );
-
-                  return (
-
-                    <TouchableOpacity
-                      key={`bottom-${index}-${l}`}
-                      activeOpacity={0.7}
-
-                      style={[
-
-                        styles.optionBtn,
-
-                        {
-                          width:
-                            optionButtonSize,
-
-                          height:
-                            optionButtonSize,
-
-                          borderRadius:
-                            optionButtonSize / 4,
-                        },
-
-                        isUsed &&
-                          styles.optionDisabled,
-                      ]}
-
-                      onPress={() => {
-
-                        if (
-                          isUsed
-                        ) return;
-
-                        select(
-                          l,
-                          index
-                        );
-                      }}
-
-                      disabled={
-                        isUsed
-                      }
-                    >
-
-                      <Text
-                        style={[
-
-                          styles.optionText,
-
-                          {
-                            fontSize:
-                              optionFontSize,
-                          },
-                        ]}
-                      >
-                        {l}
-                      </Text>
-
-                    </TouchableOpacity>
-                  );
-                }
-              )}
+              })}
             </View>
           )}
         </View>
@@ -806,30 +437,20 @@ export default function GamePlay() {
       />
 
       <ResultModal
-        visible={
-          endState ===
-          'result'
-        }
-
+        visible={endState === 'result'}
         gameTitle="Siapakah Aku?"
-
         stars={earnedStars}
-
         xp={xp}
-
         coin={rewardCoin}
-
         onRetry={() => {
           resetEndState();
           resetGame();
         }}
-
         onNext={() => {
           resetEndState();
           resetGame();
           goNextLevel();
         }}
-
         onLeaderboard={() => {
           resetEndState();
           router.push('/siswa/tabs/leaderboard');
@@ -837,16 +458,11 @@ export default function GamePlay() {
       />
 
       <GameOverModal
-        visible={
-          endState ===
-          'gameover'
-        }
-
+        visible={endState === 'gameover'}
         onShop={() => {
           resetEndState();
           router.push('/siswa/toko');
         }}
-
         onBack={() => {
           resetEndState();
           router.back();
@@ -856,90 +472,56 @@ export default function GamePlay() {
   );
 }
 
-const styles =
-  StyleSheet.create({
+const styles = StyleSheet.create({
+  title: {
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: 40,
+    color: '#1A3B5D',
+  },
 
-    title: {
-      textAlign:
-        'center',
+  image: {
+    alignSelf: 'center',
+    marginVertical: 20,
+    resizeMode: 'contain',
+    maxWidth: 220,
+    maxHeight: 220,
+  },
 
-      fontSize: 24,
+  answerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  
+  optionsContainer: {
+    marginBottom: 25,
+    paddingHorizontal: 10,
+  },
 
-      fontWeight: '700',
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    flexWrap: 'nowrap',
+  },
 
-      marginTop: 40,
+  optionBtn: {
+    backgroundColor: '#ADDFFD',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-      color: '#1A3B5D',
-    },
-
-    image: {
-      alignSelf:
-        'center',
-
-      marginVertical: 20,
-
-      resizeMode:
-        'contain',
-
-      maxWidth: 220,
-
-      maxHeight: 220,
-    },
-
-    answerRow: {
-      flexDirection:
-        'row',
-
-      justifyContent:
-        'center',
-
-      alignItems:
-        'center',
-
-      marginBottom: 10,
-
-      paddingHorizontal: 10,
-    },
-
-    optionsContainer: {
-      marginBottom: 25,
-      paddingHorizontal: 10,
-    },
-
-    row: {
-      flexDirection:
-        'row',
-
-      justifyContent:
-        'center',
-
-      alignItems:
-        'center',
-
-      marginBottom: 10,
-
-      flexWrap:
-        'nowrap',
-    },
-
-    optionBtn: {
-      backgroundColor:
-        '#ADDFFD',
-
-      justifyContent:
-        'center',
-
-      alignItems:
-        'center',
-    },
-
-    optionDisabled: {
-      backgroundColor:
-        '#E5E7EB',
-    },
-
-    optionText: {
-      fontWeight: '700',
-      color: '#1A3B5D',
-    },
-  });
+  optionDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  
+  optionText: {
+    fontWeight: '700',
+    color: '#1A3B5D',
+  },
+});
