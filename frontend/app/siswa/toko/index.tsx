@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons} from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS, scrollContent, containerHeader } from '@/utils/theme';
+import {LinearGradient} from 'expo-linear-gradient';
+import {Ionicons} from '@expo/vector-icons';
+import {router} from 'expo-router';
+import {COLORS, SPACING, BORDER_RADIUS, scrollContent, containerHeader} from '@/utils/theme';
 import PaymentModal from '@/src/components/toko/paymentModal';
-import { ShopItem } from "@/src/types/shop";
-import { getShopItems, checkLimitedPurchase } from "@/src/services/shopService";
-import { getCurrentUserData } from "@/src/services/userService";
-import { auth } from "@/src/config/firebase";
-import { onAuthStateChanged } from 'firebase/auth';
-import { User } from "@/src/types/user";
+import {ShopItem} from "@/src/types/shop";
+import {getShopItems, checkLimitedPurchase} from "@/src/services/shopService";
+import {getCurrentUserData} from "@/src/services/userService";
+import {auth} from "@/src/config/firebase";
+import {onAuthStateChanged} from 'firebase/auth';
+import {User} from "@/src/types/user";
 
 export default function TokoScreen() {
   const [coinBalance, setCoinBalance] = useState(0);
@@ -66,42 +66,32 @@ export default function TokoScreen() {
   }, []);
 
   const loadData = async () => {
-
     try {
-
       const user =
         await getCurrentUserData();
-
       setCoinBalance(
         user.coin || 0
       );
-
       setHeartBalance(
         user.heart || 0
       );
 
       const items: ShopItem[] = await getShopItems();
-
       setShopItems(items);
       setUserData(user);
 
       const limitedItem = items.find(
         (item) => item.type === "limited"
       );
-
       if (
         limitedItem &&
         auth.currentUser
       ) {
-
         const purchased =
           await checkLimitedPurchase(
-
             auth.currentUser.uid,
-
             limitedItem.id
           );
-
         setIsLimitedPurchased(
           purchased
         );
@@ -129,8 +119,7 @@ export default function TokoScreen() {
   return (
      <View style={[containerHeader, {  alignItems: 'stretch' }]}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.primary} />
-      
-      <LinearGradient colors={['#EBF7FF', '#C9EAFF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
+      <LinearGradient colors={['#FFFFFF', '#C4E8FF']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.header}>
         <View style={styles.headerRow}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={28} color={COLORS.textMain} />

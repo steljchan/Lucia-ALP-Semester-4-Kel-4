@@ -1,8 +1,4 @@
-import {
-  onCall,
-  HttpsError,
-} from "firebase-functions/v2/https";
-
+import {onCall,HttpsError} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 const db = admin.firestore();
@@ -139,37 +135,19 @@ export const purchaseItem = onCall(
             .doc();
 
           transaction.set(trxRef, {
-
             orderId,
-
             uid,
-
             itemId,
-
-            itemName:
-              item.name,
-
-            coin:
-              item.coin || 0,
-
-            heart:
-              item.heart || 0,
-
+            itemName: item.name,
+            coin: item.coin || 0,
+            heart: item.heart || 0,
             subtotal,
-
             tax,
-
             total,
-
-            paymentMethod:
-              paymentMethod || "Unknown",
-
+            paymentMethod: paymentMethod || "Unknown",
             status: "paid",
-
             granted: true,
-
-            createdAt:
-              admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
           });
         }
       );

@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, View, Text, ScrollView, TouchableOpacity,  StyleSheet, StatusBar, Image} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
+import {useRouter, useLocalSearchParams} from 'expo-router';
+import {COLORS, SPACING, BORDER_RADIUS} from '@/utils/theme';
 import DetailHeader from '@/src/components/common/guru/detailHeader';
-
-//firebase
 import { auth, db } from "../../../src/config/firebase";
 import { getAuth } from "firebase/auth";
 import { doc, getDoc, query, collection, where, getDocs } from "firebase/firestore";

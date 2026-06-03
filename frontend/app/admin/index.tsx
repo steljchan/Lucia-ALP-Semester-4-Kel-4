@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react'; 
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BORDER_RADIUS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
+import React, {useState, useEffect} from 'react'; 
+import {View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, ActivityIndicator} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
-// FIREBASE 
-import { db } from '@/src/config/firebase'; 
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import {db} from '@/src/config/firebase'; 
+import {collection, onSnapshot, query} from 'firebase/firestore';
 
 import SearchBar from '../../src/components/common/searchbar';
 import LogoutModal from '@/src/components/common/logout';
@@ -24,11 +23,9 @@ export default function AdminPanel() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLogout, setShowLogout] = useState(false);
 
-  
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // ambil data firestore
   useEffect(() => {
     const q = query(collection(db, "users"));
 
@@ -44,7 +41,6 @@ export default function AdminPanel() {
     return () => unsubscribe();
   }, []);
 
-  // --- LOGIC FILTER ---
   const filteredUsers = users.filter((u) => {
     const matchRole = roleFilter === 'all' || u.role === roleFilter;
     const matchSearch = (u.email?.toLowerCase().includes(search.toLowerCase())) || 
@@ -59,7 +55,6 @@ export default function AdminPanel() {
   const getRoleColor = (role: string) => {
     return role === 'guru' ? COLORS.primary : COLORS.success;
   };
-
   
   const handleEditUser = (user: any) => {
     router.push({ pathname: '/admin/editUser', params: user });
@@ -158,7 +153,6 @@ export default function AdminPanel() {
           contentContainerStyle={styles.listContent}
         />
       )}
-
       
       <LogoutModal 
         visible={showLogout} 

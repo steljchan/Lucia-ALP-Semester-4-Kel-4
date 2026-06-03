@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, Alert, ScrollView} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, TEXT, subtitle, PROFILE, BTN, scrollContent } from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, TEXT, subtitle, PROFILE, BTN, scrollContent} from '@/utils/theme';
 import AppHeader from '../../../src/components/common/guru/appheaderguru';
 import LogoutModal from '@/src/components/common/logout';
-import { useRouter } from 'expo-router';
+import {useRouter} from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
-//firebase
-import { auth, db } from "../../../src/config/firebase";
-import { doc, onSnapshot, updateDoc, collection, query, where } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import {auth, db} from "../../../src/config/firebase";
+import {doc, onSnapshot, updateDoc, collection, query, where} from "firebase/firestore";
+import {getStorage, ref, uploadBytes, getDownloadURL} from 'firebase/storage';
 
 export default function ProfilGuru() {
   const [image, setImage] = useState<string | null>(null);
@@ -20,7 +19,6 @@ export default function ProfilGuru() {
   const [showLogout, setShowLogout] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>('Semua');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
   const [materiFirebase, setMateriFirebase] = useState<any[]>([]);
 
   const router = useRouter();

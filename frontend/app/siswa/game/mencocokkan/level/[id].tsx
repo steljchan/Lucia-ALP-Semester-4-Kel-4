@@ -1,62 +1,19 @@
 import React from 'react';
-
-import {
-  View,
-  Text,
-  StyleSheet,
-  Animated,
-  PanResponder,
-  Dimensions,
-  Modal,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
-
-import {
-  useLocalSearchParams,
-  useRouter,
-  useFocusEffect,
-} from 'expo-router';
-
-import {
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-} from 'react';
-
-import Svg, {
-  Line,
-  Circle,
-} from 'react-native-svg';
-
-import {
-  mencocokkanLevels,
-} from '../../../../../src/data/mencocokkan';
-
-import useMencocokkan
-from '../../../../../src/hooks/useMencocokkan';
-
-import MatchWord
-from '../../../../../src/components/game/mencocokkan/matchword';
-
-import MatchImage
-from '../../../../../src/components/game/mencocokkan/matchimage';
-
-import GameLayout
-from '../../../../../src/components/game/layout/GameLayout';
-
-import HintModal
-from '../../../../../src/components/game/common/hintModal';
-
-import ResultModal
-from '../../../../../src/components/game/common/resultModal';
-
-// Import service regenerasi heart (sudah dibuat)
-import { refreshHeart, decrementHeart } from '../../../../../src/services/heartRegen';
-import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '../../../../../src/config/firebase';
-import { saveGameProgress } from '../../../../../src/services/gameProgress';
+import {View, Text, StyleSheet, Animated, PanResponder, Dimensions, Modal, Alert, TouchableOpacity} from 'react-native';
+import {useLocalSearchParams, useRouter, useFocusEffect} from 'expo-router';
+import {useMemo, useRef, useState, useCallback} from 'react';
+import Svg, {Line, Circle} from 'react-native-svg';
+import {mencocokkanLevels} from '../../../../../src/data/mencocokkan';
+import useMencocokkan from '../../../../../src/hooks/useMencocokkan';
+import MatchWord from '../../../../../src/components/game/mencocokkan/matchword';
+import MatchImage from '../../../../../src/components/game/mencocokkan/matchimage';
+import GameLayout from '../../../../../src/components/game/layout/GameLayout';
+import HintModal from '../../../../../src/components/game/common/hintModal';
+import ResultModal from '../../../../../src/components/game/common/resultModal';
+import {refreshHeart, decrementHeart} from '../../../../../src/services/heartRegen';
+import {doc, getDoc} from 'firebase/firestore';
+import {db, auth} from '../../../../../src/config/firebase';
+import {saveGameProgress} from '../../../../../src/services/gameProgress';
 
 const { width, height } = Dimensions.get('window');
 
@@ -77,7 +34,6 @@ export default function MatchingGame() {
     reset,
   } = useMencocokkan(level.pairs);
 
-  // States
   const [connections, setConnections] = useState<any[]>([]);
   const [activeLine, setActiveLine] = useState<any>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -97,10 +53,9 @@ export default function MatchingGame() {
     return 'Tarik garis dari kata ke gambar yang benar ✨';
   }, []);
 
-  // Load heart & coin saat layar fokus (dengan regenerasi)
   const loadUserStats = async () => {
     try {
-      const heartAfterRegen = await refreshHeart(); // auto regen
+      const heartAfterRegen = await refreshHeart(); 
       const uid = auth.currentUser?.uid;
       if (uid) {
         const userSnap = await getDoc(doc(db, 'users', uid));
@@ -119,7 +74,6 @@ export default function MatchingGame() {
     }, [])
   );
 
-  // ==================== Game Logic ====================
   const startConnection = (word: string) => {
     const from = wordPositions[word];
     if (!from) return;
@@ -218,10 +172,9 @@ export default function MatchingGame() {
 
     const allCorrect = correct === level.pairs.length;
 
-    // Kurangi heart jika tidak semua jawaban benar (menggunakan service)
     if (!allCorrect) {
       try {
-        const newHeart = await decrementHeart(); // sudah handle refreshHeart di dalamnya
+        const newHeart = await decrementHeart(); 
         setHeart(newHeart);
         if (newHeart === 0) {
           setGameOver(true);
@@ -237,7 +190,6 @@ export default function MatchingGame() {
       }
     }
 
-    // Hitung reward
     const finalStars = allCorrect ? 3 : 1;
     const earnedXp = allCorrect ? 150 : 50;
     const earnedCoin = allCorrect ? 10 : 2;
@@ -246,7 +198,6 @@ export default function MatchingGame() {
     setXp(earnedXp);
     setCoinReward(earnedCoin);
 
-    // Simpan progres ke Firebase
     try {
       await saveGameProgress({
         gameId: 'mencocokkan',
@@ -256,7 +207,6 @@ export default function MatchingGame() {
         coin: earnedCoin,
       });
 
-      // Refresh ulang heart & coin setelah simpan
       const heartAfterRegen = await refreshHeart();
       const uid = auth.currentUser?.uid;
       if (uid) {
@@ -360,7 +310,7 @@ export default function MatchingGame() {
                 </React.Fragment>
               );
             })}
-            {/* Active line */}
+
             {activeLine && (
               <>
                 <Line
@@ -443,7 +393,6 @@ export default function MatchingGame() {
         }}
       />
 
-      {/* Modal Game Over */}
       <Modal visible={gameOver} transparent animationType="fade">
         <View style={styles.gameOverOverlay}>
           <View style={styles.gameOverCard}>
@@ -487,27 +436,32 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 26,
   },
+
   mapContainer: {
     flex: 1,
     minHeight: 650,
     justifyContent: 'flex-start',
     overflow: 'visible',
   },
+
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-start',
     gap: 30,
   },
+
   column: {
     width: 145,
   },
+
   gameOverOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   gameOverCard: {
     width: '80%',
     backgroundColor: 'white',
@@ -516,24 +470,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
+
   gameOverTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FF6B6B',
     marginBottom: 12,
   },
+
   gameOverText: {
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
     color: '#333',
   },
+
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
     width: '100%',
   },
+  
   gameOverButton: {
     flex: 1,
     paddingVertical: 10,
@@ -541,12 +499,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
+
   buyHeartButton: {
     backgroundColor: '#FF9800',
   },
+
   backButton: {
     backgroundColor: '#5CBEFA',
   },
+  
   gameOverButtonText: {
     color: 'white',
     fontWeight: 'bold',

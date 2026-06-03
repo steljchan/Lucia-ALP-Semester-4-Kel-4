@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
-
-// firebase
-import { db } from '@/src/config/firebase';
-import { doc, deleteDoc } from 'firebase/firestore';
+import {View, Text, Modal, TouchableOpacity, StyleSheet, Alert} from 'react-native';
+import {COLORS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
+import {db} from '@/src/config/firebase';
+import {doc, deleteDoc} from 'firebase/firestore';
 
 export default function DeleteUserModal({
   visible,

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ImageSourcePropType } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, title } from '@/utils/theme';
-import { ShopItem } from "@/src/types/shop";
+import {View, Text, TouchableOpacity, Image, StyleSheet, ImageSourcePropType} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, title} from '@/utils/theme';
+import {ShopItem} from "@/src/types/shop";
 
 type PaymentMethod = {
   id: string;
@@ -30,15 +30,12 @@ export default function StepPilihMetode({
     if (selectedItem.type === "coin") {
       return `${selectedItem.coin} 🪙`;
     }
-
     if (selectedItem.type === "heart") {
       return `${selectedItem.heart} ❤️`;
     }
-
     if (selectedItem.type === "limited") {
       return `${selectedItem.coin} 🪙 + ${selectedItem.heart} ❤️`;
     }
-
     return "-";
   };
 

@@ -93,28 +93,19 @@ export const TEXT ={
 
 export const BTN = {
   primary: {
-    // Style untuk tombolnya
     box: {
       backgroundColor: COLORS.primary,
       height: 55,
       borderRadius: 15,
       justifyContent: 'center', 
       alignItems: 'center',
-      // shadowColor: '#000',
-      // shadowOffset: { width: 0, height: 2 },
-      // shadowOpacity: 0.25,
-      // shadowRadius: 3.84,
-      // elevation: 5,
     } as ViewStyle,
 
-    // Style untuk teks di dalamnya
     text: {
       color: COLORS.white, 
       fontSize: 18, 
       fontWeight: 'bold' 
-    } as TextStyle,
-
-    
+    } as TextStyle,    
   },
   
   logout: {
@@ -143,7 +134,6 @@ export const PROFILE = {
     borderRadius: 65 as const,
     borderWidth: 3 as const,
     borderColor: COLORS.primary, 
-    // backgroundColor: COLORS.smoothBlue,
   } as ImageStyle,
   
   cameraBtn: {

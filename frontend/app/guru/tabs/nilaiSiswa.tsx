@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator} from 'react-native';
 import AppHeader from '../../../src/components/common/guru/appheaderGradient';
-import { BORDER_RADIUS, COLORS } from '@/utils/theme';
-import { useRouter } from 'expo-router';
+import {BORDER_RADIUS, COLORS} from '@/utils/theme';
+import {useRouter} from 'expo-router';
 import FilterChips from '@/src/components/dashboard/guru/filter';
-import { Ionicons } from '@expo/vector-icons';
+import {Ionicons} from '@expo/vector-icons';
 
-// firebase
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { db, auth } from "@/src/config/firebase";
+import {collection, query, where, getDocs, doc, getDoc} from "firebase/firestore";
+import {db, auth} from "@/src/config/firebase";
 
 export default function NilaiSiswa() {
   const router = useRouter();
   
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   
   const [teacherPairs, setTeacherPairs] = useState<any[]>([]);
-
   
   const [search, setSearch] = useState('');
   const [selectedMapel, setSelectedMapel] = useState('');
@@ -110,7 +107,6 @@ export default function NilaiSiswa() {
     fetchStudents();
   }, [selectedClass]);
 
-  // Handle Search Siswa berdasarkan Nama atau NIS
   const filteredData = students.filter((item) => {
     const matchSearch =
       (item.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
@@ -167,7 +163,6 @@ export default function NilaiSiswa() {
               <Text style={styles.classText}>{selectedClass || 'Pilih Kelas'}</Text>
             </TouchableOpacity>
 
-            {/* Dropdown Kelas dinamis berdasarkan mapel pilihan guru saat ini */}
             {showClass && (
               <View style={styles.dropdownAbsolute}>
                 {availableClasses.map((c: any, i: number) => (
@@ -202,7 +197,7 @@ export default function NilaiSiswa() {
                     userId: item.id, 
                     name: item.name,
                     nis: item.nis,
-                    mapel: selectedMapel, // Mengirim mapel aktif ke detail view guru
+                    mapel: selectedMapel,
                   },
                 })
               }

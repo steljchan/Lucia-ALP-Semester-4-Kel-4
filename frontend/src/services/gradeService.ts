@@ -1,5 +1,5 @@
-import { db } from "../config/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {db} from "../config/firebase";
+import {collection, query, where, getDocs} from "firebase/firestore";
 
 export const getAnalyticsNilai = async (classId: string, subjectId: string, materialId: string) => {
   try {

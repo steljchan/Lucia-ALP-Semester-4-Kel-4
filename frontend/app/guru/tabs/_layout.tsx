@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import {Tabs} from 'expo-router';
 import NavbarBase from '../../../src/components/navigation/navbarBase'; 
 import {menuGuru} from '../../../src/components/navigation/navbarGuru';
 

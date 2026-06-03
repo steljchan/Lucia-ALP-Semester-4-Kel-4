@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { COLORS, BORDER_RADIUS } from '@/utils/theme';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useState, useEffect} from 'react';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator} from 'react-native';
+import {useLocalSearchParams, useRouter} from 'expo-router';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
+import {Ionicons} from '@expo/vector-icons';
 import AppHeaderSimple from '@/src/components/common/headerAdmin';
 import AssignPairModal from '@/src/components/modals/AssignPairModals';
 import ClassSelector from '@/src/components/common/admin/classSelector';
 import SuccessModal from '@/src/components/modals/SuccessModal';
 
-// firebase
-import { db, firebaseConfig } from '@/src/config/firebase'; 
-import { doc, updateDoc, getDoc, getDocs, collection, where, query } from 'firebase/firestore';
-import { initializeApp, deleteApp, getApp } from "firebase/app"; 
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, signOut } from "firebase/auth";
+import {db, firebaseConfig} from '@/src/config/firebase'; 
+import {doc, updateDoc, getDoc, getDocs, collection, where, query} from 'firebase/firestore';
+import {initializeApp, deleteApp, getApp} from "firebase/app"; 
+import {getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateEmail, updatePassword, signOut} from "firebase/auth";
 
 export default function EditUser() {
   const router = useRouter();
@@ -112,7 +111,6 @@ export default function EditUser() {
     let secondaryApp = null;
 
     try {
-      // 1. Validasi Duplikasi NIS / NIK di Firestore
       const fieldToCheck = role === 'siswa' ? "nis" : "nik";
       const valueToCheck = role === 'siswa' ? cleanNis : cleanNik;
 
@@ -130,9 +128,6 @@ export default function EditUser() {
         }
       }
 
-      // ========================================================
-      // SINKRONISASI KE FIREBASE AUTHENTICATION (DENGAN BYPASS SAFETY)
-      // ========================================================
       if (cleanEmail !== oldEmail || cleanPassword !== oldPassword) {
         try {
           secondaryApp = getApp('SecondaryEdit');
@@ -143,7 +138,6 @@ export default function EditUser() {
         const secondaryAuth = getAuth(secondaryApp);
         
         try {
-          // LANGKAH A: Coba login dengan kredensial lama terlebih dahulu
           const userCredential = await signInWithEmailAndPassword(secondaryAuth, oldEmail, oldPassword);
           
           if (cleanEmail !== oldEmail) {
@@ -157,7 +151,6 @@ export default function EditUser() {
         } catch (authError: any) {
           console.log("Auth Error Code Terdeteksi:", authError.code);
           
-          // LANGKAH B: Jika error invalid-credential / user-not-found, lakukan force register ulang ke Auth
           if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found') {
             try {
               console.log("Kredensial lama tidak sinkron di Auth. Memulai pembuatan ulang akun...");
@@ -177,9 +170,7 @@ export default function EditUser() {
         await deleteApp(secondaryApp);
         secondaryApp = null;
       }
-      // ========================================================
 
-      // 2. Simpan Pembaruan Data ke Firestore
       const userRef = doc(db, "users", userId);
       const updatedData: any = { 
         name: cleanName, 
@@ -200,8 +191,7 @@ export default function EditUser() {
       }
 
       await updateDoc(userRef, updatedData);
-      
-      // SINKRONISASI STATE LOKAL AGAR KHUSUS TOMBOL SAVE SELANJUTNYA TIDAK ERROR
+    
       setOldEmail(cleanEmail);
       setOldPassword(cleanPassword);
 
@@ -231,7 +221,6 @@ export default function EditUser() {
 
         <View style={styles.card}>
           <Text style={styles.section}>Personal</Text>
-          
           <Text style={styles.label}>Nama</Text>
           <TextInput
             value={name}
@@ -412,6 +401,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  
   card: {
     marginHorizontal: 20,
     marginTop: 16,
@@ -420,23 +410,27 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 2,
   },
+
   section: {
     backgroundColor: COLORS.primary,
     color: COLORS.white,
     padding: 12,
     fontWeight: '700',
   },
+
   subTitle: {
     marginTop: 10,
     marginLeft: 14,
     fontWeight: '600',
     color: COLORS.primary,
   },
+
   row: {
     padding: 14,
     borderBottomWidth: 1,
     borderColor: COLORS.gray,
   },
+
   label: {
     fontSize: 12,
     color: COLORS.textSub,
@@ -444,10 +438,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     marginTop: 8,
   },
+
   value: {
     fontSize: 14,
     fontWeight: '600',
   },
+
   input: {
     marginHorizontal: 12,
     marginBottom: 12,
@@ -456,6 +452,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.s,
     padding: 10,
   },
+
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -466,15 +463,18 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.s,
     paddingHorizontal: 10,
   },
+
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
   },
+
   dropdownItem: {
     padding: 12,
     borderBottomWidth: 1,
     borderColor: COLORS.gray,
   },
+
   pairCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -486,19 +486,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.smoothBlue,
   },
+
   pairText: {
     fontWeight: '600',
   },
+
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
     margin: 12,
   },
+
   addText: {
     margin: 12,
     color: COLORS.primary,
     fontWeight: '600',
   },
+  
   button: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -507,6 +511,7 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.s,
     alignItems: 'center',
   },
+  
   buttonText: {
     color: COLORS.white,
     fontWeight: '700',

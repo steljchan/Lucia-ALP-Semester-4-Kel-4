@@ -74,6 +74,8 @@ import {
 } from '../../../../../src/config/firebase';
 
 export default function GamePlay() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
 
   const { id } =
     useLocalSearchParams();
@@ -104,116 +106,41 @@ export default function GamePlay() {
     level.questions[questionIndex];
 
   const {
-
     selected,
-
     usedIndexes,
-
     select,
-
     remove,
-
     removeLast,
-
     reset,
-
     check,
-
     isFull,
-
     status,
+  } = useSiapakahAku(question.answer);
 
-  } = useSiapakahAku(
-    question.answer
-  );
+  const { endState, handleGameEnd, resetEndState } = useGameEnd();
 
-  const {
-
-    endState,
-
-    handleGameEnd,
-
-    resetEndState,
-
-  } = useGameEnd();
-
-  const [earnedStars, setEarnedStars] =
-    useState(0);
-
-  const [xp, setXp] =
-    useState(0);
-
-  const [rewardCoin, setRewardCoin] =
-    useState(0);
-
-  const [userHeart, setUserHeart] =
-    useState(0);
-
-  const [userCoin, setUserCoin] =
-    useState(0);
-
-  const [totalCorrect, setTotalCorrect] =
-    useState(0);
-
-  const [totalWrong, setTotalWrong] =
-    useState(0);
-
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
-
-  const [showHint, setShowHint] =
-    useState(false);
-
-  const [hintStep, setHintStep] =
-    useState(0);
-
-  // ========================================
-  // ANIMATION
-  // ========================================
-
-  const scaleAnim =
-    useRef(
-      new Animated.Value(1)
-    ).current;
-
-  // ========================================
-  // OPTIONS
-  // ========================================
+  const [earnedStars, setEarnedStars] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [rewardCoin, setRewardCoin] = useState(0);
+  const [userHeart, setUserHeart] = useState(0);
+  const [userCoin, setUserCoin] = useState(0);
+  const [totalCorrect, setTotalCorrect] = useState(0);
+  const [totalWrong, setTotalWrong] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [hintStep, setHintStep] = useState(0);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const options = useMemo(() => {
-
-    const alphabet =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        .split('');
-
-    const answerLetters =
-      question.answer.split('');
-
-    const extra =
-      alphabet
-        .filter(
-          (l) =>
-            !answerLetters.includes(l)
-        )
-        .sort(
-          () =>
-            Math.random() - 0.5
-        )
-        .slice(0, 3);
-
-    return [
-      ...answerLetters,
-      ...extra,
-    ].sort(
-      () =>
-        Math.random() - 0.5
-    );
-
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const answerLetters = question.answer.split('');
+    const extra = alphabet
+      .filter((l) => !answerLetters.includes(l))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    return [...answerLetters, ...extra].sort(() => Math.random() - 0.5);
   }, [question]);
 
-  // ========================================
-  // ANSWER CONFIG
-  // ========================================
 
   const answerLetters =
     question.answer.split('');
@@ -275,9 +202,6 @@ export default function GamePlay() {
       ? -5
       : -4;
 
-  // ========================================
-  // OPTION BUTTON CONFIG
-  // ========================================
 
   const optionsLength =
     options.length;
@@ -396,373 +320,185 @@ export default function GamePlay() {
           error
         );
       }
-    };
+    } catch (error) {
+      console.log('Gagal load heart/coin:', error);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-
       loadUserStats();
-
     }, [])
   );
 
-  // ========================================
-  // ANIMATION
-  // ========================================
-
-  const playAnimation = (
-    correct: boolean
-  ) => {
-
+  const playAnimation = (correct: boolean) => {
     Animated.sequence([
-
-      Animated.timing(
-        scaleAnim,
-        {
-          toValue: 1.15,
-          duration: 150,
-          useNativeDriver: true,
-        }
-      ),
-
-      Animated.timing(
-        scaleAnim,
-        {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }
-      ),
-
+      Animated.timing(scaleAnim, {
+        toValue: 1.15,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
     ]).start();
 
     if (!correct) {
-
       setTimeout(() => {
-
         reset();
-
       }, 900);
     }
   };
 
-  // ========================================
-  // HINT
-  // ========================================
-
-  const hintText =
-    useMemo(() => {
-
-      const answer =
-        question.answer;
-
-      switch (hintStep) {
-
-        case 0:
-
-          return `Huruf pertama: ${answer[0]}`;
-
-        case 1:
-
-          return `Huruf terakhir: ${
-            answer[
-              answer.length - 1
-            ]
-          }`;
-
-        case 2:
-
-          return `Jumlah huruf: ${answer.length}`;
-
-        default:
-
-          return 'Semangat 😄';
-      }
-
-    }, [
-      hintStep,
-      question.answer,
-    ]);
-
-  // ========================================
-  // RESET GAME
-  // ========================================
+  const hintText = useMemo(() => {
+    const answer = question.answer;
+    switch (hintStep) {
+      case 0:
+        return `Huruf pertama: ${answer[0]}`;
+      case 1:
+        return `Huruf terakhir: ${answer[answer.length - 1]}`;
+      case 2:
+        return `Jumlah huruf: ${answer.length}`;
+      default:
+        return 'Semangat 😄';
+    }
+  }, [hintStep, question.answer]);
 
   const resetGame = () => {
-
     reset();
-
     setQuestionIndex(0);
-
     setTotalCorrect(0);
-
     setTotalWrong(0);
-
     setIsSubmitting(false);
-
     scaleAnim.setValue(1);
   };
 
-  // ========================================
-  // SUBMIT
-  // ========================================
+  const onSubmit = async () => {
+    if (!isFull) return;
+    if (isSubmitting) return;
 
-  const onSubmit =
-    async () => {
+    setIsSubmitting(true);
 
-      if (!isFull) return;
+    const resultData = check();
+    const result = resultData.isCorrect;
+    const newCorrect = totalCorrect + resultData.correctCount;
+    const newWrong = totalWrong + resultData.wrongCount;
 
-      if (isSubmitting)
-        return;
+    setTotalCorrect(newCorrect);
+    setTotalWrong(newWrong);
 
-      setIsSubmitting(true);
+    const rewards = calculateGameRewards({
+      correctAnswers: newCorrect,
+      wrongAnswers: newWrong,
+      totalQuestions: level.totalQuestions,
+      difficulty: level.difficulty,
+      streak: 0,
+    });
 
-      const resultData =
-        check();
+    setEarnedStars(rewards.stars);
+    setXp(rewards.xp);
+    setRewardCoin(rewards.coin);
 
-      const result =
-        resultData.isCorrect;
+    let updatedHeart = userHeart;
 
-      const newCorrect =
-        totalCorrect +
-        resultData.correctCount;
+    if (result) {
+      playAnimation(true);
+    } else {
+      playAnimation(false);
+      try {
+        updatedHeart = await decrementHeart();
+        setUserHeart(updatedHeart);
+      } catch {
+        updatedHeart = 0;
+      }
+    }
 
-      const newWrong =
-        totalWrong +
-        resultData.wrongCount;
+    const isLastQuestion = questionIndex === level.questions.length - 1;
+    const isGameOver = !result && updatedHeart <= 0;
 
-      setTotalCorrect(
-        newCorrect
-      );
-
-      setTotalWrong(
-        newWrong
-      );
-
-      const rewards =
-        calculateGameRewards({
-
-          correctAnswers:
-            newCorrect,
-
-          wrongAnswers:
-            newWrong,
-
-          totalQuestions:
-            level.totalQuestions,
-
-          difficulty:
-            level.difficulty,
-
-          streak: 0,
+    if (isGameOver) {
+      setTimeout(() => {
+        handleGameEnd({
+          isWrong: true,
+          heart: 0,
         });
+        setIsSubmitting(false);
+      }, 700);
+      return;
+    }
 
-      setEarnedStars(
-        rewards.stars
-      );
+    if (!isLastQuestion) {
+      setTimeout(() => {
+        reset();
+        setQuestionIndex((prev) => prev + 1);
+        setIsSubmitting(false);
+      }, 700);
+      return;
+    }
 
-      setXp(
-        rewards.xp
-      );
-
-      setRewardCoin(
-        rewards.coin
-      );
-
-      let updatedHeart =
-        userHeart;
-
-      if (result) {
-
-        playAnimation(true);
-
-      } else {
-
-        playAnimation(false);
-
-        try {
-
-          updatedHeart =
-            await decrementHeart();
-
-          setUserHeart(
-            updatedHeart
-          );
-
-        } catch {
-
-          updatedHeart = 0;
-        }
+    setTimeout(async () => {
+      try {
+        await saveGameProgress({
+          gameId: 'siapakahaku',
+          levelId: level.id,
+          stars: rewards.stars,
+          xp: rewards.xp,
+          coin: rewards.coin,
+        });
+        handleGameEnd({
+          isWrong: false,
+          heart: updatedHeart,
+        });
+      } finally {
+        setIsSubmitting(false);
       }
+    }, 700);
+  };
 
-      const isLastQuestion =
-        questionIndex ===
-        level.questions.length - 1;
-
-      const isGameOver =
-        !result &&
-        updatedHeart <= 0;
-
-      if (isGameOver) {
-
-        setTimeout(() => {
-
-          handleGameEnd({
-
-            isWrong: true,
-
-            heart: 0,
-          });
-
-          setIsSubmitting(false);
-
-        }, 700);
-
-        return;
-      }
-
-      if (!isLastQuestion) {
-
-        setTimeout(() => {
-
-          reset();
-
-          setQuestionIndex(
-            (prev) =>
-              prev + 1
-          );
-
-          setIsSubmitting(false);
-
-        }, 700);
-
-        return;
-      }
-
-      setTimeout(
-        async () => {
-
-          try {
-
-            await saveGameProgress({
-
-              gameId:
-                'siapakahaku',
-
-              levelId:
-                level.id,
-
-              stars:
-                rewards.stars,
-
-              xp:
-                rewards.xp,
-
-              coin:
-                rewards.coin,
-            });
-
-            handleGameEnd({
-
-              isWrong: false,
-
-              heart:
-                updatedHeart,
-            });
-
-          } finally {
-
-            setIsSubmitting(
-              false
-            );
-          }
-
-        },
-
-        700
-      );
-    };
-
-  // ========================================
-  // NEXT LEVEL
-  // ========================================
-
-  const goNextLevel =
-    () => {
-
-      const next =
-        levelIndex + 2;
-
-      if (
-        next <=
-        siapakahAkuLevels.length
-      ) {
-
-        router.replace(
-          `/siswa/game/siapakahaku/level/${next}`
-        );
-
-      } else {
-
-        router.back();
-      }
-    };
+  const goNextLevel = () => {
+    const next = levelIndex + 2;
+    if (next <= siapakahAkuLevels.length) {
+      router.replace(`/siswa/game/siapakahaku/level/${next}`);
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <>
-
       <GameLayout
         title="Siapakah Aku"
-        image={require(
-          '@/assets/images/games/siapakahAku.png'
-        )}
+        image={require('@/assets/images/games/siapakahAku.png')}
         level={level.id}
         heart={userHeart}
         coin={userCoin}
         actions={[
-
           {
             icon: '💡',
             color: '#FFD700',
-            onPress: () =>
-              setShowHint(true),
+            onPress: () => setShowHint(true),
           },
-
           {
             icon: '⌫',
             color: '#FF6B6B',
-            onPress:
-              removeLast,
+            onPress: removeLast,
           },
-
           {
-            text:
-              isSubmitting
-                ? 'Loading...'
-                : questionIndex <
-                  level.questions.length - 1
-                ? 'Next'
-                : 'Jawab',
-
-            color:
-              '#5CBEFA',
-
-            onPress:
-              onSubmit,
-
-            disabled:
-              !isFull ||
-              isSubmitting,
-
+            text: isSubmitting
+              ? 'Loading...'
+              : questionIndex < level.questions.length - 1
+              ? 'Next'
+              : 'Jawab',
+            color: '#5CBEFA',
+            onPress: onSubmit,
+            disabled: !isFull || isSubmitting,
             flex: 1,
           },
-
         ]}
       >
-
-        <Text style={styles.title}>
-          Siapakah Aku?
-        </Text>
+        <Text style={styles.title}>Siapakah Aku?</Text>
 
         <Image
           source={
@@ -788,8 +524,6 @@ export default function GamePlay() {
           ]}
         />
 
-        {/* ANSWER */}
-
         <Animated.View
           key={questionIndex}
           style={{
@@ -802,7 +536,7 @@ export default function GamePlay() {
           }}
         >
 
-          {/* ROW 1 */}
+         
 
           <View style={styles.answerRow}>
 
@@ -845,7 +579,7 @@ export default function GamePlay() {
             )}
           </View>
 
-          {/* ROW 2 */}
+        
 
           {isTwoRows && (
 
@@ -903,10 +637,9 @@ export default function GamePlay() {
               )}
             </View>
           )}
-
         </Animated.View>
 
-        {/* OPTIONS */}
+      
 
         <View
           style={
@@ -914,7 +647,7 @@ export default function GamePlay() {
           }
         >
 
-          {/* TOP ROW */}
+      
 
           <View
             style={[
@@ -937,69 +670,39 @@ export default function GamePlay() {
                     index
                   );
 
+          {bottomRow.length > 0 && (
+            <View style={[styles.row, { gap: optionGap }]}>
+              {bottomRow.map((l, i) => {
+                const index = i + splitIndex;
+                const isUsed = usedIndexes.includes(index);
                 return (
-
                   <TouchableOpacity
-                    key={`top-${index}-${l}`}
+                    key={`bottom-${index}-${l}`}
                     activeOpacity={0.7}
 
                     style={[
-
                       styles.optionBtn,
-
                       {
-                        width:
-                          optionButtonSize,
-
-                        height:
-                          optionButtonSize,
-
-                        borderRadius:
-                          optionButtonSize / 4,
+                        width: optionButtonSize,
+                        height: optionButtonSize,
+                        borderRadius: optionButtonSize / 4,
                       },
-
-                      isUsed &&
-                        styles.optionDisabled,
+                      isUsed && styles.optionDisabled,
                     ]}
-
                     onPress={() => {
-
-                      if (
-                        isUsed
-                      ) return;
-
-                      select(
-                        l,
-                        index
-                      );
+                      if (isUsed) return;
+                      select(l, index);
                     }}
-
-                    disabled={
-                      isUsed
-                    }
+                    disabled={isUsed}
                   >
-
-                    <Text
-                      style={[
-
-                        styles.optionText,
-
-                        {
-                          fontSize:
-                            optionFontSize,
-                        },
-                      ]}
-                    >
-                      {l}
-                    </Text>
-
+                    <Text style={[styles.optionText, { fontSize: optionFontSize }]}>{l}</Text>
                   </TouchableOpacity>
                 );
               }
             )}
           </View>
 
-          {/* BOTTOM ROW */}
+        
 
           {bottomRow.length >
             0 && (
@@ -1091,22 +794,14 @@ export default function GamePlay() {
             </View>
           )}
         </View>
-
       </GameLayout>
 
       <HintModal
         visible={showHint}
         hintText={hintText}
         onClose={() => {
-
           setShowHint(false);
-
-          setHintStep(
-            (prev) =>
-              prev < 2
-                ? prev + 1
-                : prev
-          );
+          setHintStep((prev) => (prev < 2 ? prev + 1 : prev));
         }}
       />
 
@@ -1125,28 +820,19 @@ export default function GamePlay() {
         coin={rewardCoin}
 
         onRetry={() => {
-
           resetEndState();
-
           resetGame();
         }}
 
         onNext={() => {
-
           resetEndState();
-
           resetGame();
-
           goNextLevel();
         }}
 
         onLeaderboard={() => {
-
           resetEndState();
-
-          router.push(
-            '/siswa/tabs/leaderboard'
-          );
+          router.push('/siswa/tabs/leaderboard');
         }}
       />
 
@@ -1157,22 +843,15 @@ export default function GamePlay() {
         }
 
         onShop={() => {
-
           resetEndState();
-
-          router.push(
-            '/siswa/toko'
-          );
+          router.push('/siswa/toko');
         }}
 
         onBack={() => {
-
           resetEndState();
-
           router.back();
         }}
       />
-
     </>
   );
 }

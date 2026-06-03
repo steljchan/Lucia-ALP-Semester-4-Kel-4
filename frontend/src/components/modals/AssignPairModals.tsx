@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, BTN } from '@/utils/theme';
+import React, {useState, useEffect} from 'react';
+import {View, Text, Modal, StyleSheet, TouchableOpacity, ScrollView} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {COLORS, BTN} from '@/utils/theme';
 import ClassSelector from '@/src/components/common/admin/classSelector';
-import { db } from '@/src/config/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import {db} from '@/src/config/firebase';
+import {collection, getDocs} from 'firebase/firestore';
 
 export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
   const [tingkat, setTingkat] = useState<'SMP' | 'SMA'>('SMP');
@@ -13,7 +13,6 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
   const [subject, setSubject] = useState('');
   const [allSubjects, setAllSubjects] = useState<any[]>([]);
 
-  // Ambil data mapel dari firestore
   useEffect(() => {
     const fetchSubjects = async () => {
       const snap = await getDocs(collection(db, "subject"));
@@ -25,7 +24,6 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
   const handleAdd = () => {
     if (!kelas || !subject) return;
     onSubmit({ tingkat, kelas, classId, subject });
-    // Reset setelah submit
     setKelas('');
     setSubject('');
     onClose();
@@ -43,7 +41,6 @@ export default function AssignPairModal({ visible, onClose, onSubmit }: any) {
           </View>
 
           <ScrollView style={{ maxHeight: 400 }}>
-            {/* Pakai ClassSelector yang sama dengan AddUser */}
             <ClassSelector 
               selectedTingkat={tingkat}
               onTingkatChange={(t) => { setTingkat(t); setKelas(''); }}
@@ -122,6 +119,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap', 
     gap: 8 
   },
+  
   subjectBtn: { 
     paddingHorizontal: 12, 
     paddingVertical: 8, 
@@ -130,10 +128,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: COLORS.primary 
   },
+
   subjectActive: { 
     backgroundColor: COLORS.primary, 
     borderColor: COLORS.primary 
   },
+
   subjectText: { 
     fontSize: 12, 
     color: COLORS.primary,

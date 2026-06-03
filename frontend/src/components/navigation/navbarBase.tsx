@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, Dimensions, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path } from 'react-native-svg';
-import { COLORS } from '@/utils/theme';
+import React, {useEffect, useRef} from 'react';
+import {View, TouchableOpacity, StyleSheet, Text, Dimensions, Animated} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import Svg, {Path} from 'react-native-svg';
+import {COLORS} from '@/utils/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

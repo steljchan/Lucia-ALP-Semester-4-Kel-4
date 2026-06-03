@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {COLORS} from '@/utils/theme';
 
 export default function SubjectCard({ title, image, onPress }: any) {
   return (
@@ -19,22 +20,24 @@ export default function SubjectCard({ title, image, onPress }: any) {
 const styles = StyleSheet.create({
   card: {
     width: '47%',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
-    elevation: 4, // android shadow
-    shadowColor: '#000', // ios shadow
+    elevation: 4,
+    shadowColor: COLORS.black, 
     shadowOpacity: 0.1,
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 3 },
   },
+
   image: {
     width: '100%',
     height: 95,
     resizeMode: 'contain',
     borderRadius:8,
   },
+
   text: {
     textAlign: 'center',
     marginTop: 10,

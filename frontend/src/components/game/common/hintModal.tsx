@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS, BORDER_RADIUS} from '@/utils/theme';
+import {View, Text, Modal, TouchableOpacity, StyleSheet} from 'react-native';
+import {COLORS, BORDER_RADIUS} from '@/utils/theme';
 
 export default function HintModal({
   visible,
